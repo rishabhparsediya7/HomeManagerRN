@@ -19,7 +19,7 @@ const Login = () => {
   const [signInMethod, setSignInMethod] = useState('password');
   const [otpSent, setOtpSent] = useState(false);
   const [otpSigninLoading, setOtpSigninLoading] = useState(false);
-  const {signInWithPassword, signIn} = useAuth();
+  const {signInWithPassword, signIn, signupWithPassword} = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,12 +52,17 @@ const Login = () => {
 
   const handleSignUp = async () => {
     try {
-      //   await signupWithPassword({
-      //     email,
-      //     password,
-      //     first_name: firstName,
-      //     last_name: lastName,
-      //   });
+      const result = await signupWithPassword({
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      });
+      console.log('🚀 ~ handleSignUp ~ result:', result);
+      if (result.success) {
+        await AsyncStorage.setItem('token', result.token);
+        signIn();
+      }
     } catch (err) {
       console.error('Sign up error', err);
     }
@@ -88,12 +93,12 @@ const Login = () => {
 
   const handleSignIn = async () => {
     try {
-      // const result = await signInWithPassword({email, password});
-      // if (result.success) {
-      await AsyncStorage.setItem('token', 'token');
-      await signIn();
-      navigation.navigate('Home');
-      // }
+      const result = await signInWithPassword({email, password});
+      console.log('🚀 ~ handleSignIn ~ result:', result);
+      if (result.success) {
+        await AsyncStorage.setItem('token', result.token);
+        signIn();
+      }
     } catch (err) {
       console.error('Sign in error', err);
     }

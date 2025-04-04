@@ -18,6 +18,12 @@ type AuthContext = {
     email: string;
     password: string;
   }) => Promise<any>;
+  signupWithPassword: (params: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+  }) => Promise<any>;
 };
 
 type UserProps = {
@@ -53,6 +59,7 @@ const AuthContext = createContext<AuthContext>({
   isLoading: false,
   isAuthenticated: false,
   signInWithPassword: () => Promise.resolve(),
+  signupWithPassword: () => Promise.resolve(),
 });
 
 export default function AuthProvider({children}: PropsWithChildren) {
@@ -67,6 +74,58 @@ export default function AuthProvider({children}: PropsWithChildren) {
     token: '',
   });
 
+  const signupWithPassword = async ({
+    email,
+    password,
+    first_name,
+    last_name,
+  }: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+  }) => {
+    setLoading(true);
+    try {
+      console.log('BASE_URL', process.env.BASE_URL);
+      console.log(
+        `🚀 ~ AuthProvider ~ {email, password, first_name, last_name}:`,
+        {email, password, first_name, last_name},
+      );
+      const response = await fetch(`${process.env.BASE_URL}/api/auth/signup`, {
+        method: 'POST',
+        body: JSON.stringify({email, password, first_name, last_name}),
+        headers: {
+          'content-type': 'application/json',
+        },
+      });
+      const result = await response.json();
+      console.log('🚀 ~ signupWithPassword ~ result:', result);
+      if (result.success) {
+        setIsAuthenticated(true);
+        await Promise.all([
+          AsyncStorage.setItem('userId', result.userId),
+          AsyncStorage.setItem('token', result.token),
+          AsyncStorage.setItem('isLoggedIn', true.toString()),
+        ]);
+        setUser({
+          userId: result?.userId || '',
+          name: first_name + ' ' + last_name || '',
+          photoUrl: result?.photoUrl || '',
+          token: result?.token || '',
+          loggedIn: true,
+        });
+        return result;
+      } else {
+        throw new Error('Could not sign up with password!');
+      }
+    } catch (error) {
+      console.log('🚀 ~ signupWithPassword ~ error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signInWithPassword = async ({
     email,
     password,
@@ -76,24 +135,25 @@ export default function AuthProvider({children}: PropsWithChildren) {
   }) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
-        {
-          method: 'POST',
-          body: JSON.stringify({email, password}),
-          headers: {
-            'content-type': 'application/json',
-          },
+      console.log(process.env.BASE_URL);
+      const response = await fetch(`${process.env.BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        body: JSON.stringify({email, password}),
+        headers: {
+          'content-type': 'application/json',
         },
-      );
+      });
       const result = await response.json();
       const {userId, token} = result;
       if (result.success) {
-        localStorage.setItem('userId', userId);
-        localStorage.setItem('token', token);
-        localStorage.setItem('isLoggedIn', true.toString());
-        localStorage.setItem('name', result?.name);
-        localStorage.setItem('photoUrl', result?.photoUrl || '');
+        setIsAuthenticated(true);
+        await Promise.all([
+          AsyncStorage.setItem('userId', userId),
+          AsyncStorage.setItem('token', token),
+          AsyncStorage.setItem('isLoggedIn', true.toString()),
+          AsyncStorage.setItem('name', result?.name),
+          AsyncStorage.setItem('photoUrl', result?.photoUrl || ''),
+        ]);
         setUser({
           userId: result?.userId || '',
           name: result?.name || '',
@@ -130,7 +190,13 @@ export default function AuthProvider({children}: PropsWithChildren) {
 
   return (
     <AuthContext.Provider
-      value={{signIn, signOut, isAuthenticated, signInWithPassword}}>
+      value={{
+        signIn,
+        signOut,
+        isAuthenticated,
+        signInWithPassword,
+        signupWithPassword,
+      }}>
       {children}
     </AuthContext.Provider>
   );
