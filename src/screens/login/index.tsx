@@ -20,6 +20,7 @@ const Login = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpSigninLoading, setOtpSigninLoading] = useState(false);
   const {signInWithPassword, signIn, signupWithPassword} = useAuth();
+  const [error, setError] = useState('');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,8 +36,6 @@ const Login = () => {
   //     loading,
   //     error,
   //   } = useAuth();
-  const error = false;
-  const loading = false;
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -92,13 +91,17 @@ const Login = () => {
   };
 
   const handleSignIn = async () => {
+    if (!email || !password) {
+      setError('Please enter email and password');
+      return;
+    }
     try {
       const result = await signInWithPassword({email, password});
       console.log('🚀 ~ handleSignIn ~ result:', result);
-      if (result.success) {
-        await AsyncStorage.setItem('token', result.token);
-        signIn();
-      }
+      // if (result.success) {
+      //   await AsyncStorage.setItem('token', result.token);
+      signIn();
+      // }
     } catch (err) {
       console.error('Sign in error', err);
     }

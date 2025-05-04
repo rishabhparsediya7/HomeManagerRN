@@ -1,3 +1,4 @@
+import {BASE_URL} from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   PropsWithChildren,
@@ -87,12 +88,12 @@ export default function AuthProvider({children}: PropsWithChildren) {
   }) => {
     setLoading(true);
     try {
-      console.log('BASE_URL', process.env.BASE_URL);
+      console.log('BASE_URL', BASE_URL);
       console.log(
         `🚀 ~ AuthProvider ~ {email, password, first_name, last_name}:`,
         {email, password, first_name, last_name},
       );
-      const response = await fetch(`${process.env.BASE_URL}/api/auth/signup`, {
+      const response = await fetch(`${BASE_URL}/api/auth/signup`, {
         method: 'POST',
         body: JSON.stringify({email, password, first_name, last_name}),
         headers: {
@@ -135,8 +136,8 @@ export default function AuthProvider({children}: PropsWithChildren) {
   }) => {
     setLoading(true);
     try {
-      console.log(process.env.BASE_URL);
-      const response = await fetch(`${process.env.BASE_URL}/api/auth/login`, {
+      console.log(BASE_URL);
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         body: JSON.stringify({email, password}),
         headers: {
