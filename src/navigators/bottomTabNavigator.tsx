@@ -1,69 +1,103 @@
+import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {COLORS} from '../providers/theme.style';
-import {useTheme} from '@react-navigation/native';
-import Login from '../screens/login';
-import {resize} from '../utils/deviceDimentions';
-import Dashboard from '../screens/dashboard';
-import Home from '../screens/home';
+import {View, Text, TouchableOpacity, StyleSheet, Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Home from '../screens/home';
+import Dashboard from '../screens/dashboard';
+import AddExpense from '../screens/addExpense'; // Placeholder for Profile
+import Login from '../screens/login';
+import {COLORS} from '../providers/theme.style';
+
 export type TabStackParamList = {
   Home: undefined;
-  Dashboard: undefined;
-};
-
-type TabParamList = keyof TabStackParamList;
-
-export const TabScreens: {[K in TabParamList]: K} = {
-  Home: 'Home',
-  Dashboard: 'Dashboard',
+  Expenses: undefined;
+  Add: undefined;
+  Profile: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabStackParamList>();
 
-const hideTabBarRoutes = [
-  '/groups/createGroup',
-  '/addExpense',
-  '/contacts/contactList',
-  '/contacts/selectedContactList',
-];
-
-// const renderTabs = (props: BottomTabBarProps) => <CustomTabBar {...props} />;
-
 const BottomTabNavigator = () => {
-  const pathName = '';
-  const theme = useTheme();
   return (
     <Tab.Navigator
-      backBehavior="history"
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          height: resize(60),
-          display: hideTabBarRoutes.includes(pathName) ? 'none' : 'flex',
-          backgroundColor: COLORS.primary,
-        },
-        tabBarActiveTintColor: COLORS.white,
+        tabBarShowLabel: true,
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarActiveTintColor: '#5A3FFF',
+        tabBarInactiveTintColor: '#4B5563',
       }}>
       <Tab.Screen
         name="Home"
+        component={Home}
         options={{
           tabBarIcon: ({color, size}) => (
-            <Icon name="home" color={color} size={size} />
+            <Icon name="home-outline" color={color} size={size} />
           ),
         }}
-        component={Home}
       />
       <Tab.Screen
-        name="Dashboard"
+        name="Expenses"
+        component={Dashboard}
         options={{
           tabBarIcon: ({color, size}) => (
-            <Icon name="analytics-outline" color={color} size={size} />
+            <Icon name="list-outline" color={color} size={size} />
           ),
         }}
-        component={Dashboard}
+      />
+      <Tab.Screen
+        name="Add"
+        component={AddExpense} // Replace with actual "Add" screen
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <Icon name="add" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={Login} // Replace with actual "Profile" screen
+        options={{
+          tabBarIcon: ({color, size}) => (
+            <Icon name="person-outline" color={color} size={size} />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  tabBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 70,
+    backgroundColor: '#fff',
+    borderTopWidth: 0.3,
+    borderColor: '#d1d5db',
+    elevation: 10,
+  },
+  tabLabel: {
+    fontSize: 12,
+    paddingBottom: Platform.OS === 'android' ? 4 : 0,
+  },
+
+  customButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#5A3FFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+});
 
 export default BottomTabNavigator;

@@ -10,11 +10,20 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {useAuth} from '../../providers/AuthProvider';
+import {useAuthorizeNavigation} from '../../navigators/navigators';
 
 const SignInScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureText, setSecureText] = useState(true);
+  const {signIn} = useAuth();
+  const authNavigation = useAuthorizeNavigation();
+
+  const handleSignIn = async () => {
+    await signIn();
+    authNavigation.navigate('Home');
+  };
 
   return (
     <KeyboardAvoidingView
@@ -63,7 +72,7 @@ const SignInScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.continueBtn}>
+        <TouchableOpacity style={styles.continueBtn} onPress={handleSignIn}>
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
 

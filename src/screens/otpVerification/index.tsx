@@ -1,4 +1,7 @@
+import {useNavigation, NavigationProp} from '@react-navigation/native';
+import {AuthorizeNavigationStackList} from '../../navigators/authorizeStack';
 import React, {useState, useEffect, useRef} from 'react';
+import {useAuth} from '../../providers/AuthProvider';
 import {
   View,
   Text,
@@ -11,6 +14,9 @@ import {
 } from 'react-native';
 
 const OtpVerificationScreen = ({navigation}) => {
+  const auth = useAuth();
+  const authNavigation =
+    useNavigation<NavigationProp<AuthorizeNavigationStackList>>();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(60);
   const inputs = useRef<TextInput[]>([]);
@@ -34,7 +40,15 @@ const OtpVerificationScreen = ({navigation}) => {
   };
 
   const handleVerify = () => {
-    navigation.replace('Home');
+    // Sign in the user
+    auth.signIn();
+    // Wait for authentication state to change
+    useEffect(() => {
+      if (auth.isAuthenticated) {
+        // Navigate to AddExpense using auth navigation
+        authNavigation.navigate('Home');
+      }
+    }, [auth.isAuthenticated]);
   };
 
   return (

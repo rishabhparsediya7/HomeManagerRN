@@ -174,14 +174,14 @@ export default function AuthProvider({children}: PropsWithChildren) {
     }
   };
 
-  useEffect(() => {
-    const fetchAuthStatus = async () => {
-      const token = await AsyncStorage.getItem('token');
-      setIsAuthenticated(!!token);
-    };
+  // useEffect(() => {
+  //   const fetchAuthStatus = async () => {
+  //     const token = await AsyncStorage.getItem('token');
+  //     setIsAuthenticated(!!token);
+  //   };
 
-    fetchAuthStatus();
-  }, [isAuthenticated]);
+  //   fetchAuthStatus();
+  // }, [isAuthenticated]);
 
   const signIn = () => setIsAuthenticated(true);
   const signOut = async () => {
