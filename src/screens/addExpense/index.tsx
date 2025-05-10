@@ -10,10 +10,29 @@ import {
   Platform,
 } from 'react-native';
 import Svg, {Path} from 'react-native-svg';
+import Header from '../../components/Header';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const AddExpenseScreen = () => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [inputWidth, setInputWidth] = useState(30);
+
+  const handleAmountChange = (text: string) => {
+    const numericText = text.replace(/[^0-9.]/g, '');
+    const parts = numericText.split('.');
+    let sanitized = parts[0];
+    if (parts.length > 1) {
+      sanitized += '.' + parts[1].slice(0, 2);
+    }
+
+    const baseWidth = 30;
+    const maxWidth = 100;
+    const calculatedWidth = baseWidth + sanitized.length * 3;
+
+    setInputWidth(Math.min(calculatedWidth, maxWidth));
+    setAmount(sanitized);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -22,86 +41,91 @@ const AddExpenseScreen = () => {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}>
       <ScrollView
         contentContainerStyle={{paddingBottom: 100}}
-        showsVerticalScrollIndicator={false}
-        style={styles.container}>
-        <View style={styles.headerRow}>
-          <Text style={styles.cancel}>Cancel</Text>
-          <Text style={styles.header}>Add Expense</Text>
-          <Text style={{color: 'transparent'}}>Cancel</Text>
-        </View>
-
-        <View style={styles.amountRow}>
-          <Text style={styles.dollar}>$</Text>
-          <Text style={styles.amount}>{amount || '0.00'}</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Category</Text>
-        <View style={styles.grid}>
-          {[
-            'Food & Dining',
-            'Transportation',
-            'Shopping',
-            'Bills & Utilities',
-            'Entertainment',
-            'Others',
-          ].map((cat, idx) => (
-            <View style={styles.categoryItem} key={idx}>
-              <Svg width={24} height={24} fill="none">
-                <Path
-                  d="M2 12h20"
-                  stroke="#3366FF"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                />
-              </Svg>
-              <Text style={styles.categoryLabel}>{cat}</Text>
-            </View>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>Date</Text>
-        <View style={styles.dateBox}>
-          <Svg width={20} height={20} fill="none">
-            <Path
-              d="M3 5h14v12H3z"
-              stroke="#3366FF"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
+        showsVerticalScrollIndicator={false}>
+        <Header title="Add Expense" showBackButton onBackPress={() => {}} />
+        <View style={styles.container}>
+          <View style={styles.amountRow}>
+            <Text style={styles.rupee}>
+              <Icon name="rupee" size={32} color="#888" />
+            </Text>
+            <TextInput
+              placeholder="0.00"
+              placeholderTextColor="#999"
+              value={amount}
+              keyboardType="numeric"
+              onChangeText={handleAmountChange}
+              style={[styles.amountInput, {width: `${inputWidth}%`}]} // Use template literal to convert number to string
             />
-          </Svg>
-          <Text style={styles.dateText}>Today, Feb 15, 2024</Text>
+          </View>
+
+          <Text style={styles.sectionTitle}>Category</Text>
+          <View style={styles.grid}>
+            {[
+              'Food & Dining',
+              'Transportation',
+              'Shopping',
+              'Bills & Utilities',
+              'Entertainment',
+              'Others',
+            ].map((cat, idx) => (
+              <View style={styles.categoryItem} key={idx}>
+                <Svg width={24} height={24} fill="none">
+                  <Path
+                    d="M2 12h20"
+                    stroke="#3366FF"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                  />
+                </Svg>
+                <Text style={styles.categoryLabel}>{cat}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Date</Text>
+          <View style={styles.dateBox}>
+            <Svg width={20} height={20} fill="none">
+              <Path
+                d="M3 5h14v12H3z"
+                stroke="#3366FF"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text style={styles.dateText}>Today, Feb 15, 2024</Text>
+          </View>
+
+          <Text style={styles.sectionTitle}>Payment Method</Text>
+          <View style={styles.grid}>
+            {['Cash', 'Credit Card', 'Debit Card'].map((method, idx) => (
+              <View style={styles.categoryItem} key={idx}>
+                <Svg width={24} height={24} fill="none">
+                  <Path
+                    d="M2 12h20"
+                    stroke="#3366FF"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                  />
+                </Svg>
+                <Text style={styles.categoryLabel}>{method}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Notes (Optional)</Text>
+          <TextInput
+            style={styles.notesInput}
+            placeholder="Add a note..."
+            placeholderTextColor="#999"
+            value={note}
+            onChangeText={setNote}
+          />
+
+          <TouchableOpacity style={styles.saveBtn}>
+            <Text style={styles.saveText}>Save Expense</Text>
+          </TouchableOpacity>
         </View>
-
-        <Text style={styles.sectionTitle}>Payment Method</Text>
-        <View style={styles.grid}>
-          {['Cash', 'Credit Card', 'Debit Card'].map((method, idx) => (
-            <View style={styles.categoryItem} key={idx}>
-              <Svg width={24} height={24} fill="none">
-                <Path
-                  d="M2 12h20"
-                  stroke="#3366FF"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                />
-              </Svg>
-              <Text style={styles.categoryLabel}>{method}</Text>
-            </View>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>Notes (Optional)</Text>
-        <TextInput
-          style={styles.notesInput}
-          placeholder="Add a note..."
-          placeholderTextColor="#999"
-          value={note}
-          onChangeText={setNote}
-        />
-
-        <TouchableOpacity style={styles.saveBtn}>
-          <Text style={styles.saveText}>Save Expense</Text>
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -111,7 +135,15 @@ export default AddExpenseScreen;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  amountInput: {
+    padding: 16,
+    borderRadius: 12,
+    color: '#000',
+    fontSize: 32,
+    fontWeight: '600',
   },
   headerRow: {
     flexDirection: 'row',
@@ -128,20 +160,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   amountRow: {
+    flex: 1,
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 30,
   },
-  dollar: {
-    fontSize: 30,
+  rupee: {
+    fontSize: 36,
     color: '#888',
-    marginRight: 4,
+    fontWeight: '600',
   },
   amount: {
     fontSize: 36,
     fontWeight: '600',
-    color: '#000',
+    color: '#888',
   },
   sectionTitle: {
     fontSize: 16,
