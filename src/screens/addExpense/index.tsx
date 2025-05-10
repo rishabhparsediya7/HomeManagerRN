@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,64 @@ import {
 import Svg, {Path} from 'react-native-svg';
 import Header from '../../components/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Icons from '../../components/icons';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const AddExpenseScreen = () => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentDate, setPaymentDate] = useState(new Date());
   const [inputWidth, setInputWidth] = useState(30);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+
+  const categories = useMemo(
+    () => [
+      {
+        name: 'Food & Dining',
+        icon: <Icons.FoodIcon />,
+      },
+      {
+        name: 'Transportation',
+        icon: <Icons.TransportIcon />,
+      },
+      {
+        name: 'Shopping',
+        icon: <Icons.ShoppingIcon />,
+      },
+      {
+        name: 'Bills & Utilities',
+        icon: <Icons.BillsIcon />,
+      },
+      {
+        name: 'Entertainment',
+        icon: <Icons.EntertainmentIcon />,
+      },
+      {
+        name: 'Others',
+        icon: <Icons.OthersIcon />,
+      },
+    ],
+    [],
+  );
+
+  const paymentMethods = useMemo(
+    () => [
+      {
+        name: 'Cash',
+        icon: <Icons.CashIcon />,
+      },
+      {
+        name: 'Credit Card',
+        icon: <Icons.CreditCardIcon />,
+      },
+      {
+        name: 'Debit Card',
+        icon: <Icons.DebitCardIcon />,
+      },
+    ],
+    [],
+  );
 
   const handleAmountChange = (text: string) => {
     const numericText = text.replace(/[^0-9.]/g, '');
@@ -34,11 +87,20 @@ const AddExpenseScreen = () => {
     setAmount(sanitized);
   };
 
+  const handleConfirm = (date: Date) => {
+    setPaymentDate(date);
+    setIsDatePickerVisible(false);
+  };
+
+  const hideDatePicker = () => {
+    setIsDatePickerVisible(false);
+  };
+
   return (
     <KeyboardAvoidingView
       style={{flex: 1, backgroundColor: '#fff'}}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}>
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
       <ScrollView
         contentContainerStyle={{paddingBottom: 100}}
         showsVerticalScrollIndicator={false}>
@@ -60,55 +122,34 @@ const AddExpenseScreen = () => {
 
           <Text style={styles.sectionTitle}>Category</Text>
           <View style={styles.grid}>
-            {[
-              'Food & Dining',
-              'Transportation',
-              'Shopping',
-              'Bills & Utilities',
-              'Entertainment',
-              'Others',
-            ].map((cat, idx) => (
+            {categories.map((cat, idx) => (
               <View style={styles.categoryItem} key={idx}>
-                <Svg width={24} height={24} fill="none">
-                  <Path
-                    d="M2 12h20"
-                    stroke="#3366FF"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                  />
-                </Svg>
-                <Text style={styles.categoryLabel}>{cat}</Text>
+                {cat.icon}
+                <Text style={styles.categoryLabel}>{cat.name}</Text>
               </View>
             ))}
           </View>
 
           <Text style={styles.sectionTitle}>Date</Text>
-          <View style={styles.dateBox}>
-            <Svg width={20} height={20} fill="none">
-              <Path
-                d="M3 5h14v12H3z"
-                stroke="#3366FF"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-            <Text style={styles.dateText}>Today, Feb 15, 2024</Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => setIsDatePickerVisible(true)}
+            style={styles.dateBox}>
+            <Icons.CalendarIcon />
+            <Text style={styles.dateText}>
+              {paymentDate.toLocaleString('en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </Text>
+          </TouchableOpacity>
 
           <Text style={styles.sectionTitle}>Payment Method</Text>
           <View style={styles.grid}>
-            {['Cash', 'Credit Card', 'Debit Card'].map((method, idx) => (
+            {paymentMethods.map((method, idx) => (
               <View style={styles.categoryItem} key={idx}>
-                <Svg width={24} height={24} fill="none">
-                  <Path
-                    d="M2 12h20"
-                    stroke="#3366FF"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                  />
-                </Svg>
-                <Text style={styles.categoryLabel}>{method}</Text>
+                {method.icon}
+                <Text style={styles.categoryLabel}>{method.name}</Text>
               </View>
             ))}
           </View>
@@ -126,6 +167,12 @@ const AddExpenseScreen = () => {
             <Text style={styles.saveText}>Save Expense</Text>
           </TouchableOpacity>
         </View>
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
