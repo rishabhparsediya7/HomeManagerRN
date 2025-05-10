@@ -8,6 +8,7 @@ import {
   Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Header from '../../components/Header';
 
 const Home = () => {
   return (
@@ -15,91 +16,86 @@ const Home = () => {
       contentContainerStyle={{paddingBottom: 100}}
       showsVerticalScrollIndicator={false}
       style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>HomeTrack</Text>
-        <View style={styles.headerRight}>
-          <Icon name="notifications-outline" size={22} color="#444" />
-          <Image
-            source={{
-              uri: 'https://randomuser.me/api/portraits/men/32.jpg',
-            }}
-            style={styles.avatar}
-          />
-        </View>
-      </View>
-
-      <View style={styles.budgetCard}>
-        <Text style={styles.budgetLabel}>This Month's Budget</Text>
-        <Text style={styles.budgetAmount}>$2,458.50</Text>
-        <View style={styles.budgetDetails}>
-          <Text style={styles.income}>$3,200.00</Text>
-          <Text style={styles.expense}>$741.50</Text>
-        </View>
-        <View style={styles.budgetDetails}>
-          <Text style={styles.caption}>Income</Text>
-          <Text style={styles.caption}>Expenses</Text>
-        </View>
-      </View>
-
-      {/* Action Buttons */}
-      <View style={styles.actions}>
-        {actionButton('Add Expense', 'add')}
-        {actionButton('Add Income', 'wallet-outline')}
-        {actionButton('Bills', 'receipt-outline')}
-        {actionButton('Budget', 'bar-chart-outline')}
-      </View>
-
-      {/* Recent Transactions */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        <TouchableOpacity>
-          <Text style={styles.seeAll}>See All</Text>
-        </TouchableOpacity>
-      </View>
-      {transactions.map((tx, index) => (
-        <View key={index} style={styles.transactionItem}>
-          <View style={styles.txLeft}>
-            <View style={styles.txIconContainer}>
-              <Icon name={tx.icon} size={18} color="#444" />
-            </View>
-            <View>
-              <Text style={styles.txTitle}>{tx.title}</Text>
-              <Text style={styles.txDate}>{tx.date}</Text>
-            </View>
+      <Header
+        title="HomeTrack"
+        showNotification
+        showImage
+        image="https://randomuser.me/api/portraits/men/32.jpg"
+      />
+      <View style={styles.homeContainer}>
+        <View style={styles.budgetCard}>
+          <Text style={styles.budgetLabel}>This Month's Budget</Text>
+          <Text style={styles.budgetAmount}>$2,458.50</Text>
+          <View style={styles.budgetDetails}>
+            <Text style={styles.income}>$3,200.00</Text>
+            <Text style={styles.expense}>$741.50</Text>
           </View>
-          <View style={styles.txRight}>
-            <Text style={styles.txAmount}>{tx.amount}</Text>
-            <Text style={styles.txCategory}>{tx.category}</Text>
+          <View style={styles.budgetDetails}>
+            <Text style={styles.caption}>Income</Text>
+            <Text style={styles.caption}>Expenses</Text>
           </View>
         </View>
-      ))}
 
-      {/* Monthly Overview */}
-      <Text style={styles.sectionTitle}>Monthly Overview</Text>
-      <View style={styles.chartContainer}>
-        <View style={styles.chartBars}>
-          {days.map((day, i) => (
-            <View key={i} style={styles.chartBarItem}>
-              <View style={[styles.bar, {height: day.height}]} />
-              <Text style={styles.dayLabel}>{day.label}</Text>
+        {/* Action Buttons */}
+        <View style={styles.actions}>
+          {actionButton('Add Expense', 'add')}
+          {actionButton('Add Income', 'wallet-outline')}
+          {actionButton('Bills', 'receipt-outline')}
+          {actionButton('Budget', 'bar-chart-outline')}
+        </View>
+
+        {/* Recent Transactions */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recent Transactions</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAll}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        {transactions.map((tx, index) => (
+          <View key={index} style={styles.transactionItem}>
+            <View style={styles.txLeft}>
+              <View style={styles.txIconContainer}>
+                <Icon name={tx.icon} size={18} color="#444" />
+              </View>
+              <View>
+                <Text style={styles.txTitle}>{tx.title}</Text>
+                <Text style={styles.txDate}>{tx.date}</Text>
+              </View>
+            </View>
+            <View style={styles.txRight}>
+              <Text style={styles.txAmount}>{tx.amount}</Text>
+              <Text style={styles.txCategory}>{tx.category}</Text>
+            </View>
+          </View>
+        ))}
+
+        {/* Monthly Overview */}
+        <Text style={styles.sectionTitle}>Monthly Overview</Text>
+        <View style={styles.chartContainer}>
+          <View style={styles.chartBars}>
+            {days.map((day, i) => (
+              <View key={i} style={styles.chartBarItem}>
+                <View style={[styles.bar, {height: day.height}]} />
+                <Text style={styles.dayLabel}>{day.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          {progressData.map((item, i) => (
+            <View key={i} style={styles.progressItem}>
+              <View style={styles.progressLabel}>
+                <Icon name={item.icon} size={16} color="#444" />
+                <Text style={styles.progressText}>{item.label}</Text>
+              </View>
+              <View style={styles.progressBarBackground}>
+                <View
+                  style={[styles.progressBarFill, {width: `${item.percent}%`}]}
+                />
+              </View>
+              <Text style={styles.progressPercent}>{item.percent}%</Text>
             </View>
           ))}
         </View>
-
-        {progressData.map((item, i) => (
-          <View key={i} style={styles.progressItem}>
-            <View style={styles.progressLabel}>
-              <Icon name={item.icon} size={16} color="#444" />
-              <Text style={styles.progressText}>{item.label}</Text>
-            </View>
-            <View style={styles.progressBarBackground}>
-              <View
-                style={[styles.progressBarFill, {width: `${item.percent}%`}]}
-              />
-            </View>
-            <Text style={styles.progressPercent}>{item.percent}%</Text>
-          </View>
-        ))}
       </View>
     </ScrollView>
   );
@@ -162,8 +158,10 @@ const progressData = [
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    padding: 20,
     flex: 1,
+  },
+  homeContainer: {
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',
