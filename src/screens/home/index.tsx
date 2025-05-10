@@ -219,14 +219,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 10,
+    gap: 12,
   },
   actionButton: {
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    width: 80,
+    backgroundColor: '#f7f8fa',
+    borderRadius: 12,
   },
   actionLabel: {
     fontSize: 12,
-    marginTop: 6,
     color: '#444',
+    textAlign: 'center',
   },
   sectionHeader: {
     flexDirection: 'row',
