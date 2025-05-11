@@ -74,7 +74,8 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    height: 60,
+    height: 72,
+    paddingHorizontal: 16,
   },
   backButton: {
     padding: 8,
