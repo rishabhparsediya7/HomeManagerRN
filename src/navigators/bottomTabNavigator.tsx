@@ -1,12 +1,11 @@
-import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {View, Text, TouchableOpacity, StyleSheet, Platform} from 'react-native';
+import React from 'react';
+import {Platform, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Home from '../screens/home';
-import Dashboard from '../screens/dashboard';
 import AddExpense from '../screens/addExpense'; // Placeholder for Profile
-import Login from '../screens/login';
-import {COLORS} from '../providers/theme.style';
+import Dashboard from '../screens/dashboard';
+import Home from '../screens/home';
+import Profile from '../screens/profile';
 
 export type TabStackParamList = {
   Home: undefined;
@@ -57,7 +56,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={Login} // Replace with actual "Profile" screen
+        component={Profile} // Replace with actual "Profile" screen
         options={{
           tabBarIcon: ({color, size}) => (
             <Icon name="person-outline" color={color} size={size} />
