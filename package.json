@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "clean": "cd android && ./gradlew clean && rm -r .gradle && cd ../ && npx react-native start --reset-cache",
-    "android": "react-native run-android",
+    "clean": "cd android && ./gradlew clean && rm -r .gradle && cd ../ && npx react-native start --reset-cache --port 8088",
+    "android": "react-native run-android --port 8088",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",

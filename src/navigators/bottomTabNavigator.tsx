@@ -3,7 +3,7 @@ import React from 'react';
 import {Platform, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AddExpense from '../screens/addExpense'; // Placeholder for Profile
-import Dashboard from '../screens/dashboard';
+import Expense from '../screens/expense';
 import Home from '../screens/home';
 import Profile from '../screens/profile';
 
@@ -38,7 +38,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Expenses"
-        component={Dashboard}
+        component={Expense}
         options={{
           tabBarIcon: ({color, size}) => (
             <Icon name="list-outline" color={color} size={size} />

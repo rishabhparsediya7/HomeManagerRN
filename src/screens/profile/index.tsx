@@ -21,7 +21,12 @@ const Profile = () => {
           style={styles.avatar}
         />
         <TouchableOpacity style={styles.editIcon}>
-          <Ionicons name="create" size={20} color="white" />
+          <Ionicons
+            name="create-outline"
+            style={{alignSelf: 'center'}}
+            color="white"
+            size={20}
+          />
         </TouchableOpacity>
         <Text style={styles.name}>John Smith</Text>
         <Text style={styles.email}>john.smith@email.com</Text>
@@ -55,11 +60,11 @@ const Profile = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    paddingTop: 40,
   },
   header: {
     alignItems: 'center',
     paddingVertical: 20,
+    backgroundColor: '#F6F6F6',
   },
   avatar: {
     width: 90,
@@ -68,11 +73,14 @@ const styles = StyleSheet.create({
   },
   editIcon: {
     position: 'absolute',
-    right: 140,
-    bottom: 25,
+    right: 160,
+    bottom: 75,
     backgroundColor: '#4F46E5',
     borderRadius: 20,
     padding: 6,
+    paddingLeft: 8,
+    paddingBottom: 8,
+    zIndex: 10,
   },
   name: {
     fontSize: 22,
