@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import Header from '../../components/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icons from '../../components/icons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import {category as expenseCategory} from '../../constants';
+import PaymentMethodSelector from '../../components/paymentMethodSelector';
 
 const AddExpenseScreen = () => {
   const [amount, setAmount] = useState('');
@@ -21,37 +23,10 @@ const AddExpenseScreen = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentDate, setPaymentDate] = useState(new Date());
   const [inputWidth, setInputWidth] = useState(30);
+  const [category, setCategory] = useState('');
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
-  const categories = useMemo(
-    () => [
-      {
-        name: 'Food & Dining',
-        icon: <Icons.FoodIcon />,
-      },
-      {
-        name: 'Transportation',
-        icon: <Icons.TransportIcon />,
-      },
-      {
-        name: 'Shopping',
-        icon: <Icons.ShoppingIcon />,
-      },
-      {
-        name: 'Bills & Utilities',
-        icon: <Icons.BillsIcon />,
-      },
-      {
-        name: 'Entertainment',
-        icon: <Icons.EntertainmentIcon />,
-      },
-      {
-        name: 'Others',
-        icon: <Icons.OthersIcon />,
-      },
-    ],
-    [],
-  );
+  const categories = useMemo(() => expenseCategory, []);
 
   const paymentMethods = useMemo(
     () => [
@@ -123,10 +98,13 @@ const AddExpenseScreen = () => {
           <Text style={styles.sectionTitle}>Category</Text>
           <View style={styles.grid}>
             {categories.map((cat, idx) => (
-              <View style={styles.categoryItem} key={idx}>
-                {cat.icon}
+              <TouchableOpacity
+                onPress={() => setCategory(cat.id)}
+                style={styles.categoryItem}
+                key={idx}>
+                {<cat.icon />}
                 <Text style={styles.categoryLabel}>{cat.name}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
 
@@ -146,12 +124,11 @@ const AddExpenseScreen = () => {
 
           <Text style={styles.sectionTitle}>Payment Method</Text>
           <View style={styles.grid}>
-            {paymentMethods.map((method, idx) => (
-              <View style={styles.categoryItem} key={idx}>
-                {method.icon}
-                <Text style={styles.categoryLabel}>{method.name}</Text>
-              </View>
-            ))}
+            <PaymentMethodSelector
+              paymentMethods={paymentMethods}
+              selectedPaymentMethod={paymentMethod}
+              setSelectedPaymentMethod={setPaymentMethod}
+            />
           </View>
 
           <Text style={styles.sectionTitle}>Notes (Optional)</Text>
