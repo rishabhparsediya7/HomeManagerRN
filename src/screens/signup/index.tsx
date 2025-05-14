@@ -9,13 +9,139 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {useAuth} from '../../providers/AuthProvider';
 
 const SignUpScreen = ({navigation}) => {
+  const {signupWithPassword} = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
-  const [confirmSecureText, setConfirmSecureText] = useState(true);
+
+  const [signUpForm, setSignUpForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    firstNameError: '',
+    lastNameError: '',
+    emailError: '',
+    passwordError: '',
+    confirmPasswordError: '',
+  });
+
+  const handleSignUp = async () => {
+    setSignUpForm({
+      ...signUpForm,
+      firstNameError: '',
+      lastNameError: '',
+      emailError: '',
+      passwordError: '',
+      confirmPasswordError: '',
+    });
+    const {firstName, lastName, email, password, confirmPassword} = signUpForm;
+    if (!firstName) {
+      setSignUpForm({
+        ...signUpForm,
+        firstNameError: 'First name is required',
+      });
+      return;
+    }
+    if (!lastName) {
+      setSignUpForm({
+        ...signUpForm,
+        lastNameError: 'Last name is required',
+      });
+      return;
+    }
+    if (!email) {
+      setSignUpForm({
+        ...signUpForm,
+        emailError: 'Email is required',
+      });
+      return;
+    }
+    const isValidEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
+      email,
+    );
+
+    if (!isValidEmail) {
+      setSignUpForm({
+        ...signUpForm,
+        emailError: 'Invalid email address',
+      });
+      return;
+    }
+
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+    const isValidPassword = regex.test(password);
+
+    if (!isValidPassword) {
+      setSignUpForm({
+        ...signUpForm,
+        passwordError:
+          'Password should be between 8 and 16 characters long and contain at least one special character, one uppercase letter, one lowercase letter, and one number',
+      });
+      return;
+    }
+
+    if (!password) {
+      setSignUpForm({
+        ...signUpForm,
+        passwordError: 'Password is required',
+      });
+      return;
+    }
+    if (!confirmPassword) {
+      setSignUpForm({
+        ...signUpForm,
+        confirmPasswordError: 'Password is required',
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setSignUpForm({
+        ...signUpForm,
+        confirmPasswordError: 'Passwords do not match',
+      });
+      return;
+    }
+
+    setSignUpForm({
+      ...signUpForm,
+      firstNameError: '',
+      lastNameError: '',
+      emailError: '',
+      passwordError: '',
+      confirmPasswordError: '',
+    });
+
+    setLoading(true);
+    try {
+      const result = await signupWithPassword({
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      });
+      console.log(result);
+      if (result.success) {
+        navigation.navigate('OTPVerification', {email});
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -30,16 +156,45 @@ const SignUpScreen = ({navigation}) => {
           <Text style={styles.subtitle}>
             Please fill in the information below to create your account
           </Text>
+          {error && <Text style={styles.error}>{error}</Text>}
 
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput style={styles.input} placeholder="Enter your full name" />
+          <Text style={styles.label}>First Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your first name"
+            value={signUpForm.firstName}
+            onChangeText={text =>
+              setSignUpForm({...signUpForm, firstName: text})
+            }
+          />
+          {signUpForm.firstNameError && (
+            <Text style={styles.error}>{signUpForm.firstNameError}</Text>
+          )}
+
+          <Text style={styles.label}>Last Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your last name"
+            value={signUpForm.lastName}
+            onChangeText={text =>
+              setSignUpForm({...signUpForm, lastName: text})
+            }
+          />
+          {signUpForm.lastNameError && (
+            <Text style={styles.error}>{signUpForm.lastNameError}</Text>
+          )}
 
           <Text style={styles.label}>Email Address</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter your email"
+            value={signUpForm.email}
+            onChangeText={text => setSignUpForm({...signUpForm, email: text})}
             keyboardType="email-address"
           />
+          {signUpForm.emailError && (
+            <Text style={styles.error}>{signUpForm.emailError}</Text>
+          )}
 
           <Text style={styles.label}>Password</Text>
           <View style={styles.passwordContainer}>
@@ -47,6 +202,10 @@ const SignUpScreen = ({navigation}) => {
               style={styles.inputInner}
               placeholder="Create a password"
               secureTextEntry={secureText}
+              value={signUpForm.password}
+              onChangeText={text =>
+                setSignUpForm({...signUpForm, password: text})
+              }
             />
             <TouchableOpacity onPress={() => setSecureText(!secureText)}>
               <Icon
@@ -56,28 +215,41 @@ const SignUpScreen = ({navigation}) => {
               />
             </TouchableOpacity>
           </View>
+          {signUpForm.passwordError && (
+            <Text style={styles.error}>{signUpForm.passwordError}</Text>
+          )}
 
           <Text style={styles.label}>Confirm Password</Text>
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.inputInner}
               placeholder="Confirm your password"
-              secureTextEntry={confirmSecureText}
+              secureTextEntry={secureText}
+              value={signUpForm.confirmPassword}
+              onChangeText={text =>
+                setSignUpForm({...signUpForm, confirmPassword: text})
+              }
             />
-            <TouchableOpacity
-              onPress={() => setConfirmSecureText(!confirmSecureText)}>
+            <TouchableOpacity onPress={() => setSecureText(!secureText)}>
               <Icon
-                name={confirmSecureText ? 'eye-off' : 'eye'}
+                name={secureText ? 'eye-off' : 'eye'}
                 size={20}
                 color="#999"
               />
             </TouchableOpacity>
           </View>
+          {signUpForm.confirmPasswordError && (
+            <Text style={styles.error}>{signUpForm.confirmPasswordError}</Text>
+          )}
 
-          <TouchableOpacity
-            style={styles.signUpButton}
-            onPress={() => navigation.navigate('OTPVerification')}>
-            <Text style={styles.signUpText}>Sign Up</Text>
+          <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
+            <Text style={styles.signUpText}>
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                'Sign Up'
+              )}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.orContainer}>
@@ -195,6 +367,10 @@ const styles = StyleSheet.create({
   signInText: {
     textAlign: 'center',
     color: '#666',
+  },
+  error: {
+    color: 'red',
+    marginBottom: 16,
   },
 });
 

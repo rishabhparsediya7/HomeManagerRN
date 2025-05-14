@@ -11,8 +11,16 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AccountOption from '../../components/accountOptions';
+import {useAuth} from '../../providers/AuthProvider';
 
 const Profile = () => {
+  const {signOut, user} = useAuth();
+  console.log('🚀 ~ Profile ~ user:', user);
+
+  const handleLogout = () => {
+    signOut();
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -28,8 +36,8 @@ const Profile = () => {
             size={20}
           />
         </TouchableOpacity>
-        <Text style={styles.name}>John Smith</Text>
-        <Text style={styles.email}>john.smith@email.com</Text>
+        <Text style={styles.name}>{user.name}</Text>
+        <Text style={styles.email}>{user.email}</Text>
       </View>
 
       <View style={styles.statsContainer}>
@@ -53,6 +61,7 @@ const Profile = () => {
       <AccountOption icon="shield" label="Security & Privacy" />
       <AccountOption icon="dollar-sign" label="Currency Preferences" />
       <AccountOption icon="download" label="Export Data" />
+      <AccountOption icon="log-out" label="Logout" onPress={handleLogout} />
     </ScrollView>
   );
 };

@@ -8,21 +8,41 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useAuth} from '../../providers/AuthProvider';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
 
 const SignInScreen = ({navigation}) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [signInForm, setSignInForm] = useState({
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
-  const {signIn} = useAuth();
+  const [loading, setLoading] = useState(false);
+  const {signInWithPassword} = useAuth();
   const authNavigation = useAuthorizeNavigation();
 
   const handleSignIn = async () => {
-    await signIn();
-    authNavigation.navigate('Home');
+    if (!signInForm.email || !signInForm.password) {
+      setError('Please enter email and password');
+      return;
+    }
+    setLoading(true);
+    try {
+      const user = await signInWithPassword({
+        email: signInForm.email,
+        password: signInForm.password,
+      });
+      console.log(user);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+    authNavigation.navigate('BottomTabNavigator');
   };
 
   return (
@@ -48,8 +68,8 @@ const SignInScreen = ({navigation}) => {
 
         <TextInput
           placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
+          value={signInForm.email}
+          onChangeText={text => setSignInForm({...signInForm, email: text})}
           style={styles.input}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -58,8 +78,10 @@ const SignInScreen = ({navigation}) => {
         <View style={styles.passwordContainer}>
           <TextInput
             placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
+            value={signInForm.password}
+            onChangeText={text =>
+              setSignInForm({...signInForm, password: text})
+            }
             secureTextEntry={secureText}
             style={styles.inputInner}
           />
@@ -71,9 +93,16 @@ const SignInScreen = ({navigation}) => {
             />
           </TouchableOpacity>
         </View>
+        {error && <Text style={styles.error}>{error}</Text>}
 
         <TouchableOpacity style={styles.continueBtn} onPress={handleSignIn}>
-          <Text style={styles.continueText}>Continue</Text>
+          <Text style={styles.continueText}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              'Sign In'
+            )}
+          </Text>
         </TouchableOpacity>
 
         <Text style={styles.terms}>
@@ -147,4 +176,5 @@ const styles = StyleSheet.create({
   terms: {fontSize: 12, color: '#888', textAlign: 'center', marginBottom: 10},
   link: {color: '#3366FF'},
   footer: {textAlign: 'center', color: '#888'},
+  error: {color: 'red', marginBottom: 10},
 });

@@ -7,7 +7,6 @@ import {
   useEffect,
   useState,
 } from 'react';
-import {useAuthorizeNavigation} from '../navigators/navigators';
 
 type AuthContext = {
   signIn: () => void;
@@ -25,6 +24,7 @@ type AuthContext = {
     first_name: string;
     last_name: string;
   }) => Promise<any>;
+  user: UserProps;
 };
 
 type UserProps = {
@@ -33,6 +33,7 @@ type UserProps = {
   userId: string;
   loggedIn: boolean;
   token: string;
+  email: string;
 };
 
 interface AuthContextProps {
@@ -61,6 +62,14 @@ const AuthContext = createContext<AuthContext>({
   isAuthenticated: false,
   signInWithPassword: () => Promise.resolve(),
   signupWithPassword: () => Promise.resolve(),
+  user: {
+    name: '',
+    photoUrl: '',
+    userId: '',
+    loggedIn: false,
+    token: '',
+    email: '',
+  },
 });
 
 export default function AuthProvider({children}: PropsWithChildren) {
@@ -73,6 +82,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
     userId: '',
     loggedIn: false,
     token: '',
+    email: '',
   });
 
   const signupWithPassword = async ({
@@ -95,22 +105,27 @@ export default function AuthProvider({children}: PropsWithChildren) {
       );
       const response = await fetch(`${BASE_URL}/api/auth/signup`, {
         method: 'POST',
-        body: JSON.stringify({email, password, first_name, last_name}),
+        body: JSON.stringify({
+          email,
+          password,
+          firstName: first_name,
+          lastName: last_name,
+        }),
         headers: {
           'content-type': 'application/json',
         },
       });
       const result = await response.json();
-      console.log('🚀 ~ signupWithPassword ~ result:', result);
+      console.log('🚀 ~ AuthProvider ~ result:', result);
       if (result.success) {
-        setIsAuthenticated(true);
         await Promise.all([
           AsyncStorage.setItem('userId', result.userId),
           AsyncStorage.setItem('token', result.token),
-          AsyncStorage.setItem('isLoggedIn', true.toString()),
+          // AsyncStorage.setItem('isLoggedIn', true.toString()),
         ]);
         setUser({
           userId: result?.userId || '',
+          email: result?.email || '',
           name: first_name + ' ' + last_name || '',
           photoUrl: result?.photoUrl || '',
           token: result?.token || '',
@@ -118,7 +133,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
         });
         return result;
       } else {
-        throw new Error('Could not sign up with password!');
+        throw new Error(result.message);
       }
     } catch (error) {
       console.log('🚀 ~ signupWithPassword ~ error:', error);
@@ -145,22 +160,23 @@ export default function AuthProvider({children}: PropsWithChildren) {
         },
       });
       const result = await response.json();
-      const {userId, token} = result;
-      if (result.success) {
+      const {userId, token, name} = result;
+      if (result.success && result.token) {
         setIsAuthenticated(true);
         await Promise.all([
           AsyncStorage.setItem('userId', userId),
           AsyncStorage.setItem('token', token),
-          AsyncStorage.setItem('isLoggedIn', true.toString()),
-          AsyncStorage.setItem('name', result?.name),
-          AsyncStorage.setItem('photoUrl', result?.photoUrl || ''),
+          // AsyncStorage.setItem('isLoggedIn', true.toString()),
+          // AsyncStorage.setItem('name', result?.name),
+          // AsyncStorage.setItem('photoUrl', result?.photoUrl || ''),
         ]);
         setUser({
-          userId: result?.userId || '',
-          name: result?.name || '',
+          userId: userId || '',
+          name: name || '',
           photoUrl: result?.photoUrl || '',
-          token: result?.token || '',
+          token: token || '',
           loggedIn: true,
+          email: email || '',
         });
         return result;
       } else {
@@ -174,16 +190,16 @@ export default function AuthProvider({children}: PropsWithChildren) {
     }
   };
 
-  // useEffect(() => {
-  //   const fetchAuthStatus = async () => {
-  //     const token = await AsyncStorage.getItem('token');
-  //     setIsAuthenticated(!!token);
-  //   };
+  useEffect(() => {
+    const fetchAuthStatus = async () => {
+      const token = await AsyncStorage.getItem('token');
+      setIsAuthenticated(!!token);
+    };
 
-  //   fetchAuthStatus();
-  // }, [isAuthenticated]);
+    fetchAuthStatus();
+  }, [isAuthenticated]);
 
-  const signIn = () => setIsAuthenticated(true);
+  const signIn = async () => setIsAuthenticated(true);
   const signOut = async () => {
     await AsyncStorage.clear();
     setIsAuthenticated(false);
@@ -194,6 +210,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
       value={{
         signIn,
         signOut,
+        user,
         isAuthenticated,
         signInWithPassword,
         signupWithPassword,

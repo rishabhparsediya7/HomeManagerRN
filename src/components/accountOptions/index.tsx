@@ -2,10 +2,15 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+interface AccountOptionProps {
+  icon: string;
+  label: string;
+  onPress?: () => void;
+}
 
-const AccountOption = ({icon, label}) => {
+const AccountOption = ({icon, label, onPress}: AccountOptionProps) => {
   return (
-    <TouchableOpacity style={styles.row}>
+    <TouchableOpacity style={styles.row} onPress={onPress}>
       <View style={styles.iconContainer}>
         <Feather name={icon} size={20} color="#374151" />
       </View>

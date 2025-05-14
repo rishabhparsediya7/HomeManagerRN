@@ -19,6 +19,7 @@ const Tab = createBottomTabNavigator<TabStackParamList>();
 const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,

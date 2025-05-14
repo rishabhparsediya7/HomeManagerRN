@@ -9,8 +9,12 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Header from '../../components/Header';
+import Icons from '../../components/icons';
+import {useMemo} from 'react';
+import {categories as homeCategories} from '../../types/categories';
 
 const Home = () => {
+  const categories = useMemo(() => homeCategories, []);
   return (
     <ScrollView
       contentContainerStyle={{paddingBottom: 100}}
@@ -55,7 +59,10 @@ const Home = () => {
           <View key={index} style={styles.transactionItem}>
             <View style={styles.txLeft}>
               <View style={styles.txIconContainer}>
-                <Icon name={tx.icon} size={18} color="#444" />
+                {categories
+                  .find(category => category.name.includes(tx.category))
+                  ?.icon({width: 24, height: 24}) ||
+                  categories[5].icon({width: 24, height: 24})}
               </View>
               <View>
                 <Text style={styles.txTitle}>{tx.title}</Text>
@@ -110,28 +117,24 @@ const actionButton = (label: string, icon: string) => (
 
 const transactions = [
   {
-    icon: 'fast-food-outline',
     title: 'Restaurant',
     date: 'Today',
     amount: '$24.50',
     category: 'Food',
   },
   {
-    icon: 'cart-outline',
     title: 'Grocery Store',
     date: 'Yesterday',
     amount: '$85.20',
     category: 'Shopping',
   },
   {
-    icon: 'car-outline',
     title: 'Gas Station',
     date: 'Yesterday',
     amount: '$45.00',
     category: 'Transport',
   },
   {
-    icon: 'home-outline',
     title: 'Rent Payment',
     date: '2 days ago',
     amount: '$1200.00',

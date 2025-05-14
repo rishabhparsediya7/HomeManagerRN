@@ -11,15 +11,22 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const OtpVerificationScreen = ({navigation}) => {
-  const auth = useAuth();
+const OtpVerificationScreen = ({navigation, route}) => {
+  const email = route?.params?.email;
+  const {signIn, isAuthenticated} = useAuth();
+  const [loading, setLoading] = useState(false);
   const authNavigation =
     useNavigation<NavigationProp<AuthorizeNavigationStackList>>();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(30);
   const inputs = useRef<TextInput[]>([]);
+  const BASE_URL = process.env.BASE_URL;
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -39,16 +46,44 @@ const OtpVerificationScreen = ({navigation}) => {
     }
   };
 
-  const handleVerify = () => {
-    // Sign in the user
-    auth.signIn();
-    // Wait for authentication state to change
+  const handleVerify = async () => {
+    setLoading(true);
+    try {
+      const result = await axios.post(`${BASE_URL}/api/auth/verify-otp`, {
+        email,
+        otp: otp.join(''),
+      });
+      if (result.data.success && result.data.token) {
+        await AsyncStorage.setItem('token', result.data.token);
+        await signIn();
+      }
+    } catch (error) {
+      console.log('🚀 ~ handleVerify ~ error:', error);
+    } finally {
+      setLoading(false);
+    }
     useEffect(() => {
-      if (auth.isAuthenticated) {
-        // Navigate to AddExpense using auth navigation
+      console.log('🚀 ~ useEffect ~ isAuthenticated:', isAuthenticated);
+      if (isAuthenticated) {
         authNavigation.navigate('Home');
       }
-    }, [auth.isAuthenticated]);
+    }, [isAuthenticated]);
+  };
+
+  const handleResend = async () => {
+    setResendLoading(true);
+    try {
+      const result = await axios.post(`${BASE_URL}/api/auth/resend-otp`, {
+        email,
+      });
+      if (result.data.success) {
+        setTimer(30);
+      }
+    } catch (error) {
+      console.log('🚀 ~ handleResend ~ error:', error);
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   return (
@@ -81,15 +116,19 @@ const OtpVerificationScreen = ({navigation}) => {
           ))}
         </View>
 
-        <Text style={styles.resendWrap}>
+        <TouchableOpacity style={styles.resendWrap} onPress={handleResend}>
           Didn't receive code?
-          <Text style={styles.resendText}> Resend</Text>
-        </Text>
+          <Text style={styles.resendText}>
+            {resendLoading ? <ActivityIndicator /> : ' Resend'}
+          </Text>
+        </TouchableOpacity>
 
         <Text style={styles.timer}>Resend code in {timer}s</Text>
 
         <TouchableOpacity style={styles.verifyBtn} onPress={handleVerify}>
-          <Text style={styles.verifyText}>Verify</Text>
+          <Text style={styles.verifyText}>
+            {loading ? <ActivityIndicator /> : 'Verify'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
