@@ -1,44 +1,54 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
-  View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from 'react-native';
-import Svg, {Path} from 'react-native-svg';
-import Header from '../../components/Header';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import Icons from '../../components/icons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {category as expenseCategory} from '../../constants';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import CategorySelector from '../../components/categorySelector';
+import Header from '../../components/Header';
+import Icons from '../../components/icons';
 import PaymentMethodSelector from '../../components/paymentMethodSelector';
+import {category as expenseCategory} from '../../constants';
+import api from '../../services/api';
+import {formatDMYDate} from '../../utils/formatDate';
 
 const AddExpenseScreen = () => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [paymentDate, setPaymentDate] = useState(new Date());
+  const [paymentDate, setPaymentDate] = useState(
+    new Date().toLocaleDateString('en-US', {timeZone: 'UTC'}),
+  );
   const [inputWidth, setInputWidth] = useState(30);
   const [category, setCategory] = useState('');
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [loading, setLoading] = useState(false);
 
   const categories = useMemo(() => expenseCategory, []);
 
   const paymentMethods = useMemo(
     () => [
       {
+        id: 1,
         name: 'Cash',
         icon: <Icons.CashIcon />,
       },
       {
+        id: 2,
         name: 'Credit Card',
         icon: <Icons.CreditCardIcon />,
       },
       {
+        id: 3,
         name: 'Debit Card',
         icon: <Icons.DebitCardIcon />,
       },
@@ -53,22 +63,53 @@ const AddExpenseScreen = () => {
     if (parts.length > 1) {
       sanitized += '.' + parts[1].slice(0, 2);
     }
-
     const baseWidth = 30;
     const maxWidth = 100;
     const calculatedWidth = baseWidth + sanitized.length * 3;
-
     setInputWidth(Math.min(calculatedWidth, maxWidth));
     setAmount(sanitized);
   };
 
   const handleConfirm = (date: Date) => {
-    setPaymentDate(date);
+    console.log('🚀 ~ handleConfirm ~ date:', date.toISOString());
+    // Reset to midnight in local time zone
+    setCalendarDate(date);
+    setPaymentDate(date.toISOString());
     setIsDatePickerVisible(false);
   };
 
   const hideDatePicker = () => {
     setIsDatePickerVisible(false);
+  };
+
+  const handleAddExpense = async () => {
+    if (!amount || !paymentMethod || !paymentDate || !category || !note) {
+      return;
+    }
+    console.log(amount, paymentMethod, paymentDate, category, note);
+    setLoading(true);
+    try {
+      const response = await api.post('/api/expense/add', {
+        amount,
+        description: note,
+        paymentMethod,
+        expenseDate: paymentDate,
+        category,
+        paymentDate,
+      });
+
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setAmount('');
+      setNote('');
+      setPaymentMethod('');
+      // setPaymentDate(formatDMYDate(new Date()));
+      setInputWidth(30);
+      setCategory('');
+      setLoading(false);
+    }
   };
 
   return (
@@ -97,15 +138,11 @@ const AddExpenseScreen = () => {
 
           <Text style={styles.sectionTitle}>Category</Text>
           <View style={styles.grid}>
-            {categories.map((cat, idx) => (
-              <TouchableOpacity
-                onPress={() => setCategory(cat.id)}
-                style={styles.categoryItem}
-                key={idx}>
-                {<cat.icon />}
-                <Text style={styles.categoryLabel}>{cat.name}</Text>
-              </TouchableOpacity>
-            ))}
+            <CategorySelector
+              categories={categories}
+              selectedCategory={category}
+              setSelectedCategory={setCategory}
+            />
           </View>
 
           <Text style={styles.sectionTitle}>Date</Text>
@@ -113,13 +150,7 @@ const AddExpenseScreen = () => {
             onPress={() => setIsDatePickerVisible(true)}
             style={styles.dateBox}>
             <Icons.CalendarIcon />
-            <Text style={styles.dateText}>
-              {paymentDate.toLocaleString('en-US', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </Text>
+            <Text style={styles.dateText}>{formatDMYDate(calendarDate)}</Text>
           </TouchableOpacity>
 
           <Text style={styles.sectionTitle}>Payment Method</Text>
@@ -131,7 +162,7 @@ const AddExpenseScreen = () => {
             />
           </View>
 
-          <Text style={styles.sectionTitle}>Notes (Optional)</Text>
+          <Text style={styles.sectionTitle}>Description</Text>
           <TextInput
             style={styles.notesInput}
             placeholder="Add a note..."
@@ -140,8 +171,10 @@ const AddExpenseScreen = () => {
             onChangeText={setNote}
           />
 
-          <TouchableOpacity style={styles.saveBtn}>
-            <Text style={styles.saveText}>Save Expense</Text>
+          <TouchableOpacity onPress={handleAddExpense} style={styles.saveBtn}>
+            <Text style={styles.saveText}>
+              {loading ? <ActivityIndicator /> : 'Save Expense'}
+            </Text>
           </TouchableOpacity>
         </View>
         <DateTimePickerModal
@@ -149,6 +182,7 @@ const AddExpenseScreen = () => {
           mode="date"
           onConfirm={handleConfirm}
           onCancel={hideDatePicker}
+          locale="en-IN"
         />
       </ScrollView>
     </KeyboardAvoidingView>

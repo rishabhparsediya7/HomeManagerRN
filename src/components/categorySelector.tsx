@@ -1,26 +1,36 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 
-const PaymentMethodSelector = ({
-  paymentMethods,
-  selectedPaymentMethod,
-  setSelectedPaymentMethod,
+interface Category {
+  id: string;
+  name: string;
+  icon: any;
+}
+
+const CategorySelector = ({
+  categories,
+  selectedCategory,
+  setSelectedCategory,
+}: {
+  categories: Category[];
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
 }) => {
   return (
     <View style={styles.grid}>
-      {paymentMethods.map((method, idx) => {
-        const isSelected = selectedPaymentMethod === method.id;
+      {categories.map((category, idx) => {
+        const isSelected = selectedCategory === category.id;
 
         return (
           <TouchableOpacity
-            onPress={() => setSelectedPaymentMethod(method.id)}
+            onPress={() => setSelectedCategory(category.id)}
             style={[
               styles.categoryItem,
               isSelected && styles.selectedCategoryItem,
             ]}
             key={idx}>
-            {method.icon}
-            <Text style={styles.categoryLabel}>{method.name}</Text>
+            {<category.icon />}
+            <Text style={styles.categoryLabel}>{category.name}</Text>
           </TouchableOpacity>
         );
       })}
@@ -54,4 +64,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PaymentMethodSelector;
+export default CategorySelector;

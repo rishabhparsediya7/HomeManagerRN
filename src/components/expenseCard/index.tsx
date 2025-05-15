@@ -1,22 +1,32 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {formatDate} from '../../utils/formatDate';
+import {category} from '../../constants';
 
 const ExpenseCard = ({expense}) => {
   return (
     <View style={styles.container}>
       <View style={styles.left}>
         <View style={styles.iconWrapper}>
-          <Ionicons name={expense.icon} size={20} color="#3B82F6" />
+          {category
+            .find(item => item.name === expense.category)
+            ?.icon({
+              width: 20,
+              height: 20,
+            })}
         </View>
         <View>
-          <Text style={styles.category}>{expense.category}</Text>
-          <Text style={styles.date}>{expense.date}</Text>
+          <Text style={styles.category}>{expense.description}</Text>
+          <Text style={styles.date}>{formatDate(expense.expenseDate)}</Text>
         </View>
       </View>
       <View style={styles.right}>
-        <Text style={styles.amount}>${expense.amount.toFixed(2)}</Text>
-        <Text style={styles.method}>{expense.method}</Text>
+        <Text style={styles.amount}>
+          <FontAwesome name="rupee" size={16} color="green" />
+          {Number(expense?.amount).toFixed(2)}
+        </Text>
+        <Text style={styles.method}>{expense?.paymentMethod}</Text>
       </View>
     </View>
   );

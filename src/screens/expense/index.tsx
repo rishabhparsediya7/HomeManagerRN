@@ -1,90 +1,119 @@
 // screens/ExpensesScreen.js
-import React, {useState} from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import FilterButton from '../../components/filterButton';
 import Header from '../../components/Header';
+import api from '../../services/api';
+import {useFocusEffect} from '@react-navigation/native';
 
-const expenses = [
-  {
-    id: '1',
-    category: 'Food & Dining',
-    date: 'Today, 2:30 PM',
-    amount: 24.5,
-    method: 'Credit Card',
-    icon: 'fast-food-outline',
-  },
-  {
-    id: '2',
-    category: 'Transportation',
-    date: 'Today, 9:15 AM',
-    amount: 32.0,
-    method: 'Cash',
-    icon: 'car-outline',
-  },
-  {
-    id: '3',
-    category: 'Shopping',
-    date: 'Yesterday',
-    amount: 156.75,
-    method: 'Debit Card',
-    icon: 'cart-outline',
-  },
-  {
-    id: '4',
-    category: 'Food & Dining',
-    date: 'Today, 2:30 PM',
-    amount: 24.5,
-    method: 'Credit Card',
-    icon: 'fast-food-outline',
-  },
-  {
-    id: '5',
-    category: 'Transportation',
-    date: 'Today, 9:15 AM',
-    amount: 32.0,
-    method: 'Cash',
-    icon: 'car-outline',
-  },
-  {
-    id: '6',
-    category: 'Shopping',
-    date: 'Yesterday',
-    amount: 156.75,
-    method: 'Debit Card',
-    icon: 'cart-outline',
-  },
-  {
-    id: '7',
-    category: 'Food & Dining',
-    date: 'Today, 2:30 PM',
-    amount: 24.5,
-    method: 'Credit Card',
-    icon: 'fast-food-outline',
-  },
-  {
-    id: '8',
-    category: 'Transportation',
-    date: 'Today, 9:15 AM',
-    amount: 32.0,
-    method: 'Cash',
-    icon: 'car-outline',
-  },
-  {
-    id: '9',
-    category: 'Shopping',
-    date: 'Yesterday',
-    amount: 156.75,
-    method: 'Debit Card',
-    icon: 'cart-outline',
-  },
-];
+// const expenses = [
+//   {
+//     id: '1',
+//     category: 'Food & Dining',
+//     date: 'Today, 2:30 PM',
+//     amount: 24.5,
+//     method: 'Credit Card',
+//     icon: 'fast-food-outline',
+//   },
+//   {
+//     id: '2',
+//     category: 'Transportation',
+//     date: 'Today, 9:15 AM',
+//     amount: 32.0,
+//     method: 'Cash',
+//     icon: 'car-outline',
+//   },
+//   {
+//     id: '3',
+//     category: 'Shopping',
+//     date: 'Yesterday',
+//     amount: 156.75,
+//     method: 'Debit Card',
+//     icon: 'cart-outline',
+//   },
+//   {
+//     id: '4',
+//     category: 'Food & Dining',
+//     date: 'Today, 2:30 PM',
+//     amount: 24.5,
+//     method: 'Credit Card',
+//     icon: 'fast-food-outline',
+//   },
+//   {
+//     id: '5',
+//     category: 'Transportation',
+//     date: 'Today, 9:15 AM',
+//     amount: 32.0,
+//     method: 'Cash',
+//     icon: 'car-outline',
+//   },
+//   {
+//     id: '6',
+//     category: 'Shopping',
+//     date: 'Yesterday',
+//     amount: 156.75,
+//     method: 'Debit Card',
+//     icon: 'cart-outline',
+//   },
+//   {
+//     id: '7',
+//     category: 'Food & Dining',
+//     date: 'Today, 2:30 PM',
+//     amount: 24.5,
+//     method: 'Credit Card',
+//     icon: 'fast-food-outline',
+//   },
+//   {
+//     id: '8',
+//     category: 'Transportation',
+//     date: 'Today, 9:15 AM',
+//     amount: 32.0,
+//     method: 'Cash',
+//     icon: 'car-outline',
+//   },
+//   {
+//     id: '9',
+//     category: 'Shopping',
+//     date: 'Yesterday',
+//     amount: 156.75,
+//     method: 'Debit Card',
+//     icon: 'cart-outline',
+//   },
+// ];
 
 const filterOptions = ['All', 'Today', 'Week', 'Month'];
 
 const Expense = () => {
   const [selectedFilter, setSelectedFilter] = useState('All');
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const getExpenses = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/expense');
+      setExpenses(response.data?.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getExpenses();
+    }, []),
+  );
 
   return (
     <View style={styles.container}>
@@ -96,7 +125,7 @@ const Expense = () => {
       />
       <View style={styles.container}>
         <FlatList
-          data={expenses}
+          data={expenses || []}
           ListHeaderComponent={
             <>
               <View style={styles.summaryCard}>
@@ -119,6 +148,17 @@ const Expense = () => {
                 ))}
               </View>
             </>
+          }
+          ListEmptyComponent={
+            loading ? (
+              <View style={{padding: 20, alignItems: 'center'}}>
+                <ActivityIndicator size="large" color="#3B82F6" />
+              </View>
+            ) : (
+              <View style={{padding: 20, alignItems: 'center'}}>
+                <Text>No expenses found.</Text>
+              </View>
+            )
           }
           keyExtractor={item => item.id}
           renderItem={({item}) => <ExpenseCard expense={item} />}
