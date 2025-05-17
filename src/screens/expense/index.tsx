@@ -126,6 +126,8 @@ const Expense = () => {
       <View style={styles.container}>
         <FlatList
           data={expenses || []}
+          onRefresh={getExpenses}
+          refreshing={loading}
           ListHeaderComponent={
             <>
               <View style={styles.summaryCard}>

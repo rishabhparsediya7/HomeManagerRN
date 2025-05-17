@@ -24,9 +24,7 @@ const AddExpenseScreen = () => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [paymentDate, setPaymentDate] = useState(
-    new Date().toLocaleDateString('en-US', {timeZone: 'UTC'}),
-  );
+  const [paymentDate, setPaymentDate] = useState(new Date());
   const [inputWidth, setInputWidth] = useState(30);
   const [category, setCategory] = useState('');
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
@@ -71,10 +69,9 @@ const AddExpenseScreen = () => {
   };
 
   const handleConfirm = (date: Date) => {
-    console.log('🚀 ~ handleConfirm ~ date:', date.toISOString());
-    // Reset to midnight in local time zone
+    // const formattedDate = getDateTimeWithTimezone(date);
     setCalendarDate(date);
-    setPaymentDate(date.toISOString());
+    setPaymentDate(date);
     setIsDatePickerVisible(false);
   };
 
@@ -86,7 +83,6 @@ const AddExpenseScreen = () => {
     if (!amount || !paymentMethod || !paymentDate || !category || !note) {
       return;
     }
-    console.log(amount, paymentMethod, paymentDate, category, note);
     setLoading(true);
     try {
       const response = await api.post('/api/expense/add', {
