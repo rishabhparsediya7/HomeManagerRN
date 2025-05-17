@@ -1,26 +1,25 @@
 // screens/Profile.js
-import React, {useCallback, useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import AccountOption from '../../components/accountOptions';
-import {useAuth} from '../../providers/AuthProvider';
 import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {Asset} from 'react-native-image-picker';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import AccountOption from '../../components/accountOptions';
+import ImageUploader from '../../components/imageUploader';
+import {useAuth} from '../../providers/AuthProvider';
 import api from '../../services/api';
+import RupeeIcon from '../../components/rupeeIcon';
 
 const Profile = () => {
   const {signOut, user} = useAuth();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [profilePic, setProfilePic] = useState('');
+  const [profilePicture, setProfilePicture] = useState('');
+  const [selectedImage, setSelectedImage] = useState<Asset | undefined>(
+    undefined,
+  );
 
   const handleLogout = () => {
     signOut();
@@ -33,7 +32,7 @@ const Profile = () => {
       console.log(response.data);
       setEmail(response.data.user.email);
       setName(response.data.user.name);
-      setProfilePic(response.data.user.profilePicture);
+      setProfilePicture(response.data.user.profilePicture);
     } catch (error) {
       console.log(error);
     } finally {
@@ -48,24 +47,18 @@ const Profile = () => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      contentContainerStyle={{paddingBottom: 100}}
+      showsVerticalScrollIndicator={false}
+      style={styles.container}>
       <View style={styles.header}>
-        <Image
-          source={
-            profilePic
-              ? {uri: profilePic}
-              : require('../../../assets/images/avatar.gif')
-          }
-          style={styles.avatar}
+        <ImageUploader
+          onImageSelected={image => setSelectedImage(image)}
+          selectedImage={selectedImage}
+          isProfilePic
+          showUploadIcon
+          profilePicture={profilePicture}
         />
-        <TouchableOpacity style={styles.editIcon}>
-          <Ionicons
-            name="create-outline"
-            style={{alignSelf: 'center'}}
-            color="white"
-            size={20}
-          />
-        </TouchableOpacity>
         <Text style={styles.name}>{user?.name || name}</Text>
         <Text style={styles.email}>{user?.email || email}</Text>
       </View>
@@ -73,13 +66,13 @@ const Profile = () => {
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
           <Ionicons name="wallet" size={24} color="#4F46E5" />
-          <Text style={styles.statLabel}>Total Savings</Text>
-          <Text style={styles.statValue}>$12,450</Text>
+          <Text style={styles.statLabel}>Remaining Budget</Text>
+          <RupeeIcon amount={12450} />
         </View>
         <View style={styles.statBox}>
           <FontAwesome5 name="coins" size={24} color="#4F46E5" />
           <Text style={styles.statLabel}>Monthly Budget</Text>
-          <Text style={styles.statValue}>$3,000</Text>
+          <RupeeIcon amount={3000} />
         </View>
       </View>
 
@@ -98,28 +91,13 @@ const Profile = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: '#fff',
   },
   header: {
     alignItems: 'center',
     paddingVertical: 20,
     backgroundColor: '#F6F6F6',
-  },
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-  },
-  editIcon: {
-    position: 'absolute',
-    right: 160,
-    bottom: 75,
-    backgroundColor: '#4F46E5',
-    borderRadius: 20,
-    padding: 6,
-    paddingLeft: 8,
-    paddingBottom: 8,
-    zIndex: 10,
   },
   name: {
     fontSize: 22,
@@ -134,13 +112,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginVertical: 20,
+    paddingHorizontal: 16,
+    gap: 8,
   },
   statBox: {
+    flex: 1,
     backgroundColor: '#F6F6F6',
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
-    width: '42%',
   },
   statLabel: {
     fontSize: 14,
