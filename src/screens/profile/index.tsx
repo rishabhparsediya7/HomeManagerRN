@@ -1,5 +1,5 @@
 // screens/Profile.js
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -12,20 +12,50 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AccountOption from '../../components/accountOptions';
 import {useAuth} from '../../providers/AuthProvider';
+import {useFocusEffect} from '@react-navigation/native';
+import api from '../../services/api';
 
 const Profile = () => {
   const {signOut, user} = useAuth();
-  console.log('🚀 ~ Profile ~ user:', user);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [profilePic, setProfilePic] = useState('');
 
   const handleLogout = () => {
     signOut();
   };
 
+  const getUser = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/users/me');
+      console.log(response.data);
+      setEmail(response.data.user.email);
+      setName(response.data.user.name);
+      setProfilePic(response.data.user.profilePicture);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getUser();
+    }, []),
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{uri: 'https://i.pravatar.cc/150?img=12'}}
+          source={
+            profilePic
+              ? {uri: profilePic}
+              : require('../../../assets/images/avatar.gif')
+          }
           style={styles.avatar}
         />
         <TouchableOpacity style={styles.editIcon}>
@@ -36,8 +66,8 @@ const Profile = () => {
             size={20}
           />
         </TouchableOpacity>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
+        <Text style={styles.name}>{user?.name || name}</Text>
+        <Text style={styles.email}>{user?.email || email}</Text>
       </View>
 
       <View style={styles.statsContainer}>
