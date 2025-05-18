@@ -17,6 +17,8 @@ interface HeaderProps {
   image?: string;
   onBackPress?: () => void;
   onNotificationPress?: () => void;
+  showCrossButton?: boolean;
+  onCrossPress?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -27,6 +29,8 @@ const Header: React.FC<HeaderProps> = ({
   image,
   onBackPress,
   onNotificationPress,
+  showCrossButton = false,
+  onCrossPress,
 }) => {
   return (
     <View style={styles.container}>
@@ -51,6 +55,11 @@ const Header: React.FC<HeaderProps> = ({
         )}
         {showImage && image && (
           <Image source={{uri: image}} style={styles.image} />
+        )}
+        {showCrossButton && (
+          <TouchableOpacity onPress={onCrossPress}>
+            <Icon name="close" size={24} color="#000" />
+          </TouchableOpacity>
         )}
       </View>
     </View>

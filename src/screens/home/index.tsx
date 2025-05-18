@@ -1,25 +1,48 @@
-import React from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  Image,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Header from '../../components/Header';
-import Icons from '../../components/icons';
-import {useMemo} from 'react';
 import {categories as homeCategories} from '../../types/categories';
+import {Modal} from '../../components/modal';
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import Input from '../../components/form/input';
 
 const Home = () => {
   const categories = useMemo(() => homeCategories, []);
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const handleAddBudget = () => {
+    bottomSheetModalRef.current?.present();
+  };
+  const handleAddExpense = () => {};
+  const handleAddIncome = () => {};
+  const handleAddBills = () => {
+    bottomSheetModalRef.current?.dismiss();
+  };
   return (
     <ScrollView
       contentContainerStyle={{paddingBottom: 100}}
       showsVerticalScrollIndicator={false}
       style={styles.container}>
+      <Modal
+        bottomSheetRef={bottomSheetModalRef}
+        modalSnapPoints={['70%']}
+        headerTitle="Add Budget"
+        onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
+        <Input placeholder="Enter your budget" placeholderTextColor="gray" />
+        <Input
+          placeholder="Enter your budget name"
+          placeholderTextColor="gray"
+        />
+        <TouchableOpacity onPress={handleAddExpense} style={styles.saveBtn}>
+          <Text style={styles.saveText}>Save</Text>
+        </TouchableOpacity>
+      </Modal>
       <Header
         title="HomeTrack"
         showNotification
@@ -42,10 +65,26 @@ const Home = () => {
 
         {/* Action Buttons */}
         <View style={styles.actions}>
-          {actionButton('Add Expense', 'add')}
-          {actionButton('Add Income', 'wallet-outline')}
-          {actionButton('Bills', 'receipt-outline')}
-          {actionButton('Budget', 'bar-chart-outline')}
+          <ActionButton
+            onPress={handleAddExpense}
+            label="Add Expense"
+            icon="add"
+          />
+          <ActionButton
+            onPress={handleAddIncome}
+            label="Add Income"
+            icon="wallet-outline"
+          />
+          <ActionButton
+            onPress={handleAddBills}
+            label="Bills"
+            icon="receipt-outline"
+          />
+          <ActionButton
+            onPress={handleAddBudget}
+            label="Budget"
+            icon="bar-chart-outline"
+          />
         </View>
 
         {/* Recent Transactions */}
@@ -108,8 +147,16 @@ const Home = () => {
   );
 };
 
-const actionButton = (label: string, icon: string) => (
-  <TouchableOpacity style={styles.actionButton}>
+const ActionButton = ({
+  label,
+  icon,
+  onPress,
+}: {
+  label: string;
+  icon: string;
+  onPress: () => void;
+}) => (
+  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
     <Icon name={icon} size={20} color="#4B7BFF" />
     <Text style={styles.actionLabel}>{label}</Text>
   </TouchableOpacity>
@@ -163,6 +210,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flex: 1,
   },
+  contentContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+
   homeContainer: {
     paddingHorizontal: 16,
   },
@@ -336,6 +388,19 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'right',
     marginTop: 2,
+  },
+  saveBtn: {
+    backgroundColor: '#3366FF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    marginHorizontal: 16,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  saveText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });
 
