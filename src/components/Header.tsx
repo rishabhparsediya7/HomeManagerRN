@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    height: 72,
+    height: 64,
     paddingHorizontal: 16,
   },
   backButton: {
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#000',
   },

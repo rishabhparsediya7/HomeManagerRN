@@ -6,7 +6,7 @@ interface RupeeIconProps {
   amount: number;
   size?: number;
   color?: string;
-  textStyle?: TextStyle;
+  textStyle?: TextStyle | TextStyle[];
 }
 export default function RupeeIcon({
   amount,

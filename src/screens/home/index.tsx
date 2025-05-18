@@ -12,6 +12,8 @@ import {categories as homeCategories} from '../../types/categories';
 import {Modal} from '../../components/modal';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import Input from '../../components/form/input';
+import LinearGradient from 'react-native-linear-gradient';
+import RupeeIcon from '../../components/rupeeIcon';
 
 const Home = () => {
   const categories = useMemo(() => homeCategories, []);
@@ -50,18 +52,44 @@ const Home = () => {
         image="https://randomuser.me/api/portraits/men/32.jpg"
       />
       <View style={styles.homeContainer}>
-        <View style={styles.budgetCard}>
-          <Text style={styles.budgetLabel}>This Month's Budget</Text>
-          <Text style={styles.budgetAmount}>$2,458.50</Text>
+        <LinearGradient
+          colors={['#8B5CF6', '#D946EF']}
+          style={styles.linearGradient}>
+          <Text style={[styles.budgetLabel, styles.whiteText]}>
+            This Month's Budget
+          </Text>
+          <RupeeIcon
+            amount={2458.5}
+            color="#fff"
+            size={36}
+            textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
+          />
           <View style={styles.budgetDetails}>
-            <Text style={styles.income}>$3,200.00</Text>
-            <Text style={styles.expense}>$741.50</Text>
+            <View>
+              <RupeeIcon
+                amount={3200}
+                color="#fff"
+                textStyle={styles.whiteText}
+              />
+              <Text style={[styles.caption, styles.whiteText]}>Income</Text>
+            </View>
+            <View>
+              <RupeeIcon
+                amount={741.5}
+                color="#fff"
+                textStyle={styles.whiteText}
+              />
+              <Text
+                style={[
+                  styles.caption,
+                  styles.whiteText,
+                  {textAlign: 'right'},
+                ]}>
+                Expenses
+              </Text>
+            </View>
           </View>
-          <View style={styles.budgetDetails}>
-            <Text style={styles.caption}>Income</Text>
-            <Text style={styles.caption}>Expenses</Text>
-          </View>
-        </View>
+        </LinearGradient>
 
         {/* Action Buttons */}
         <View style={styles.actions}>
@@ -156,7 +184,9 @@ const ActionButton = ({
   icon: string;
   onPress: () => void;
 }) => (
-  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+  <TouchableOpacity
+    style={[styles.actionButton, styles.whiteBackground]}
+    onPress={onPress}>
     <Icon name={icon} size={20} color="#4B7BFF" />
     <Text style={styles.actionLabel}>{label}</Text>
   </TouchableOpacity>
@@ -239,9 +269,6 @@ const styles = StyleSheet.create({
   },
   budgetCard: {
     backgroundColor: '#f7f8fa',
-    borderRadius: 14,
-    padding: 16,
-    marginVertical: 20,
   },
   budgetLabel: {
     color: '#777',
@@ -255,6 +282,7 @@ const styles = StyleSheet.create({
   budgetDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    width: '100%',
   },
   income: {
     color: 'green',
@@ -338,7 +366,6 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     marginTop: 10,
-    backgroundColor: '#f7f8fa',
     padding: 14,
     borderRadius: 14,
   },
@@ -401,6 +428,40 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
+  },
+  linearGradient: {
+    flex: 1,
+    alignItems: 'flex-start',
+    paddingLeft: 15,
+    paddingRight: 15,
+    borderRadius: 14,
+    padding: 16,
+    marginVertical: 20,
+    gap: 10,
+  },
+  buttonText: {
+    fontSize: 18,
+    fontFamily: 'Gill Sans',
+    textAlign: 'center',
+    margin: 10,
+    color: '#fff',
+    backgroundColor: 'transparent',
+  },
+  whiteText: {
+    color: '#fff',
+  },
+  whiteBackground: {
+    backgroundColor: '#fff',
+  },
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });
 
