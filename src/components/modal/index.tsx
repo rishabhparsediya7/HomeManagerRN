@@ -3,13 +3,15 @@ import {
   BottomSheetBackdropProps,
   BottomSheetFooter,
   BottomSheetModal,
+  BottomSheetScrollView,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import Header from '../../components/Header';
-import {useCallback, useMemo} from 'react';
-import {Platform, StyleSheet, Text, View} from 'react-native';
+import React, {useCallback, useMemo} from 'react';
+import {Platform, SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import {
   initialWindowMetrics,
+  SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {useReducedMotion} from 'react-native-reanimated';
@@ -24,6 +26,7 @@ interface ModalProps {
   footerComponent?: React.ReactNode;
   headerTitle?: string;
   onCrossPress?: () => void;
+  variant?: 'scrollableModal';
 }
 export const Modal = ({
   isBottomSheetNonDismissible = false,
@@ -34,6 +37,7 @@ export const Modal = ({
   footerComponent,
   headerTitle,
   onCrossPress,
+  variant,
   ...rest
 }: ModalProps) => {
   const insets =
@@ -60,52 +64,107 @@ export const Modal = ({
   }, []);
   const onChange = () => {};
 
-  return (
-    <BottomSheetModal
-      backdropComponent={renderBackdrop}
-      onChange={onChange}
-      ref={bottomSheetRef}
-      enablePanDownToClose
-      snapPoints={modalSnapPoints}
-      android_keyboardInputMode="adjustResize"
-      keyboardBlurBehavior="restore"
-      topInset={insets.top}
-      animateOnMount={!reducedMotion}
-      enableContentPanningGesture={false}
-      onDismiss={handleClose}
-      index={bottomSheetIndex}
-      handleComponent={() => (
-        <Header
-          title={headerTitle}
-          showCrossButton
-          onCrossPress={onCrossPress}
-          headerStyle={styles.header}
-        />
-      )}
-      {...rest}>
-      <BottomSheetView style={styles.contentContainer}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.keyboardAvoidingView}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0} // Adjust for header
-        >
-          <ScrollView
-            contentContainerStyle={styles.scrollContainer}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
-            <View
-              style={[styles.bottomPadding, styles.viewModalContainer]}
-              testID={'modal'}>
-              {children}
-            </View>
-            {footerComponent && (
-              <View style={styles.footer}>{footerComponent}</View>
+  switch (variant) {
+    case 'scrollableModal': {
+      return (
+        <>
+          <BottomSheetModal
+            backdropComponent={renderBackdrop}
+            onChange={onChange}
+            ref={bottomSheetRef}
+            enablePanDownToClose
+            snapPoints={modalSnapPoints}
+            onDismiss={handleClose}
+            android_keyboardInputMode="adjustPan"
+            keyboardBlurBehavior="restore"
+            topInset={insets.top}
+            animateOnMount={!reducedMotion}
+            index={bottomSheetIndex}
+            handleComponent={() => (
+              <Header
+                title={headerTitle}
+                showCrossButton
+                onCrossPress={onCrossPress}
+                headerStyle={styles.header}
+              />
             )}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </BottomSheetView>
-    </BottomSheetModal>
-  );
+            {...rest}
+            // footerComponent={renderFooter}
+          >
+            <BottomSheetScrollView
+              showsVerticalScrollIndicator={false}
+              style={styles.bottomPadding}>
+              <View
+                style={[styles.bottomPadding, styles.viewModalContainer]}
+                testID={'modal'}>
+                {children}
+              </View>
+            </BottomSheetScrollView>
+            {footerComponent && (
+              <BottomSheetFooter
+                style={styles.footer}
+                animatedFooterPosition={{
+                  value: 0,
+                }}>
+                {footerComponent}
+              </BottomSheetFooter>
+            )}
+          </BottomSheetModal>
+        </>
+      );
+    }
+
+    default: {
+      return (
+        <BottomSheetModal
+          backdropComponent={renderBackdrop}
+          onChange={onChange}
+          ref={bottomSheetRef}
+          enablePanDownToClose
+          snapPoints={modalSnapPoints}
+          android_keyboardInputMode="adjustResize"
+          keyboardBlurBehavior="restore"
+          topInset={insets.top}
+          animateOnMount={!reducedMotion}
+          enableContentPanningGesture={false}
+          onDismiss={handleClose}
+          index={bottomSheetIndex}
+          handleComponent={() => (
+            <Header
+              title={headerTitle}
+              showCrossButton
+              onCrossPress={onCrossPress}
+              headerStyle={styles.header}
+            />
+          )}
+          {...rest}>
+          <BottomSheetView style={styles.contentContainer}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              style={styles.keyboardAvoidingView}
+              keyboardVerticalOffset={
+                Platform.OS === 'ios' ? insets.top + 60 : 0
+              } // Adjust for header
+            >
+              <ScrollView
+                contentContainerStyle={styles.scrollContainer}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}>
+                <View
+                  style={[styles.bottomPadding, styles.viewModalContainer]}
+                  testID={'modal'}>
+                  {children}
+                </View>
+                {footerComponent && (
+                  <View style={styles.footer}>{footerComponent}</View>
+                )}
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </BottomSheetView>
+        </BottomSheetModal>
+      );
+    }
+  }
 };
 
 const styles = StyleSheet.create({
