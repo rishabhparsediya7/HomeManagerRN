@@ -1,5 +1,7 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
+  ActivityIndicator,
+  FlatList,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,10 +16,45 @@ import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import Input from '../../components/form/input';
 import LinearGradient from 'react-native-linear-gradient';
 import RupeeIcon from '../../components/rupeeIcon';
+import api from '../../services/api';
+import {getMonthStartAndEndDates} from '../../utils/dates';
+import ExpenseCard from '../../components/expenseCard';
+
+interface ExpenseDataProps {
+  amount: string;
+  category: string;
+  categoryId: number;
+  createdAt: string;
+  description: string;
+  expenseDate: string;
+  id: string;
+  paymentMethod: string;
+  paymentMethodId: number;
+  updatedAt: string;
+  userId: string;
+}
 
 const Home = () => {
   const categories = useMemo(() => homeCategories, []);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const {startDate, endDate} = getMonthStartAndEndDates();
+  const [recentExpenses, setRecentExpenses] = useState<ExpenseDataProps[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [monthSummary, setMonthSummary] = useState<{
+    totalExpenses: number;
+    totalIncome: number;
+    totalBudget: number;
+  }>({
+    totalExpenses: 0,
+    totalIncome: 0,
+    totalBudget: 0,
+  });
+  const limit = 4;
+  const filter = 'custom';
+
+  console.log('Start Date:', startDate); // e.g., 2025-05-01
+  console.log('End Date:', endDate); // e.g., 2025-05-31
+
   const handleAddBudget = () => {
     bottomSheetModalRef.current?.present();
   };
@@ -26,6 +63,33 @@ const Home = () => {
   const handleAddBills = () => {
     bottomSheetModalRef.current?.dismiss();
   };
+  const fetchHomeData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get(
+        `/api/expense?filter=${filter}&startDate=${startDate}&endDate=${endDate}&limit=${limit}`,
+      );
+      const data = response.data.data;
+      setRecentExpenses(data);
+      setMonthSummary({
+        totalExpenses: Number(response.data?.totalMonthSum || 0),
+        totalIncome: Number(response.data?.totalIncome || 0),
+        totalBudget: Number(response.data?.totalBudget || 0),
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [filter, startDate, endDate, limit]);
+
+  useEffect(() => {
+    const getHomeData = async () => {
+      fetchHomeData();
+    };
+    getHomeData();
+  }, [fetchHomeData]);
+
   return (
     <ScrollView
       contentContainerStyle={{paddingBottom: 100}}
@@ -59,7 +123,7 @@ const Home = () => {
             This Month's Budget
           </Text>
           <RupeeIcon
-            amount={2458.5}
+            amount={monthSummary.totalBudget}
             color="#fff"
             size={36}
             textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
@@ -67,7 +131,7 @@ const Home = () => {
           <View style={styles.budgetDetails}>
             <View>
               <RupeeIcon
-                amount={3200}
+                amount={monthSummary.totalIncome}
                 color="#fff"
                 textStyle={styles.whiteText}
               />
@@ -75,7 +139,7 @@ const Home = () => {
             </View>
             <View>
               <RupeeIcon
-                amount={741.5}
+                amount={monthSummary.totalExpenses}
                 color="#fff"
                 textStyle={styles.whiteText}
               />
@@ -122,26 +186,24 @@ const Home = () => {
             <Text style={styles.seeAll}>See All</Text>
           </TouchableOpacity>
         </View>
-        {transactions.map((tx, index) => (
-          <View key={index} style={styles.transactionItem}>
-            <View style={styles.txLeft}>
-              <View style={styles.txIconContainer}>
-                {categories
-                  .find(category => category.name.includes(tx.category))
-                  ?.icon({width: 24, height: 24}) ||
-                  categories[5].icon({width: 24, height: 24})}
+        <FlatList
+          data={recentExpenses || []}
+          onRefresh={fetchHomeData}
+          refreshing={loading}
+          ListEmptyComponent={
+            loading ? (
+              <View style={{padding: 20, alignItems: 'center'}}>
+                <ActivityIndicator size="large" color="#3B82F6" />
               </View>
-              <View>
-                <Text style={styles.txTitle}>{tx.title}</Text>
-                <Text style={styles.txDate}>{tx.date}</Text>
+            ) : (
+              <View style={{padding: 20, alignItems: 'center'}}>
+                <Text>No expenses found.</Text>
               </View>
-            </View>
-            <View style={styles.txRight}>
-              <Text style={styles.txAmount}>{tx.amount}</Text>
-              <Text style={styles.txCategory}>{tx.category}</Text>
-            </View>
-          </View>
-        ))}
+            )
+          }
+          keyExtractor={item => item.id}
+          renderItem={({item}) => <ExpenseCard expense={item} />}
+        />
 
         {/* Monthly Overview */}
         <Text style={styles.sectionTitle}>Monthly Overview</Text>
