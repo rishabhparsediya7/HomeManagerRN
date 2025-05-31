@@ -2,6 +2,8 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -95,20 +97,33 @@ const Home = () => {
       contentContainerStyle={{paddingBottom: 100}}
       showsVerticalScrollIndicator={false}
       style={styles.container}>
-      <Modal
-        bottomSheetRef={bottomSheetModalRef}
-        modalSnapPoints={['40%']}
-        headerTitle="Add Budget"
-        onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
-        <Input placeholder="Enter your budget" placeholderTextColor="gray" />
-        <Input
-          placeholder="Enter your budget name"
-          placeholderTextColor="gray"
-        />
-        <TouchableOpacity onPress={handleAddExpense} style={styles.saveBtn}>
-          <Text style={styles.saveText}>Save</Text>
-        </TouchableOpacity>
-      </Modal>
+      <KeyboardAvoidingView
+        enabled
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{
+          flex: 1,
+        }}>
+        <Modal
+          bottomSheetRef={bottomSheetModalRef}
+          modalSnapPoints={['40%']}
+          variant="scrollableModal"
+          headerTitle="Add Budget"
+          onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
+          <Input
+            variant="modal"
+            placeholder="Enter your budget"
+            placeholderTextColor="gray"
+          />
+          <Input
+            variant="modal"
+            placeholder="Enter your budget name"
+            placeholderTextColor="gray"
+          />
+          <TouchableOpacity onPress={handleAddExpense} style={styles.saveBtn}>
+            <Text style={styles.saveText}>Save</Text>
+          </TouchableOpacity>
+        </Modal>
+      </KeyboardAvoidingView>
       <Header
         title="HomeTrack"
         showNotification
