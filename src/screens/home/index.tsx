@@ -1,3 +1,4 @@
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -10,18 +11,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import Header from '../../components/Header';
-import {categories as homeCategories} from '../../types/categories';
-import {Modal} from '../../components/modal';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import Input from '../../components/form/input';
 import LinearGradient from 'react-native-linear-gradient';
-import RupeeIcon from '../../components/rupeeIcon';
-import api from '../../services/api';
-import {getMonthStartAndEndDates} from '../../utils/dates';
+import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
+import Input from '../../components/form/input';
+import Header from '../../components/Header';
+import {Modal} from '../../components/modal';
+import RupeeIcon from '../../components/rupeeIcon';
 import {COLORS} from '../../providers/theme.style';
+import api from '../../services/api';
+import {categories as homeCategories} from '../../types/categories';
+import {getMonthStartAndEndDates} from '../../utils/dates';
 
 interface ExpenseDataProps {
   amount: string;
@@ -38,11 +38,17 @@ interface ExpenseDataProps {
 }
 
 const Home = () => {
-  const categories = useMemo(() => homeCategories, []);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const {startDate, endDate} = getMonthStartAndEndDates();
   const [recentExpenses, setRecentExpenses] = useState<ExpenseDataProps[]>([]);
   const [loading, setLoading] = useState(false);
+  const [budget, setBudget] = useState('');
+  const [actionPlaceHolder, setActionPlaceHolder] = useState('');
+  const [actionType, setActionType] = useState<'income' | 'bills' | 'budget'>();
+  const onBudgetChange = (text: string) => {
+    setBudget(text);
+  };
+
   const [monthSummary, setMonthSummary] = useState<{
     totalExpenses: number;
     totalIncome: number;
@@ -55,17 +61,6 @@ const Home = () => {
   const limit = 4;
   const filter = 'custom';
 
-  console.log('Start Date:', startDate); // e.g., 2025-05-01
-  console.log('End Date:', endDate); // e.g., 2025-05-31
-
-  const handleAddBudget = () => {
-    bottomSheetModalRef.current?.present();
-  };
-  const handleAddExpense = () => {};
-  const handleAddIncome = () => {};
-  const handleAddBills = () => {
-    bottomSheetModalRef.current?.dismiss();
-  };
   const fetchHomeData = useCallback(async () => {
     setLoading(true);
     try {
@@ -86,6 +81,28 @@ const Home = () => {
     }
   }, [filter, startDate, endDate, limit]);
 
+  const openActionModal = (type: 'income' | 'bills' | 'budget') => {
+    if (type === 'income') {
+      setActionPlaceHolder('Enter your income');
+      setActionType('income');
+    } else if (type === 'bills') {
+      setActionPlaceHolder('Enter your bills');
+      setActionType('bills');
+    } else {
+      setActionPlaceHolder('Enter your budget');
+      setActionType('budget');
+    }
+    bottomSheetModalRef.current?.present();
+  };
+
+  const handleSubmitAction = () => {
+    if (actionType === 'income') {
+    } else if (actionType === 'bills') {
+    } else {
+    }
+    bottomSheetModalRef.current?.dismiss();
+  };
+
   useEffect(() => {
     const getHomeData = async () => {
       fetchHomeData();
@@ -98,35 +115,6 @@ const Home = () => {
       contentContainerStyle={{paddingBottom: 100}}
       showsVerticalScrollIndicator={false}
       style={styles.container}>
-      <KeyboardAvoidingView
-        enabled
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{
-          flex: 1,
-        }}>
-        <Modal
-          bottomSheetRef={bottomSheetModalRef}
-          modalSnapPoints={['35%']}
-          variant="scrollableModal"
-          headerTitle="Add Budget"
-          onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
-          <View style={{paddingTop: 20}}>
-            <Input
-              variant="modal"
-              placeholder="Enter your budget"
-              placeholderTextColor="gray"
-            />
-            <Input
-              variant="modal"
-              placeholder="Enter your budget name"
-              placeholderTextColor="gray"
-            />
-            <TouchableOpacity onPress={handleAddExpense} style={styles.saveBtn}>
-              <Text style={styles.saveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </Modal>
-      </KeyboardAvoidingView>
       <Header
         title="HomeTrack"
         showNotification
@@ -175,23 +163,18 @@ const Home = () => {
 
         {/* Action Buttons */}
         <View style={styles.actions}>
-          {/* <ActionButton
-            onPress={handleAddExpense}
-            label="Add Expense"
-            icon="add"
-          /> */}
           <ActionButton
-            onPress={handleAddIncome}
+            onPress={() => openActionModal('income')}
             label="Add Income"
             icon="wallet-outline"
           />
           <ActionButton
-            onPress={handleAddBills}
+            onPress={() => openActionModal('bills')}
             label="Bills"
             icon="receipt-outline"
           />
           <ActionButton
-            onPress={handleAddBudget}
+            onPress={() => openActionModal('budget')}
             label="Budget"
             icon="bar-chart-outline"
           />
@@ -251,6 +234,34 @@ const Home = () => {
           ))}
         </View>
       </View>
+      <KeyboardAvoidingView
+        enabled
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{
+          flex: 1,
+        }}>
+        <Modal
+          bottomSheetRef={bottomSheetModalRef}
+          modalSnapPoints={['35%']}
+          variant="scrollableModal"
+          headerTitle={`Add ${actionType}`}
+          onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
+          <View style={{paddingTop: 20}}>
+            <Input
+              value={budget}
+              onChangeText={onBudgetChange}
+              variant="modal"
+              placeholder={actionPlaceHolder}
+              placeholderTextColor="gray"
+            />
+            <TouchableOpacity
+              onPress={handleSubmitAction}
+              style={styles.saveBtn}>
+              <Text style={styles.saveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
     </ScrollView>
   );
 };

@@ -8,6 +8,8 @@ interface InputProps {
   style?: any;
   ref?: any;
   variant?: 'default' | 'modal';
+  value?: string;
+  onChangeText?: (text: string) => void;
 }
 const Input = ({
   ref,
@@ -15,6 +17,8 @@ const Input = ({
   placeholderTextColor = 'gray',
   style,
   variant = 'default',
+  value,
+  onChangeText,
   ...rest
 }: InputProps) => {
   const styles = StyleSheet.create({
@@ -47,7 +51,8 @@ const Input = ({
             placeholderTextColor={placeholderTextColor}
             returnKeyType="done"
             placeholder={placeholder}
-            onChangeText={val => {}}
+            onChangeText={onChangeText}
+            value={value}
             style={[styles.textContainer, style]}
             {...rest}
           />
@@ -60,6 +65,8 @@ const Input = ({
             placeholder={placeholder}
             placeholderTextColor={placeholderTextColor}
             style={[styles.textContainer, style]}
+            value={value}
+            onChangeText={onChangeText}
             {...rest}
           />
         </View>
