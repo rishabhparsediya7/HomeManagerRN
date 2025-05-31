@@ -35,7 +35,7 @@ interface ModalProps {
 export const Modal = ({
   isBottomSheetNonDismissible = false,
   bottomSheetRef,
-  modalSnapPoints,
+  modalSnapPoints = ['35%'],
   children,
   bottomSheetIndex,
   footerComponent,
@@ -104,15 +104,6 @@ export const Modal = ({
                 {children}
               </View>
             </BottomSheetScrollView>
-            {footerComponent && (
-              <BottomSheetFooter
-                style={styles.footer}
-                animatedFooterPosition={{
-                  value: 0,
-                }}>
-                {footerComponent}
-              </BottomSheetFooter>
-            )}
           </BottomSheetModal>
         </>
       );
@@ -159,9 +150,6 @@ export const Modal = ({
                   testID={'modal'}>
                   {children}
                 </View>
-                {footerComponent && (
-                  <View style={styles.footer}>{footerComponent}</View>
-                )}
               </ScrollView>
             </KeyboardAvoidingView>
           </BottomSheetView>
@@ -190,9 +178,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     width: '100%',
-  },
-  footer: {
-    backgroundColor: '#fff',
   },
   contentContainer: {
     flex: 1,
