@@ -40,15 +40,17 @@ const Input = ({
   switch (variant) {
     case 'modal':
       return (
-        <BottomSheetTextInput
-          ref={ref}
-          style={styles.textContainer}
-          placeholderTextColor={placeholderTextColor}
-          returnKeyType="done"
-          placeholder={placeholder}
-          onChangeText={val => {}}
-          {...rest}
-        />
+        <View style={styles.container}>
+          <BottomSheetTextInput
+            ref={ref}
+            placeholderTextColor={placeholderTextColor}
+            returnKeyType="done"
+            placeholder={placeholder}
+            onChangeText={val => {}}
+            style={[styles.textContainer, style]}
+            {...rest}
+          />
+        </View>
       );
     default:
       return (
