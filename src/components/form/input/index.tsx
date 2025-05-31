@@ -20,7 +20,8 @@ const Input = ({
   const styles = StyleSheet.create({
     container: {
       borderColor: 'gray',
-      padding: 12,
+      paddingBottom: 12,
+      paddingHorizontal: 12,
       width: '100%',
     },
     textContainer: {
@@ -31,7 +32,7 @@ const Input = ({
       backgroundColor: '#f1f1f1',
       padding: 16,
       height: 56,
-      minHeight: 56,
+      // minHeight: 56,
       borderRadius: 10,
       fontSize: 16,
     },
