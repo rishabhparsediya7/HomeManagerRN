@@ -105,23 +105,25 @@ const Home = () => {
         }}>
         <Modal
           bottomSheetRef={bottomSheetModalRef}
-          modalSnapPoints={['40%']}
+          modalSnapPoints={['35%']}
           variant="scrollableModal"
           headerTitle="Add Budget"
           onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
-          <Input
-            variant="modal"
-            placeholder="Enter your budget"
-            placeholderTextColor="gray"
-          />
-          <Input
-            variant="modal"
-            placeholder="Enter your budget name"
-            placeholderTextColor="gray"
-          />
-          <TouchableOpacity onPress={handleAddExpense} style={styles.saveBtn}>
-            <Text style={styles.saveText}>Save</Text>
-          </TouchableOpacity>
+          <View style={{paddingTop: 20}}>
+            <Input
+              variant="modal"
+              placeholder="Enter your budget"
+              placeholderTextColor="gray"
+            />
+            <Input
+              variant="modal"
+              placeholder="Enter your budget name"
+              placeholderTextColor="gray"
+            />
+            <TouchableOpacity onPress={handleAddExpense} style={styles.saveBtn}>
+              <Text style={styles.saveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
         </Modal>
       </KeyboardAvoidingView>
       <Header
@@ -472,7 +474,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     marginHorizontal: 16,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 12,
   },
   saveText: {
     color: '#fff',
