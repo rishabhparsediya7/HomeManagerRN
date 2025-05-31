@@ -34,7 +34,7 @@ const ExpenseCard = ({expense}) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    // paddingHorizontal: 20,
     paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -53,6 +53,7 @@ const styles = StyleSheet.create({
   category: {
     fontWeight: '600',
     fontSize: 16,
+    textTransform: 'capitalize',
   },
   date: {
     color: '#6B7280',
