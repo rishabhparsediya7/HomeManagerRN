@@ -163,7 +163,11 @@ const Expense = () => {
             )
           }
           keyExtractor={item => item.id}
-          renderItem={({item}) => <ExpenseCard expense={item} />}
+          renderItem={({item}) => (
+            <View style={{paddingHorizontal: 16}}>
+              <ExpenseCard expense={item} />
+            </View>
+          )}
           contentContainerStyle={{paddingBottom: 160}}
         />
 
