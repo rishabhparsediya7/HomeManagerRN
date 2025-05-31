@@ -6,16 +6,20 @@ import {
   BottomSheetScrollView,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import Header from '../../components/Header';
-import React, {useCallback, useMemo} from 'react';
-import {Platform, SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import React, {useCallback} from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import {useReducedMotion} from 'react-native-reanimated';
 import {
   initialWindowMetrics,
-  SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import {useReducedMotion} from 'react-native-reanimated';
-import {ScrollView, KeyboardAvoidingView} from 'react-native';
+import Header from '../../components/Header';
 
 interface ModalProps {
   isBottomSheetNonDismissible?: boolean;
