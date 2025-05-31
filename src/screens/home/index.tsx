@@ -97,7 +97,7 @@ const Home = () => {
       style={styles.container}>
       <Modal
         bottomSheetRef={bottomSheetModalRef}
-        modalSnapPoints={['70%']}
+        modalSnapPoints={['40%']}
         headerTitle="Add Budget"
         onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
         <Input placeholder="Enter your budget" placeholderTextColor="gray" />
@@ -253,33 +253,6 @@ const ActionButton = ({
     <Text style={styles.actionLabel}>{label}</Text>
   </TouchableOpacity>
 );
-
-const transactions = [
-  {
-    title: 'Restaurant',
-    date: 'Today',
-    amount: '$24.50',
-    category: 'Food',
-  },
-  {
-    title: 'Grocery Store',
-    date: 'Yesterday',
-    amount: '$85.20',
-    category: 'Shopping',
-  },
-  {
-    title: 'Gas Station',
-    date: 'Yesterday',
-    amount: '$45.00',
-    category: 'Transport',
-  },
-  {
-    title: 'Rent Payment',
-    date: '2 days ago',
-    amount: '$1200.00',
-    category: 'Housing',
-  },
-];
 
 const days = [
   {label: 'Mon', height: 60},
