@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Image,
   StatusBar,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -19,6 +21,7 @@ interface HeaderProps {
   onNotificationPress?: () => void;
   showCrossButton?: boolean;
   onCrossPress?: () => void;
+  headerStyle?: StyleProp<ViewStyle>;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -31,9 +34,10 @@ const Header: React.FC<HeaderProps> = ({
   onNotificationPress,
   showCrossButton = false,
   onCrossPress,
+  headerStyle,
 }) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, headerStyle]}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" />
       <View style={styles.titleBackButtonContainer}>
         {showBackButton && (

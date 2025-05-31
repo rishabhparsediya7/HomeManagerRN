@@ -60,15 +60,13 @@ export const Modal = ({
   }, []);
   const onChange = () => {};
 
-  const snapPoints = useMemo(() => modalSnapPoints, []);
-
   return (
     <BottomSheetModal
       backdropComponent={renderBackdrop}
       onChange={onChange}
       ref={bottomSheetRef}
       enablePanDownToClose
-      snapPoints={snapPoints}
+      snapPoints={modalSnapPoints}
       android_keyboardInputMode="adjustResize"
       keyboardBlurBehavior="restore"
       topInset={insets.top}
@@ -81,6 +79,7 @@ export const Modal = ({
           title={headerTitle}
           showCrossButton
           onCrossPress={onCrossPress}
+          headerStyle={styles.header}
         />
       )}
       {...rest}>
@@ -135,5 +134,9 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     alignItems: 'center',
+  },
+  header: {
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
 });
