@@ -183,3 +183,23 @@ export const getWholeWeekDates = (isoString: string) => {
 
   return obj;
 };
+function formatDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero
+  const day = String(date.getDate()).padStart(2, '0'); // Add leading zero
+  return `${year}-${month}-${day}`;
+}
+
+export const getMonthStartAndEndDates = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0);
+
+  return {
+    startDate: formatDate(startDate),
+    endDate: formatDate(endDate),
+  };
+};
