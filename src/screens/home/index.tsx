@@ -21,6 +21,7 @@ import RupeeIcon from '../../components/rupeeIcon';
 import api from '../../services/api';
 import {getMonthStartAndEndDates} from '../../utils/dates';
 import ExpenseCard from '../../components/expenseCard';
+import {COLORS} from '../../providers/theme.style';
 
 interface ExpenseDataProps {
   amount: string;
@@ -174,11 +175,11 @@ const Home = () => {
 
         {/* Action Buttons */}
         <View style={styles.actions}>
-          <ActionButton
+          {/* <ActionButton
             onPress={handleAddExpense}
             label="Add Expense"
             icon="add"
-          />
+          /> */}
           <ActionButton
             onPress={handleAddIncome}
             label="Add Income"
@@ -263,10 +264,8 @@ const ActionButton = ({
   icon: string;
   onPress: () => void;
 }) => (
-  <TouchableOpacity
-    style={[styles.actionButton, styles.whiteBackground]}
-    onPress={onPress}>
-    <Icon name={icon} size={20} color="#4B7BFF" />
+  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+    <Icon name={icon} size={32} color={COLORS.primaryText} />
     <Text style={styles.actionLabel}>{label}</Text>
   </TouchableOpacity>
 );
@@ -358,13 +357,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 10,
-    width: 80,
-    backgroundColor: '#f7f8fa',
+    width: '30%',
+    backgroundColor: COLORS.bgGhostWhite,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.bgGhostWhite,
   },
   actionLabel: {
-    fontSize: 12,
-    color: '#444',
+    fontSize: 16,
+    color: COLORS.primaryText,
+    fontWeight: '400',
     textAlign: 'center',
   },
   sectionHeader: {
@@ -379,42 +381,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   seeAll: {
-    color: '#2F80ED',
-    fontSize: 14,
-  },
-  transactionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
-  txLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  txIconContainer: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 30,
-  },
-  txTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  txDate: {
-    fontSize: 12,
-    color: '#888',
-  },
-  txRight: {
-    alignItems: 'flex-end',
-  },
-  txAmount: {
-    color: 'red',
-    fontSize: 14,
-  },
-  txCategory: {
-    fontSize: 12,
-    color: '#888',
+    color: COLORS.primaryText,
+    fontSize: 16,
   },
   chartContainer: {
     marginTop: 10,
@@ -501,9 +469,6 @@ const styles = StyleSheet.create({
   },
   whiteText: {
     color: '#fff',
-  },
-  whiteBackground: {
-    backgroundColor: '#fff',
   },
   shadow: {
     shadowColor: '#000',
