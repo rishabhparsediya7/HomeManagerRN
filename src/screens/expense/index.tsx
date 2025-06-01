@@ -1,94 +1,19 @@
 // screens/ExpensesScreen.js
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import FilterButton from '../../components/filterButton';
 import Header from '../../components/Header';
 import api from '../../services/api';
-import {useFocusEffect} from '@react-navigation/native';
-
-// const expenses = [
-//   {
-//     id: '1',
-//     category: 'Food & Dining',
-//     date: 'Today, 2:30 PM',
-//     amount: 24.5,
-//     method: 'Credit Card',
-//     icon: 'fast-food-outline',
-//   },
-//   {
-//     id: '2',
-//     category: 'Transportation',
-//     date: 'Today, 9:15 AM',
-//     amount: 32.0,
-//     method: 'Cash',
-//     icon: 'car-outline',
-//   },
-//   {
-//     id: '3',
-//     category: 'Shopping',
-//     date: 'Yesterday',
-//     amount: 156.75,
-//     method: 'Debit Card',
-//     icon: 'cart-outline',
-//   },
-//   {
-//     id: '4',
-//     category: 'Food & Dining',
-//     date: 'Today, 2:30 PM',
-//     amount: 24.5,
-//     method: 'Credit Card',
-//     icon: 'fast-food-outline',
-//   },
-//   {
-//     id: '5',
-//     category: 'Transportation',
-//     date: 'Today, 9:15 AM',
-//     amount: 32.0,
-//     method: 'Cash',
-//     icon: 'car-outline',
-//   },
-//   {
-//     id: '6',
-//     category: 'Shopping',
-//     date: 'Yesterday',
-//     amount: 156.75,
-//     method: 'Debit Card',
-//     icon: 'cart-outline',
-//   },
-//   {
-//     id: '7',
-//     category: 'Food & Dining',
-//     date: 'Today, 2:30 PM',
-//     amount: 24.5,
-//     method: 'Credit Card',
-//     icon: 'fast-food-outline',
-//   },
-//   {
-//     id: '8',
-//     category: 'Transportation',
-//     date: 'Today, 9:15 AM',
-//     amount: 32.0,
-//     method: 'Cash',
-//     icon: 'car-outline',
-//   },
-//   {
-//     id: '9',
-//     category: 'Shopping',
-//     date: 'Yesterday',
-//     amount: 156.75,
-//     method: 'Debit Card',
-//     icon: 'cart-outline',
-//   },
-// ];
+import {formatDMYDate} from '../../utils/formatDate';
+import RupeeIcon from '../../components/rupeeIcon';
 
 const filterOptions = ['All', 'Today', 'Week', 'Month'];
 
@@ -96,12 +21,21 @@ const Expense = () => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [totalExpense, setTotalExpense] = useState(0);
 
   const getExpenses = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/api/expense');
+      const response = await api.get('/api/expense', {
+        params: {
+          filter: selectedFilter.toLowerCase(),
+          t: Date.now(), // cache buster
+        },
+        headers: {'Cache-Control': 'no-cache'},
+      });
       setExpenses(response.data?.data);
+      console.log(response.data?.data);
+      setTotalExpense(response.data?.totalSum);
     } catch (error) {
       console.error(error);
     } finally {
@@ -114,6 +48,10 @@ const Expense = () => {
       getExpenses();
     }, []),
   );
+
+  useEffect(() => {
+    getExpenses();
+  }, [selectedFilter]);
 
   return (
     <View style={styles.container}>
@@ -132,12 +70,21 @@ const Expense = () => {
             <>
               <View style={styles.summaryCard}>
                 <View>
-                  <Text style={styles.totalAmount}>$2,459.50</Text>
+                  <Text style={styles.totalAmount}>
+                    <RupeeIcon
+                      amount={totalExpense}
+                      size={28}
+                      textStyle={{color: 'white', fontSize: 28}}
+                      color="white"
+                    />
+                  </Text>
                   <Text style={styles.summaryNote}>
                     12% less than last month
                   </Text>
                 </View>
-                <Text style={styles.summaryMonth}>February 2024</Text>
+                <Text style={styles.summaryMonth}>
+                  {formatDMYDate(new Date())}
+                </Text>
               </View>
               <View style={styles.filters}>
                 {filterOptions.map(option => (
@@ -171,10 +118,10 @@ const Expense = () => {
           contentContainerStyle={{paddingBottom: 160}}
         />
 
-        <TouchableOpacity style={styles.addButton}>
+        {/* <TouchableOpacity style={styles.addButton}>
           <Ionicons name="add" size={20} color="white" />
           <Text style={styles.addButtonText}>Add Expense</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
