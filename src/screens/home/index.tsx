@@ -21,6 +21,7 @@ import RupeeIcon from '../../components/rupeeIcon';
 import {COLORS} from '../../providers/theme.style';
 import api from '../../services/api';
 import {getMonthStartAndEndDates} from '../../utils/dates';
+import {category} from '../../constants';
 
 interface ExpenseDataProps {
   amount: string;
@@ -36,6 +37,29 @@ interface ExpenseDataProps {
   userId: string;
 }
 
+const mapExpenseDataToChart = rawExpenseData => {
+  const weekLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  return rawExpenseData.map((item, index) => ({
+    label: weekLabels[index],
+    height: 10 + parseFloat(item.totalamount),
+  }));
+};
+
+const mapCategoryExpensePercentageToChartData = (categoryData: any) => {
+  return categoryData.map(cat => ({
+    label: cat.name,
+    percentage: cat.percentage,
+    amount: cat.amount,
+    icon: category
+      .find(item => item.name === cat.name)
+      ?.icon({
+        width: 20,
+        height: 20,
+      }),
+  }));
+};
+
 const Home = () => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const {startDate, endDate} = getMonthStartAndEndDates();
@@ -45,6 +69,8 @@ const Home = () => {
   const [totalIncome, setTotalIncome] = useState(0);
   const [actionPlaceHolder, setActionPlaceHolder] = useState('');
   const [actionType, setActionType] = useState<'income' | 'bills' | 'budget'>();
+  const [weekChartData, setWeekChartData] = useState([]);
+  const [categoryChartData, setCategoryChartData] = useState([]);
   const onBudgetChange = (text: string) => {
     setBudget(Number(text));
   };
@@ -68,16 +94,31 @@ const Home = () => {
   const fetchHomeData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get(
+      let expenseQuery = api.get(
         `/api/expense?filter=${filter}&startDate=${startDate}&endDate=${endDate}&limit=${limit}`,
       );
+      let chartQuery = api.get(`/api/expense/getWeekChart`);
+      let categoryQuery = api.get(`/api/expense/getExpenseByCategory`);
+      const [response, chartResponse, categoryResponse] = await Promise.all([
+        expenseQuery,
+        chartQuery,
+        categoryQuery,
+      ]);
       const data = response.data.lastFourExpenses;
+      const chartData = chartResponse.data?.data || [];
+      const categoryData = categoryResponse.data?.data || [];
       setRecentExpenses(data);
       setMonthSummary({
         totalExpenses: Number(response.data?.totalMonthSum || 0),
         totalIncome: Number(response.data?.totalIncome || 0),
         totalBudget: Number(response.data?.budget || 0),
       });
+      const updatedChartData = mapExpenseDataToChart(chartData);
+      const updatedCategoryData =
+        mapCategoryExpensePercentageToChartData(categoryData);
+
+      setWeekChartData(updatedChartData);
+      setCategoryChartData(updatedCategoryData);
     } catch (error) {
       console.log(error);
     } finally {
@@ -224,7 +265,7 @@ const Home = () => {
         <Text style={styles.sectionTitle}>Monthly Overview</Text>
         <View style={styles.chartContainer}>
           <View style={styles.chartBars}>
-            {days.map((day, i) => (
+            {weekChartData.map((day: any, i: number) => (
               <View key={i} style={styles.chartBarItem}>
                 <View style={[styles.bar, {height: day.height}]} />
                 <Text style={styles.dayLabel}>{day.label}</Text>
@@ -232,18 +273,29 @@ const Home = () => {
             ))}
           </View>
 
-          {progressData.map((item, i) => (
+          {categoryChartData.map((item: any, i) => (
             <View key={i} style={styles.progressItem}>
               <View style={styles.progressLabel}>
-                <Icon name={item.icon} size={16} color="#444" />
+                {item.icon}
                 <Text style={styles.progressText}>{item.label}</Text>
               </View>
               <View style={styles.progressBarBackground}>
                 <View
-                  style={[styles.progressBarFill, {width: `${item.percent}%`}]}
+                  style={[
+                    styles.progressBarFill,
+                    {width: `${item.percentage}%`},
+                  ]}
                 />
               </View>
-              <Text style={styles.progressPercent}>{item.percent}%</Text>
+              <View style={styles.progressContainer}>
+                <RupeeIcon
+                  amount={item.amount}
+                  color="green"
+                  size={14}
+                  textStyle={styles.progressText}
+                />
+                <Text style={styles.progressPercent}>{item.percentage}%</Text>
+              </View>
             </View>
           ))}
         </View>
@@ -300,22 +352,6 @@ const ActionButton = ({
     <Text style={styles.actionLabel}>{label}</Text>
   </TouchableOpacity>
 );
-
-const days = [
-  {label: 'Mon', height: 60},
-  {label: 'Tue', height: 40},
-  {label: 'Wed', height: 60},
-  {label: 'Thu', height: 45},
-  {label: 'Fri', height: 70},
-  {label: 'Sat', height: 50},
-  {label: 'Sun', height: 65},
-];
-
-const progressData = [
-  {label: 'Shopping', percent: 35, icon: 'bag-outline'},
-  {label: 'Food', percent: 25, icon: 'restaurant-outline'},
-  {label: 'Transport', percent: 20, icon: 'car-outline'},
-];
 
 const styles = StyleSheet.create({
   container: {
@@ -510,6 +546,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     shadowRadius: 2,
     elevation: 2,
+  },
+  progressContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 4,
   },
 });
 
