@@ -20,7 +20,6 @@ import {Modal} from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
 import {COLORS} from '../../providers/theme.style';
 import api from '../../services/api';
-import {categories as homeCategories} from '../../types/categories';
 import {getMonthStartAndEndDates} from '../../utils/dates';
 
 interface ExpenseDataProps {
@@ -42,11 +41,16 @@ const Home = () => {
   const {startDate, endDate} = getMonthStartAndEndDates();
   const [recentExpenses, setRecentExpenses] = useState<ExpenseDataProps[]>([]);
   const [loading, setLoading] = useState(false);
-  const [budget, setBudget] = useState('');
+  const [budget, setBudget] = useState(0);
+  const [totalIncome, setTotalIncome] = useState(0);
   const [actionPlaceHolder, setActionPlaceHolder] = useState('');
   const [actionType, setActionType] = useState<'income' | 'bills' | 'budget'>();
   const onBudgetChange = (text: string) => {
-    setBudget(text);
+    setBudget(Number(text));
+  };
+
+  const onTotalIncomeChange = (text: string) => {
+    setTotalIncome(Number(text));
   };
 
   const [monthSummary, setMonthSummary] = useState<{
@@ -72,7 +76,7 @@ const Home = () => {
       setMonthSummary({
         totalExpenses: Number(response.data?.totalMonthSum || 0),
         totalIncome: Number(response.data?.totalIncome || 0),
-        totalBudget: Number(response.data?.totalBudget || 0),
+        totalBudget: Number(response.data?.budget || 0),
       });
     } catch (error) {
       console.log(error);
@@ -95,12 +99,22 @@ const Home = () => {
     bottomSheetModalRef.current?.present();
   };
 
-  const handleSubmitAction = () => {
-    if (actionType === 'income') {
-    } else if (actionType === 'bills') {
-    } else {
+  const handleAddFinance = async () => {
+    try {
+      console.log(actionType);
+      await api.post('/api/expense/finance', {
+        type: actionType,
+        amount: actionType === 'income' ? totalIncome : budget,
+      });
+    } catch (error) {
+      console.log(error);
     }
+    fetchHomeData();
+  };
+
+  const handleSubmitAction = () => {
     bottomSheetModalRef.current?.dismiss();
+    handleAddFinance();
   };
 
   useEffect(() => {
@@ -248,8 +262,14 @@ const Home = () => {
           onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
           <View style={{paddingTop: 20}}>
             <Input
-              value={budget}
-              onChangeText={onBudgetChange}
+              value={
+                actionType === 'budget'
+                  ? budget.toString()
+                  : totalIncome.toString()
+              }
+              onChangeText={
+                actionType === 'budget' ? onBudgetChange : onTotalIncomeChange
+              }
               variant="modal"
               placeholder={actionPlaceHolder}
               placeholderTextColor="gray"

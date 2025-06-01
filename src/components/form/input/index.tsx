@@ -8,7 +8,7 @@ interface InputProps {
   style?: any;
   ref?: any;
   variant?: 'default' | 'modal';
-  value?: string;
+  value?: string | number;
   onChangeText?: (text: string) => void;
 }
 const Input = ({
@@ -52,7 +52,7 @@ const Input = ({
             returnKeyType="done"
             placeholder={placeholder}
             onChangeText={onChangeText}
-            value={value}
+            value={value?.toString()}
             style={[styles.textContainer, style]}
             {...rest}
           />
@@ -65,7 +65,7 @@ const Input = ({
             placeholder={placeholder}
             placeholderTextColor={placeholderTextColor}
             style={[styles.textContainer, style]}
-            value={value}
+            value={value?.toString()}
             onChangeText={onChangeText}
             {...rest}
           />
