@@ -71,7 +71,7 @@ const Home = () => {
       const response = await api.get(
         `/api/expense?filter=${filter}&startDate=${startDate}&endDate=${endDate}&limit=${limit}`,
       );
-      const data = response.data.data;
+      const data = response.data.lastFourExpenses;
       setRecentExpenses(data);
       setMonthSummary({
         totalExpenses: Number(response.data?.totalMonthSum || 0),
