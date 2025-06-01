@@ -14,14 +14,34 @@ import Header from '../../components/Header';
 import api from '../../services/api';
 import {formatDMYDate} from '../../utils/formatDate';
 import RupeeIcon from '../../components/rupeeIcon';
+import Icon from 'react-native-vector-icons/Octicons';
 
 const filterOptions = ['All', 'Today', 'Week', 'Month'];
+
+function getExpenseChangeLabel(current: number, previous: number): string {
+  if (previous === 0) {
+    if (current === 0) return 'No change from last month';
+    return '100% more than last month';
+  }
+
+  const change = ((current - previous) / previous) * 100;
+  const absChange = Math.abs(change).toFixed(2);
+
+  if (change > 0) {
+    return `${absChange}% more than last month`;
+  } else if (change < 0) {
+    return `${absChange}% less than last month`;
+  } else {
+    return 'No change from last month';
+  }
+}
 
 const Expense = () => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalExpense, setTotalExpense] = useState(0);
+  const [expenseChange, setExpenseChange] = useState('');
 
   const getExpenses = async () => {
     setLoading(true);
@@ -35,7 +55,14 @@ const Expense = () => {
       });
       setExpenses(response.data?.data);
       console.log(response.data?.data);
+      const change = getExpenseChangeLabel(
+        response.data?.totalMonthSum,
+        response?.data?.previousMonthSum,
+      );
+      console.log(`Expense change: ${change}`);
+
       setTotalExpense(response.data?.totalSum);
+      setExpenseChange(change);
     } catch (error) {
       console.error(error);
     } finally {
@@ -78,9 +105,27 @@ const Expense = () => {
                       color="white"
                     />
                   </Text>
-                  <Text style={styles.summaryNote}>
-                    12% less than last month
+                  <Text
+                    style={[
+                      styles.summaryMonth,
+                      {fontSize: 18, marginTop: 8, fontWeight: '600'},
+                    ]}>
+                    This month
                   </Text>
+                  <View style={styles.summaryNote}>
+                    <Text style={{color: 'white'}}>{expenseChange}</Text>
+                    <Icon
+                      name={
+                        expenseChange.includes('less')
+                          ? 'arrow-down'
+                          : 'arrow-up'
+                      }
+                      size={18}
+                      color={
+                        expenseChange.includes('less') ? 'orange' : 'green'
+                      }
+                    />
+                  </View>
                 </View>
                 <Text style={styles.summaryMonth}>
                   {formatDMYDate(new Date())}
@@ -154,6 +199,9 @@ const styles = StyleSheet.create({
   summaryNote: {
     color: 'white',
     marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   summaryMonth: {
     color: 'white',

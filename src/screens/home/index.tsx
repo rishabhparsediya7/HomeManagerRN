@@ -237,7 +237,12 @@ const Home = () => {
 
         {/* Recent Transactions */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Transactions</Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>Recent Transactions</Text>
+            <TouchableOpacity onPress={fetchHomeData}>
+              <Icon name="refresh" size={20} color="#3B82F6" />
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity>
             <Text style={styles.seeAll}>See All</Text>
           </TouchableOpacity>
@@ -248,17 +253,18 @@ const Home = () => {
           refreshing={loading}
           ListEmptyComponent={
             loading ? (
-              <View style={{padding: 20, alignItems: 'center'}}>
+              <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#3B82F6" />
               </View>
             ) : (
-              <View style={{padding: 20, alignItems: 'center'}}>
+              <View style={styles.loadingContainer}>
                 <Text>No expenses found.</Text>
               </View>
             )
           }
           keyExtractor={item => item.id}
           renderItem={({item}) => <ExpenseCard expense={item} />}
+          contentContainerStyle={styles.paddingBottom}
         />
 
         {/* Monthly Overview */}
@@ -312,7 +318,7 @@ const Home = () => {
           variant="scrollableModal"
           headerTitle={`Add ${actionType}`}
           onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
-          <View style={{paddingTop: 20}}>
+          <View style={styles.paddingTop}>
             <Input
               value={
                 actionType === 'budget'
@@ -439,13 +445,12 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 22,
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginTop: 20,
-    marginBottom: 10,
   },
   seeAll: {
     color: COLORS.primaryText,
@@ -552,6 +557,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: 4,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  paddingBottom: {
+    paddingBottom: 16,
+  },
+  paddingTop: {
+    paddingTop: 20,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
   },
 });
 
