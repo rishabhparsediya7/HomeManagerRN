@@ -36,13 +36,31 @@ const OtpVerificationScreen = ({navigation, route}) => {
   }, []);
 
   const handleOtpChange = (value, index) => {
-    if (!/^\d*$/.test(value)) return; // only allow digits
+    if (value && !/^\d*$/.test(value)) return; // only allow digits or empty string
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
+    // Auto focus to next input on number input
     if (value && index < 5) {
       inputs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyPress = ({nativeEvent}, index) => {
+    // Handle backspace
+    if (nativeEvent.key === 'Backspace') {
+      if (otp[index]) {
+        // If current field has a value, clear it but stay in the same field
+        const newOtp = [...otp];
+        newOtp[index] = '';
+        setOtp(newOtp);
+        inputs.current[index - 1]?.focus();
+      } else if (index > 0) {
+        // If current field is empty, move to previous field
+        inputs.current[index - 1]?.focus();
+      }
     }
   };
 
@@ -111,7 +129,8 @@ const OtpVerificationScreen = ({navigation, route}) => {
               maxLength={1}
               value={digit}
               onChangeText={value => handleOtpChange(value, index)}
-              returnKeyType="next"
+              onKeyPress={e => handleKeyPress(e, index)}
+              returnKeyType={index === 5 ? 'done' : 'next'}
             />
           ))}
         </View>
