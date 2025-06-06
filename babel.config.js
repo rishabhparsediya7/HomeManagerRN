@@ -1,15 +1,17 @@
-module.exports = {
-  presets: ['module:@react-native/babel-preset'],
-  plugins: [
-    [
-      'module:react-native-dotenv',
-      {
-        moduleName: '@env',
-        path: '.env',
-        safe: true,
-        allowUndefined: false,
-      },
+const path = require('path');
+const ENVIRONMENT = process.env.ENVIRONMENT ?? 'production';
+const envPath = path.resolve(__dirname, `.env.${ENVIRONMENT}`);
+
+module.exports = function (api) {
+  api.cache(true);
+  require('dotenv').config({
+    path: envPath,
+  });
+  return {
+    presets: ['module:@react-native/babel-preset'],
+    plugins: [
+      ['inline-dotenv', {path: envPath}],
+      'react-native-reanimated/plugin',
     ],
-    'react-native-reanimated/plugin',
-  ],
+  };
 };

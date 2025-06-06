@@ -3,11 +3,14 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "clean": "cd android && ./gradlew clean && rm -r .gradle && cd ../ && npx react-native start --reset-cache --port 8088",
-    "android": "react-native run-android --port 8088",
-    "ios": "react-native run-ios",
+    "clean": "cd android && ./gradlew clean && rm -r .gradle && cd ../ && npx react-native start --reset-cache --port 8081",
+    "android-dev": "ENVIRONMENT=development react-native run-android --port 8081",
+    "ios-dev": "ENVIRONMENT=development react-native run-ios",
+    "android-prod": "ENVIRONMENT=production react-native run-android --port 8081",
+    "ios-prod": "ENVIRONMENT=production react-native run-ios",
     "lint": "eslint .",
-    "start": "react-native start",
+    "start": "ENVIRONMENT=development react-native start",
+    "start:prod": "ENVIRONMENT=production react-native start",
     "test": "jest"
   },
   "dependencies": {
@@ -18,6 +21,7 @@
     "@react-navigation/native": "^7.1.4",
     "@react-navigation/stack": "^7.2.8",
     "axios": "1.9.0",
+    "babel-plugin-inline-dotenv": "^1.7.0",
     "react": "19.0.0",
     "react-native": "0.78.1",
     "react-native-dotenv": "^3.4.11",
