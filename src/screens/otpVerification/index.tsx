@@ -117,8 +117,8 @@ const OtpVerificationScreen = ({navigation, route}) => {
         </View>
 
         <TouchableOpacity style={styles.resendWrap} onPress={handleResend}>
-          Didn't receive code?
           <Text style={styles.resendText}>
+            Didn't receive code?{' '}
             {resendLoading ? <ActivityIndicator /> : ' Resend'}
           </Text>
         </TouchableOpacity>
