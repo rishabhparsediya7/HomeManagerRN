@@ -16,8 +16,9 @@ import {useAuthorizeNavigation} from '../../navigators/navigators';
 
 const SignInScreen = ({navigation}) => {
   const [signInForm, setSignInForm] = useState({
-    email: '',
-    password: '',
+    email:
+      process.env.ENV === 'development' ? 'parsediyarishabh@gmail.com' : '',
+    password: process.env.ENV === 'development' ? 'Rishabh@123' : '',
   });
   const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
