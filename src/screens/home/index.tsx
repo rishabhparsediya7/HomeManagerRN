@@ -40,10 +40,27 @@ interface ExpenseDataProps {
 const mapExpenseDataToChart = rawExpenseData => {
   const weekLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  return rawExpenseData.map((item, index) => ({
-    label: weekLabels[index],
-    height: 10 + parseFloat(item.totalamount),
-  }));
+  // Find the maximum value in the data to scale other values proportionally
+  const maxAmount = Math.max(
+    ...rawExpenseData.map(item => parseFloat(item.totalamount) || 0),
+    1, // Default to 1 to avoid division by zero
+  );
+
+  // Set a maximum height for the bars (adjust this value as needed)
+  const MAX_BAR_HEIGHT = 100;
+
+  return rawExpenseData.map((item, index) => {
+    const amount = parseFloat(item.totalamount) || 0;
+    // Calculate height as a percentage of the maximum value, with a minimum height of 10 for visibility
+    const height = Math.max(10, (amount / maxAmount) * MAX_BAR_HEIGHT);
+
+    return {
+      label: weekLabels[index],
+      height: height,
+      // Include the original amount in case it's needed for tooltips or labels
+      amount: amount,
+    };
+  });
 };
 
 const mapCategoryExpensePercentageToChartData = (categoryData: any) => {
