@@ -40,24 +40,20 @@ interface ExpenseDataProps {
 const mapExpenseDataToChart = rawExpenseData => {
   const weekLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  // Find the maximum value in the data to scale other values proportionally
   const maxAmount = Math.max(
     ...rawExpenseData.map(item => parseFloat(item.totalamount) || 0),
-    1, // Default to 1 to avoid division by zero
+    1,
   );
 
-  // Set a maximum height for the bars (adjust this value as needed)
   const MAX_BAR_HEIGHT = 100;
 
   return rawExpenseData.map((item, index) => {
     const amount = parseFloat(item.totalamount) || 0;
-    // Calculate height as a percentage of the maximum value, with a minimum height of 10 for visibility
     const height = Math.max(10, (amount / maxAmount) * MAX_BAR_HEIGHT);
 
     return {
       label: weekLabels[index],
       height: height,
-      // Include the original amount in case it's needed for tooltips or labels
       amount: amount,
     };
   });
@@ -291,13 +287,18 @@ const Home = () => {
           <View style={styles.chartContainer}>
             <View style={styles.chartBars}>
               {weekChartData.map((day: any, i: number) => (
-                <View key={i} style={styles.chartBarItem}>
-                  <View style={[styles.bar, {height: day.height}]} />
+                <View key={i} style={styles.chartBarContainer}>
+                  <View style={styles.chartBarItem}>
+                    <View style={[styles.bar, {height: day.height}]} />
+                  </View>
                   <Text style={styles.dayLabel}>{day.label}</Text>
                 </View>
               ))}
             </View>
 
+            <Text style={[styles.sectionTitle, {marginVertical: 12}]}>
+              Category Overview
+            </Text>
             {categoryChartData.map((item: any, i) => (
               <View key={i} style={styles.progressItem}>
                 <View style={styles.progressLabel}>
@@ -485,9 +486,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
+    height: 120, // Fixed height for the chart container
+  },
+  chartBarContainer: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    height: '100%',
   },
   chartBarItem: {
-    alignItems: 'center',
+    width: 30,
+    height: '100%',
+    justifyContent: 'flex-end',
   },
   bar: {
     width: 20,
