@@ -10,6 +10,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {useAuth} from '../providers/AuthProvider';
 
 interface HeaderProps {
   title?: string;
@@ -28,14 +29,16 @@ const Header: React.FC<HeaderProps> = ({
   title,
   showBackButton = false,
   showNotification = false,
-  showImage = false,
-  image,
+  showImage = true,
+  image = 'https://randomuser.me/api/portraits/men/32.jpg',
   onBackPress,
   onNotificationPress,
   showCrossButton = false,
   onCrossPress,
   headerStyle,
 }) => {
+  const {user} = useAuth();
+  const {photoUrl} = user;
   return (
     <View style={[styles.container, headerStyle]}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" />
@@ -57,8 +60,8 @@ const Header: React.FC<HeaderProps> = ({
             <Icon name="notifications" size={24} color="#000" />
           </TouchableOpacity>
         )}
-        {showImage && image && (
-          <Image source={{uri: image}} style={styles.image} />
+        {showImage && (
+          <Image source={{uri: photoUrl || image}} style={styles.image} />
         )}
         {showCrossButton && (
           <TouchableOpacity onPress={onCrossPress}>
