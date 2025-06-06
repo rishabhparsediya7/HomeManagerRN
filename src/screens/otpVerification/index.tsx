@@ -27,6 +27,7 @@ const OtpVerificationScreen = ({navigation, route}) => {
   const inputs = useRef<TextInput[]>([]);
   const BASE_URL = process.env.BASE_URL;
   const [resendLoading, setResendLoading] = useState(false);
+  const [isResendEnabled, setIsResendEnabled] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -34,6 +35,12 @@ const OtpVerificationScreen = ({navigation, route}) => {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (timer <= 0) {
+      setIsResendEnabled(true);
+    }
+  }, [timer]);
 
   const handleOtpChange = (value, index) => {
     if (value && !/^\d*$/.test(value)) return; // only allow digits or empty string
@@ -134,13 +141,20 @@ const OtpVerificationScreen = ({navigation, route}) => {
             />
           ))}
         </View>
-
-        <TouchableOpacity style={styles.resendWrap} onPress={handleResend}>
-          <Text style={styles.resendText}>
-            Didn't receive code?{' '}
-            {resendLoading ? <ActivityIndicator /> : ' Resend'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.resendWrap}>
+          <TouchableOpacity>
+            <Text style={styles.resendText}>Didn't receive code?</Text>
+          </TouchableOpacity>
+          <TouchableOpacity disabled={!isResendEnabled} onPress={handleResend}>
+            <Text
+              style={[
+                styles.resendText,
+                !isResendEnabled && styles.disabledResendText,
+              ]}>
+              {resendLoading ? <ActivityIndicator /> : ' Resend'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <Text style={styles.timer}>Resend code in {timer}s</Text>
 
@@ -190,14 +204,18 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   resendWrap: {
-    textAlign: 'center',
-    color: '#666',
-    fontSize: 14,
-    marginBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
   },
   resendText: {
     color: '#3366FF',
     fontWeight: '500',
+    textAlign: 'center',
+  },
+  disabledResendText: {
+    color: '#ccc',
   },
   timer: {
     color: '#999',
