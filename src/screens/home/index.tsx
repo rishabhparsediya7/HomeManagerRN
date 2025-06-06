@@ -166,181 +166,184 @@ const Home = () => {
   }, [fetchHomeData]);
 
   return (
-    <ScrollView
-      contentContainerStyle={{paddingBottom: 100}}
-      showsVerticalScrollIndicator={false}
-      style={styles.container}>
+    <View style={styles.container}>
       <Header
         title="HomeTrack"
         showNotification
         showImage
         image="https://randomuser.me/api/portraits/men/32.jpg"
       />
-      <View style={styles.homeContainer}>
-        <LinearGradient
-          colors={['#8B5CF6', '#D946EF']}
-          style={styles.linearGradient}>
-          <Text style={[styles.budgetLabel, styles.whiteText]}>
-            This Month's Budget
-          </Text>
-          <RupeeIcon
-            amount={monthSummary.totalBudget}
-            color="#fff"
-            size={36}
-            textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
-          />
-          <View style={styles.budgetDetails}>
-            <View>
-              <RupeeIcon
-                amount={monthSummary.totalIncome}
-                color="#fff"
-                textStyle={styles.whiteText}
-              />
-              <Text style={[styles.caption, styles.whiteText]}>Income</Text>
+
+      <ScrollView
+        contentContainerStyle={{paddingBottom: 100}}
+        showsVerticalScrollIndicator={false}
+        style={styles.container}>
+        <View style={styles.homeContainer}>
+          <LinearGradient
+            colors={['#8B5CF6', '#D946EF']}
+            style={styles.linearGradient}>
+            <Text style={[styles.budgetLabel, styles.whiteText]}>
+              This Month's Budget
+            </Text>
+            <RupeeIcon
+              amount={monthSummary.totalBudget}
+              color="#fff"
+              size={36}
+              textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
+            />
+            <View style={styles.budgetDetails}>
+              <View>
+                <RupeeIcon
+                  amount={monthSummary.totalIncome}
+                  color="#fff"
+                  textStyle={styles.whiteText}
+                />
+                <Text style={[styles.caption, styles.whiteText]}>Income</Text>
+              </View>
+              <View>
+                <RupeeIcon
+                  amount={monthSummary.totalExpenses}
+                  color="#fff"
+                  textStyle={styles.whiteText}
+                />
+                <Text
+                  style={[
+                    styles.caption,
+                    styles.whiteText,
+                    {textAlign: 'right'},
+                  ]}>
+                  Expenses
+                </Text>
+              </View>
             </View>
-            <View>
-              <RupeeIcon
-                amount={monthSummary.totalExpenses}
-                color="#fff"
-                textStyle={styles.whiteText}
-              />
-              <Text
-                style={[
-                  styles.caption,
-                  styles.whiteText,
-                  {textAlign: 'right'},
-                ]}>
-                Expenses
-              </Text>
-            </View>
+          </LinearGradient>
+
+          {/* Action Buttons */}
+          <View style={styles.actions}>
+            <ActionButton
+              onPress={() => openActionModal('income')}
+              label="Add Income"
+              icon="wallet-outline"
+            />
+            <ActionButton
+              onPress={() => openActionModal('bills')}
+              label="Bills"
+              icon="receipt-outline"
+            />
+            <ActionButton
+              onPress={() => openActionModal('budget')}
+              label="Budget"
+              icon="bar-chart-outline"
+            />
           </View>
-        </LinearGradient>
 
-        {/* Action Buttons */}
-        <View style={styles.actions}>
-          <ActionButton
-            onPress={() => openActionModal('income')}
-            label="Add Income"
-            icon="wallet-outline"
-          />
-          <ActionButton
-            onPress={() => openActionModal('bills')}
-            label="Bills"
-            icon="receipt-outline"
-          />
-          <ActionButton
-            onPress={() => openActionModal('budget')}
-            label="Budget"
-            icon="bar-chart-outline"
-          />
-        </View>
-
-        {/* Recent Transactions */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>Recent Transactions</Text>
-            <TouchableOpacity onPress={fetchHomeData}>
-              <Icon name="refresh" size={20} color="#3B82F6" />
+          {/* Recent Transactions */}
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleContainer}>
+              <Text style={styles.sectionTitle}>Recent Transactions</Text>
+              <TouchableOpacity onPress={fetchHomeData}>
+                <Icon name="refresh" size={20} color="#3B82F6" />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>See All</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={recentExpenses || []}
-          onRefresh={fetchHomeData}
-          refreshing={loading}
-          ListEmptyComponent={
-            loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#3B82F6" />
-              </View>
-            ) : (
-              <View style={styles.loadingContainer}>
-                <Text>No expenses found.</Text>
-              </View>
-            )
-          }
-          keyExtractor={item => item.id}
-          renderItem={({item}) => <ExpenseCard expense={item} />}
-          contentContainerStyle={styles.paddingBottom}
-        />
+          <FlatList
+            data={recentExpenses || []}
+            onRefresh={fetchHomeData}
+            refreshing={loading}
+            ListEmptyComponent={
+              loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#3B82F6" />
+                </View>
+              ) : (
+                <View style={styles.loadingContainer}>
+                  <Text>No expenses found.</Text>
+                </View>
+              )
+            }
+            keyExtractor={item => item.id}
+            renderItem={({item}) => <ExpenseCard expense={item} />}
+            contentContainerStyle={styles.paddingBottom}
+          />
 
-        {/* Monthly Overview */}
-        <Text style={styles.sectionTitle}>Monthly Overview</Text>
-        <View style={styles.chartContainer}>
-          <View style={styles.chartBars}>
-            {weekChartData.map((day: any, i: number) => (
-              <View key={i} style={styles.chartBarItem}>
-                <View style={[styles.bar, {height: day.height}]} />
-                <Text style={styles.dayLabel}>{day.label}</Text>
+          {/* Monthly Overview */}
+          <Text style={styles.sectionTitle}>Monthly Overview</Text>
+          <View style={styles.chartContainer}>
+            <View style={styles.chartBars}>
+              {weekChartData.map((day: any, i: number) => (
+                <View key={i} style={styles.chartBarItem}>
+                  <View style={[styles.bar, {height: day.height}]} />
+                  <Text style={styles.dayLabel}>{day.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            {categoryChartData.map((item: any, i) => (
+              <View key={i} style={styles.progressItem}>
+                <View style={styles.progressLabel}>
+                  {item.icon}
+                  <Text style={styles.progressText}>{item.label}</Text>
+                </View>
+                <View style={styles.progressBarBackground}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {width: `${item.percentage}%`},
+                    ]}
+                  />
+                </View>
+                <View style={styles.progressContainer}>
+                  <RupeeIcon
+                    amount={item.amount}
+                    color="green"
+                    size={14}
+                    textStyle={styles.progressText}
+                  />
+                  <Text style={styles.progressPercent}>{item.percentage}%</Text>
+                </View>
               </View>
             ))}
           </View>
-
-          {categoryChartData.map((item: any, i) => (
-            <View key={i} style={styles.progressItem}>
-              <View style={styles.progressLabel}>
-                {item.icon}
-                <Text style={styles.progressText}>{item.label}</Text>
-              </View>
-              <View style={styles.progressBarBackground}>
-                <View
-                  style={[
-                    styles.progressBarFill,
-                    {width: `${item.percentage}%`},
-                  ]}
-                />
-              </View>
-              <View style={styles.progressContainer}>
-                <RupeeIcon
-                  amount={item.amount}
-                  color="green"
-                  size={14}
-                  textStyle={styles.progressText}
-                />
-                <Text style={styles.progressPercent}>{item.percentage}%</Text>
-              </View>
-            </View>
-          ))}
         </View>
-      </View>
-      <KeyboardAvoidingView
-        enabled
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{
-          flex: 1,
-        }}>
-        <Modal
-          bottomSheetRef={bottomSheetModalRef}
-          modalSnapPoints={['35%']}
-          variant="scrollableModal"
-          headerTitle={`Add ${actionType}`}
-          onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
-          <View style={styles.paddingTop}>
-            <Input
-              value={
-                actionType === 'budget'
-                  ? budget.toString()
-                  : totalIncome.toString()
-              }
-              onChangeText={
-                actionType === 'budget' ? onBudgetChange : onTotalIncomeChange
-              }
-              variant="modal"
-              placeholder={actionPlaceHolder}
-              placeholderTextColor="gray"
-            />
-            <TouchableOpacity
-              onPress={handleSubmitAction}
-              style={styles.saveBtn}>
-              <Text style={styles.saveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </Modal>
-      </KeyboardAvoidingView>
-    </ScrollView>
+        <KeyboardAvoidingView
+          enabled
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{
+            flex: 1,
+          }}>
+          <Modal
+            bottomSheetRef={bottomSheetModalRef}
+            modalSnapPoints={['35%']}
+            variant="scrollableModal"
+            headerTitle={`Add ${actionType}`}
+            onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
+            <View style={styles.paddingTop}>
+              <Input
+                value={
+                  actionType === 'budget'
+                    ? budget.toString()
+                    : totalIncome.toString()
+                }
+                onChangeText={
+                  actionType === 'budget' ? onBudgetChange : onTotalIncomeChange
+                }
+                variant="modal"
+                placeholder={actionPlaceHolder}
+                placeholderTextColor="gray"
+              />
+              <TouchableOpacity
+                onPress={handleSubmitAction}
+                style={styles.saveBtn}>
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </Modal>
+        </KeyboardAvoidingView>
+      </ScrollView>
+    </View>
   );
 };
 
