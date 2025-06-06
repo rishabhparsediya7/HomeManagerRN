@@ -151,7 +151,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
   }) => {
     setLoading(true);
     try {
-      console.log(BASE_URL);
+      const BASE_URL = process.env.BASE_URL;
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         body: JSON.stringify({email, password}),
