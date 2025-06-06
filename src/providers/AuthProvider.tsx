@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import api from '../services/api';
 
 type AuthContext = {
   signIn: () => void;
@@ -166,9 +167,6 @@ export default function AuthProvider({children}: PropsWithChildren) {
         await Promise.all([
           AsyncStorage.setItem('userId', userId),
           AsyncStorage.setItem('token', token),
-          // AsyncStorage.setItem('isLoggedIn', true.toString()),
-          // AsyncStorage.setItem('name', result?.name),
-          // AsyncStorage.setItem('photoUrl', result?.photoUrl || ''),
         ]);
         setUser({
           userId: userId || '',
@@ -195,8 +193,23 @@ export default function AuthProvider({children}: PropsWithChildren) {
       const token = await AsyncStorage.getItem('token');
       setIsAuthenticated(!!token);
     };
+    const getUser = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get('/api/users/me');
+        setUser({
+          ...user,
+          photoUrl: response.data.user.photoUrl,
+        });
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchAuthStatus();
+    isAuthenticated && getUser();
   }, [isAuthenticated]);
 
   const signIn = async () => setIsAuthenticated(true);

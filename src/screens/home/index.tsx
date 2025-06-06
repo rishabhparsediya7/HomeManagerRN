@@ -180,12 +180,7 @@ const Home = () => {
 
   return (
     <View style={styles.container}>
-      <Header
-        title="HomeTrack"
-        showNotification
-        showImage
-        image="https://randomuser.me/api/portraits/men/32.jpg"
-      />
+      <Header title="HomeTrack" showNotification showImage />
 
       <ScrollView
         contentContainerStyle={{paddingBottom: 100}}
