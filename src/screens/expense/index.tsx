@@ -77,6 +77,7 @@ const Expense = () => {
   );
 
   useEffect(() => {
+    if (selectedFilter) setExpenses([]);
     getExpenses();
   }, [selectedFilter]);
 
@@ -110,7 +111,14 @@ const Expense = () => {
                       styles.summaryMonth,
                       {fontSize: 18, marginTop: 8, fontWeight: '600'},
                     ]}>
-                    This month
+                    {selectedFilter === 'All'
+                      ? 'All '
+                      : selectedFilter === 'Today'
+                      ? "Today's "
+                      : selectedFilter === 'Week'
+                      ? "Week's "
+                      : "Month's "}
+                    Expenses
                   </Text>
                   <View style={styles.summaryNote}>
                     <Text style={{color: 'white'}}>{expenseChange}</Text>
@@ -154,7 +162,7 @@ const Expense = () => {
               </View>
             )
           }
-          keyExtractor={item => item.id}
+          keyExtractor={(item:any) => item.id}
           renderItem={({item}) => (
             <View style={{paddingHorizontal: 16}}>
               <ExpenseCard expense={item} />
