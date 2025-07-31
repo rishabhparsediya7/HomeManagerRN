@@ -1,6 +1,6 @@
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 import {NavigationContainer} from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {StyleSheet, View, Text, Button} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import UnauthorizeNavigation from './src/navigators/unauthorizeStack';
 import AuthProvider, {useAuth} from './src/providers/AuthProvider';
 import UserProvider from './src/providers/UserContext';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 const RootNavigator = () => {
   const {isAuthenticated} = useAuth();
   return isAuthenticated ? <AuthorizeNavigation /> : <UnauthorizeNavigation />;
@@ -23,6 +24,13 @@ const App = () => {
       </Text>
     </View>
   );
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
+      offlineAccess: false,
+    });
+  }, []);
 
   return (
     <ErrorBoundary fallback={fallbackUI}>

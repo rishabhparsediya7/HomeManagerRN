@@ -13,6 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useAuth} from '../../providers/AuthProvider';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
+import { signInWithGoogle } from './googleSigninUtil';
 
 const SignInScreen = ({navigation}) => {
   const [signInForm, setSignInForm] = useState({
@@ -46,6 +47,19 @@ const SignInScreen = ({navigation}) => {
     authNavigation.navigate('BottomTabNavigator');
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      const {success, userInfo} = await signInWithGoogle();
+      if (success) {
+        console.log('User signed in successfully:', userInfo);
+      } else {
+        console.log('Failed to sign in:', userInfo);
+      }
+    } catch (error) {
+      console.log('Error signing in:', error);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -57,7 +71,7 @@ const SignInScreen = ({navigation}) => {
         <Text style={styles.header}>Welcome Back</Text>
         <Text style={styles.subHeader}>Sign in to continue</Text>
 
-        <TouchableOpacity style={styles.googleButton}>
+        <TouchableOpacity onPress={handleGoogleSignIn} style={styles.googleButton}>
           <Text style={styles.googleText}>Continue with Google</Text>
         </TouchableOpacity>
 
