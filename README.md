@@ -1,52 +1,188 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# HomeManagerRN
 
-# Getting Started
+HomeManagerRN is a React Native mobile application for managing household tasks, expenses, and shared responsibilities among family members or roommates.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 🚀 Features
 
-## Step 1: Start Metro
+- Task management
+- Expense tracking
+- Shared responsibilities
+- User authentication
+- Cross-platform support (iOS & Android)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## 📋 Prerequisites
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- Node.js (v16 or later)
+- npm or Yarn
+- React Native CLI
+- Xcode (for iOS development)
+- Android Studio (for Android development)
+- CocoaPods (for iOS)
+- Watchman (recommended for macOS users)
 
+## 🛠 Installation
+
+1. **Clone the repository**
+   ```sh
+   git clone https://github.com/yourusername/HomeManagerRN.git
+   cd HomeManagerRN
+   ```
+
+2. **Install dependencies**
+   ```sh
+   # Using npm
+   npm install
+   
+   # OR using Yarn
+   yarn install
+   ```
+
+3. **Install iOS dependencies**
+   ```sh
+   cd ios && pod install && cd ..
+   ```
+
+4. **Set up environment variables**
+   Create a `.env` file in the root directory with the following variables:
+   ```env
+   # API Configuration
+   BASE_URL=your_api_base_url_here
+   
+   # Environment (development/production)
+   ENVIRONMENT=development
+   
+   # Add other environment variables as needed
+   ```
+
+## 🚦 Available Scripts
+
+### Development
+
+#### Start Metro Bundler
 ```sh
-# Using npm
+# Development mode (default)
 npm start
-
-# OR using Yarn
+# or
 yarn start
+
+# Production mode
+npm run start:prod
+# or
+yarn start:prod
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
+#### Run on Android
 ```sh
-# Using npm
-npm run android
+# Development mode
+npm run android-dev
+# or
+yarn android-dev
 
-# OR using Yarn
-yarn android
+# Production mode
+npm run android-prod
+# or
+yarn android-prod
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
+#### Run on iOS
 ```sh
-bundle install
+# Development mode
+npm run ios-dev
+# or
+yarn ios-dev
+
+# Production mode
+npm run ios-prod
+# or
+yarn ios-prod
 ```
 
-Then, and every time you update your native dependencies, run:
+### Testing & Linting
 
+#### Run Tests
 ```sh
-bundle exec pod install
+npm test
+# or
+yarn test
 ```
+
+#### Run Linter
+```sh
+npm run lint
+# or
+yarn lint
+```
+
+### Maintenance
+
+#### Clean Build (Android)
+```sh
+npm run clean
+# or
+yarn clean
+```
+This will:
+1. Clean the Android build
+2. Remove the .gradle directory
+3. Reset the Metro cache
+4. Start Metro bundler on port 8081
+
+## 📱 Tech Stack
+
+- React Native 0.78.1
+- React Navigation
+- Axios for API calls
+- AsyncStorage for local storage
+- React Native Reanimated for animations
+- React Native Vector Icons
+- React Native Image Picker
+- React Native Permissions
+- React Native Dotenv for environment variables
+
+## 📂 Project Structure
+
+```
+src/
+├── assets/           # Images, fonts, and other static files
+├── components/       # Reusable UI components
+├── navigation/       # Navigation configuration
+├── screens/          # App screens
+├── services/         # API services and other services
+├── store/            # State management (if using Redux/Context)
+├── theme/            # Styling and theming
+└── utils/            # Utility functions and helpers
+```
+
+## 🔐 Environment Variables
+
+The following environment variables need to be set in your `.env` file:
+
+- `BASE_URL`: The base URL for API requests
+- `ENVIRONMENT`: The current environment (development/production)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [React Native](https://reactnative.dev)
+- [React Navigation](https://reactnavigation.org/)
+- All other open-source libraries used in this project
+
+---
+
+<div align="center">
+  Made with ❤️ by Rishabh Parsediya
+</div>
 
 For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
 
