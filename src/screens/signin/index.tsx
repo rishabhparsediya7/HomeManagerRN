@@ -1,20 +1,20 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {useAuth} from '../../providers/AuthProvider';
-import {useAuthorizeNavigation} from '../../navigators/navigators';
-import { signInWithGoogle } from './googleSigninUtil';
+import { useAuthorizeNavigation } from '../../navigators/navigators';
+import { useAuth } from '../../providers/AuthProvider';
 import { signInWithGitHub } from './githubSigninUtil';
+import { signInWithGoogle } from './googleSigninUtil';
 
 
 const SignInScreen = ({navigation}) => {
@@ -61,13 +61,16 @@ const SignInScreen = ({navigation}) => {
   const handleGitHubSignIn = async () => {
     try {
       const result = await signInWithGitHub();
-      if (!result?.accessToken) {
-        throw new Error('Failed to sign in');
+      
+      if ('success' in result) {
+        throw new Error(result.error || 'Failed to sign in with GitHub');
       }
-      const user = await getGitHubUser(result?.accessToken);
+      
+      const user = await getGitHubUser(result.accessToken);
       console.log('User signed in successfully:', user);
     } catch (error) {
       console.log('Error signing in:', error);
+      setError(error instanceof Error ? error.message : 'Failed to sign in with GitHub');
     }
   };
 

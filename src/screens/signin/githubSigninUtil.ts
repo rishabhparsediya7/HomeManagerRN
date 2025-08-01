@@ -1,6 +1,8 @@
-import { authorize } from 'react-native-app-auth'
+import { authorize, type AuthorizeResult } from 'react-native-app-auth'
 
-export const signInWithGitHub = async () => {
+type GitHubSignInResult = AuthorizeResult | { success: false; error: string };
+
+export const signInWithGitHub = async (): Promise<GitHubSignInResult> => {
     const config = {
         clientId: process.env.GITHUB_CLIENT_ID!,
         clientSecret: process.env.GITHUB_CLIENT_SECRET!,
