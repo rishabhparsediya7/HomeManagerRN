@@ -1,7 +1,7 @@
 // googleSignInUtil.js
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
-export const signInWithGoogle = async () => {
+export const googleSignIn = async () => {
   try {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     const userInfo = await GoogleSignin.signIn();

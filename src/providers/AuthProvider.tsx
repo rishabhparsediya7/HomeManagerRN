@@ -19,6 +19,9 @@ type AuthContext = {
     email: string;
     password: string;
   }) => Promise<any>;
+  signInWithGoogle: (params: {
+    idToken: string;
+  }) => Promise<any>;
   signupWithPassword: (params: {
     email: string;
     password: string;
@@ -44,6 +47,9 @@ interface AuthContextProps {
     email: string;
     password: string;
   }) => Promise<any>;
+  signInWithGoogle: (params: {
+    idToken: string;
+  }) => Promise<any>;
   signupWithPassword: (params: {
     email: string;
     password: string;
@@ -63,6 +69,7 @@ const AuthContext = createContext<AuthContext>({
   isAuthenticated: false,
   signInWithPassword: () => Promise.resolve(),
   signupWithPassword: () => Promise.resolve(),
+  signInWithGoogle: () => Promise.resolve(),
   user: {
     name: '',
     photoUrl: '',
@@ -188,6 +195,55 @@ export default function AuthProvider({children}: PropsWithChildren) {
     }
   };
 
+  const signInWithGoogle = async ({idToken}: {idToken: string}) => {
+    console.log("🚀 ~ signInWithGoogle ~ idToken:", idToken)
+    setLoading(true);
+    try {
+      if(!idToken){
+        throw new Error('ID token is required');
+      }
+      const BASE_URL = process.env.BASE_URL;
+      console.log("🚀 ~ signInWithGoogle ~ BASE_URL:", BASE_URL)
+      const response = await fetch(`${BASE_URL}/api/auth/signin-with-google`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'id-token': idToken,
+        },
+      });
+      console.log("🚀 ~ signInWithGoogle ~ response:", response)
+      const result = await response.json();
+      console.log("🚀 ~ signInWithGoogle ~ result:", result)
+      const {userId, token, name} = result;
+      if (result.success && result.token) {
+        setIsAuthenticated(true);
+        await Promise.all([
+          AsyncStorage.setItem('userId', userId),
+          AsyncStorage.setItem('token', token),
+        ]);
+        setUser({
+          userId: userId || '',
+          name: name || '',
+          photoUrl: result?.photoUrl || '',
+          token: token || '',
+          loggedIn: true,
+          email: result?.email || '',
+        });
+        return result;
+      } else {
+        setError(result.message);
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
+      throw error;
+    } finally {
+      setLoading(false);
+      console.log("🚀 ~ signInWithGoogle ~ loading:", loading)
+    }
+  };
+
   useEffect(() => {
     const fetchAuthStatus = async () => {
       const token = await AsyncStorage.getItem('token');
@@ -227,6 +283,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
         isAuthenticated,
         signInWithPassword,
         signupWithPassword,
+        signInWithGoogle,
       }}>
       {children}
     </AuthContext.Provider>

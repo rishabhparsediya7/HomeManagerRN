@@ -12,19 +12,21 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useAuth} from '../../providers/AuthProvider';
+import Icons from '../../components/icons';
+import { googleSignIn } from '../../screens/signin/googleSigninUtil';
 
 const SignUpScreen = ({navigation}) => {
-  const {signupWithPassword} = useAuth();
+  const {signupWithPassword, signInWithGoogle} = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const [signUpForm, setSignUpForm] = useState({
     firstName: '',
     lastName: '',
-    email: '',
+    email: '',  
     password: '',
     confirmPassword: '',
     firstNameError: '',
@@ -140,6 +142,26 @@ const SignUpScreen = ({navigation}) => {
       console.log(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      setGoogleLoading(true);
+      const {success, userInfo} = await googleSignIn();
+      if (success) {
+        console.log("🚀 ~ handleGoogleSignup ~ success:", success)
+        await signInWithGoogle({idToken: userInfo?.data?.idToken || ''});
+        console.log('User signed in successfully:', userInfo);
+      } else {
+        console.log('Failed to sign in:', userInfo);
+      }
+    } catch (error) {
+      console.log('Error signing in:', error);
+      setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
+    }
+    finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -259,14 +281,8 @@ const SignUpScreen = ({navigation}) => {
           </View>
 
           <View style={styles.socialContainer}>
-            <TouchableOpacity style={styles.socialButton}>
-              <FontAwesome name="google" size={24} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <FontAwesome name="apple" size={24} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <FontAwesome name="facebook" size={24} color="black" />
+            <TouchableOpacity onPress={handleGoogleSignup} style={styles.socialButton}>
+              <Icons.GoogleIcon width={24} height={24} color="black" />
             </TouchableOpacity>
           </View>
 
@@ -354,8 +370,9 @@ const styles = StyleSheet.create({
   },
   socialContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     marginBottom: 32,
+    gap: 16,
   },
   socialButton: {
     backgroundColor: '#f1f1f1',
@@ -363,6 +380,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '30%',
     alignItems: 'center',
+    flex: 1,
   },
   signInText: {
     textAlign: 'center',

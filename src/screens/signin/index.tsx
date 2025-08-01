@@ -14,10 +14,11 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useAuthorizeNavigation } from '../../navigators/navigators';
 import { useAuth } from '../../providers/AuthProvider';
 import { signInWithGitHub } from './githubSigninUtil';
-import { signInWithGoogle } from './googleSigninUtil';
-
+import { googleSignIn } from './googleSigninUtil';
+import Icons from '../../components/icons';
 
 const SignInScreen = ({navigation}) => {
+  const {signInWithGoogle} = useAuth();
   const [signInForm, setSignInForm] = useState({
     email:
       process.env.ENV === 'development' ? 'parsediyarishabh@gmail.com' : '',
@@ -26,6 +27,8 @@ const SignInScreen = ({navigation}) => {
   const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [githubLoading, setGithubLoading] = useState(false);
   const {signInWithPassword} = useAuth();
   const authNavigation = useAuthorizeNavigation();
 
@@ -60,6 +63,7 @@ const SignInScreen = ({navigation}) => {
 
   const handleGitHubSignIn = async () => {
     try {
+      setGithubLoading(true);
       const result = await signInWithGitHub();
       
       if ('success' in result) {
@@ -72,18 +76,27 @@ const SignInScreen = ({navigation}) => {
       console.log('Error signing in:', error);
       setError(error instanceof Error ? error.message : 'Failed to sign in with GitHub');
     }
+    finally {
+      setGithubLoading(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
     try {
-      const {success, userInfo} = await signInWithGoogle();
+      setGoogleLoading(true);
+      const {success, userInfo} = await googleSignIn();
       if (success) {
+        await signInWithGoogle({idToken: userInfo?.data?.idToken || ''});
         console.log('User signed in successfully:', userInfo);
       } else {
         console.log('Failed to sign in:', userInfo);
       }
     } catch (error) {
       console.log('Error signing in:', error);
+      setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
+    }
+    finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -99,11 +112,13 @@ const SignInScreen = ({navigation}) => {
         <Text style={styles.subHeader}>Sign in to continue</Text>
 
         <TouchableOpacity onPress={handleGitHubSignIn} style={styles.googleButton}>
-          <Text style={styles.googleText}>Continue with GitHub</Text>
+          <Icons.GithubIcon style={styles.githubIcon} width={28} height={28} />
+          <Text style={styles.githubText}>{githubLoading ? <ActivityIndicator size="small" color="#fff" /> : 'Continue with GitHub'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleGoogleSignIn} style={styles.googleButton}>
-          <Text style={styles.googleText}>Continue with Google</Text>
+          <Icons.GoogleIcon style={styles.googleIcon} width={24} height={24} />
+          <Text style={styles.googleText}>{googleLoading ? <ActivityIndicator size="small" color="#fff" /> : 'Continue with Google'}</Text>
         </TouchableOpacity>
 
         <View style={styles.dividerContainer}>
@@ -178,14 +193,28 @@ const styles = StyleSheet.create({
   header: {fontSize: 28, fontWeight: 'bold', marginBottom: 10},
   subHeader: {fontSize: 16, color: '#888', marginBottom: 30},
   googleButton: {
+    flexDirection: 'row',
     borderWidth: 1,
     borderColor: '#ddd',
     padding: 14,
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: 20,
+    justifyContent: 'center',
+  },
+  githubButton: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+    justifyContent: 'center',
   },
   googleText: {fontSize: 16},
+  googleIcon: {marginRight: 10},
+  githubText: {fontSize: 16},
+  githubIcon: {marginRight: 10},
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
