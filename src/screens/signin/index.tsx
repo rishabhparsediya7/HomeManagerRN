@@ -14,6 +14,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {useAuth} from '../../providers/AuthProvider';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
 import { signInWithGoogle } from './googleSigninUtil';
+import { signInWithGitHub } from './githubSigninUtil';
+
 
 const SignInScreen = ({navigation}) => {
   const [signInForm, setSignInForm] = useState({
@@ -47,6 +49,28 @@ const SignInScreen = ({navigation}) => {
     authNavigation.navigate('BottomTabNavigator');
   };
 
+  const getGitHubUser = async (accessToken: string) => {
+    const res = await fetch('https://api.github.com/user', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+    return await res.json()
+  }
+
+  const handleGitHubSignIn = async () => {
+    try {
+      const result = await signInWithGitHub();
+      if (!result?.accessToken) {
+        throw new Error('Failed to sign in');
+      }
+      const user = await getGitHubUser(result?.accessToken);
+      console.log('User signed in successfully:', user);
+    } catch (error) {
+      console.log('Error signing in:', error);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       const {success, userInfo} = await signInWithGoogle();
@@ -70,6 +94,10 @@ const SignInScreen = ({navigation}) => {
         keyboardShouldPersistTaps="handled">
         <Text style={styles.header}>Welcome Back</Text>
         <Text style={styles.subHeader}>Sign in to continue</Text>
+
+        <TouchableOpacity onPress={handleGitHubSignIn} style={styles.googleButton}>
+          <Text style={styles.googleText}>Continue with GitHub</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={handleGoogleSignIn} style={styles.googleButton}>
           <Text style={styles.googleText}>Continue with Google</Text>
