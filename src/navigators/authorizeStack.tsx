@@ -6,13 +6,15 @@ import Dashboard from '../screens/dashboard';
 import Home from '../screens/home';
 import AddExpense from '../screens/addExpense';
 import ChatScreen from '../screens/chat';
+import FriendChatScreen from '../screens/chat/friendChat';
 
 export type AuthorizeNavigationStackList = {
   BottomTabNavigator: undefined;
   Home: undefined;
   Dashboard: undefined;
   AddExpense: undefined;
-  Chat: undefined;
+  Chat: { id: number, name: string, image: string, lastMessage: string, timestamp: string };
+  FriendChat: { id: number, name: string, image: string, lastMessage: string, timestamp: string };
 };
 
 export type AuthorizeNavigationProp<
@@ -39,6 +41,7 @@ const AuthorizeNavigation = () => {
       <AuthorizeNavigationStack.Screen name="Home" component={Home} />
       <AuthorizeNavigationStack.Screen name="Dashboard" component={Dashboard} />
       <AuthorizeNavigationStack.Screen name="Chat" component={ChatScreen} />
+      <AuthorizeNavigationStack.Screen name="FriendChat" component={FriendChatScreen} />
     </AuthorizeNavigationStack.Navigator>
   );
 };

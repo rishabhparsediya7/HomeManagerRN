@@ -5,8 +5,9 @@ import * as naclUtil from 'tweetnacl-util';
 import { getStoredKeyPair, generateAndStoreKeyPair, resetKeyPair } from '../../utils/cryptoUtils';
 import { Button, FlatList, Text, TextInput, View } from 'react-native';
 import api from '../../services/api';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FriendsScreen from './friends';
 
 const userIds = ['e0e85d63-fab2-4f16-b55d-7a3439f0494c', '62292c6a-8a7a-457c-ad02-2fea0023f6a1'];
 async function initKeys() {
@@ -110,28 +111,30 @@ const ChatScreen = () => {
     );
 
     useEffect(() => {
-        initKeys();
-        const fetchChat = async () => {
-            const chat = await fetchAndDecryptChat(withUserId);
-            setChat(chat);
-        };
-        fetchChat();
+        // initKeys();
+        // const fetchChat = async () => {
+        //     const chat = await fetchAndDecryptChat(withUserId);
+        //     setChat(chat);
+        // };
+        // fetchChat();
     }, []);
 
     return (
-        <View>
-            <Text>Chat Screen</Text>
-            <Button title="Toggle" onPress={() => setToggler(!toggler)} />
-            <View style={{ flexDirection: 'row' }}>
-                <TextInput placeholder="Enter message" value={message} onChangeText={setMessage} />
-                <Button title="Send" onPress={() => sendMessage(withUserId, message)} />
-            </View>
-            <FlatList
-                data={chat}
-                renderItem={({ item }) => <Text>{item.plaintext}</Text>}
-            />
-        </View>
+      <FriendsScreen/>
     );
 };
 
 export default ChatScreen;
+
+{/* <View>
+<Text>Chat Screen</Text>
+<Button title="Toggle" onPress={() => setToggler(!toggler)} />
+<View style={{ flexDirection: 'row' }}>
+    <TextInput placeholder="Enter message" value={message} onChangeText={setMessage} />
+    <Button title="Send" onPress={() => sendMessage(withUserId, message)} />
+</View>
+<FlatList
+    data={chat}
+    renderItem={({ item }) => <Text>{item.plaintext}</Text>}
+/>
+</View> */}
