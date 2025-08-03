@@ -5,12 +5,14 @@ import {RouteProp} from '@react-navigation/native';
 import Dashboard from '../screens/dashboard';
 import Home from '../screens/home';
 import AddExpense from '../screens/addExpense';
+import ChatScreen from '../screens/chat';
 
 export type AuthorizeNavigationStackList = {
   BottomTabNavigator: undefined;
   Home: undefined;
   Dashboard: undefined;
   AddExpense: undefined;
+  Chat: undefined;
 };
 
 export type AuthorizeNavigationProp<
@@ -36,6 +38,7 @@ const AuthorizeNavigation = () => {
       />
       <AuthorizeNavigationStack.Screen name="Home" component={Home} />
       <AuthorizeNavigationStack.Screen name="Dashboard" component={Dashboard} />
+      <AuthorizeNavigationStack.Screen name="Chat" component={ChatScreen} />
     </AuthorizeNavigationStack.Navigator>
   );
 };

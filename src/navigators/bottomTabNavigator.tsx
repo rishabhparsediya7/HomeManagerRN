@@ -6,6 +6,7 @@ import AddExpense from '../screens/addExpense'; // Placeholder for Profile
 import Expense from '../screens/expense';
 import Home from '../screens/home';
 import Profile from '../screens/profile';
+import ChatScreen from '../screens/chat';
 
 export type TabStackParamList = {
   Home: undefined;
@@ -30,7 +31,7 @@ const BottomTabNavigator = () => {
       }}>
       <Tab.Screen
         name="Home"
-        component={Home}
+        component={ChatScreen}
         options={{
           tabBarIcon: ({color, size}) => (
             <Icon name="home-outline" color={color} size={size} />

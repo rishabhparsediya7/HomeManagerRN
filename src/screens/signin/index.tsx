@@ -49,7 +49,6 @@ const SignInScreen = ({navigation}) => {
     } finally {
       setLoading(false);
     }
-    authNavigation.navigate('BottomTabNavigator');
   };
 
   const getGitHubUser = async (accessToken: string) => {

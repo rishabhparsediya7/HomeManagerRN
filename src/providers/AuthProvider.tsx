@@ -1,8 +1,9 @@
-import {BASE_URL} from '@env';
+import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   PropsWithChildren,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -80,7 +81,7 @@ const AuthContext = createContext<AuthContext>({
   },
 });
 
-export default function AuthProvider({children}: PropsWithChildren) {
+export default function AuthProvider({ children }: PropsWithChildren) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -109,7 +110,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
       console.log('BASE_URL', BASE_URL);
       console.log(
         `🚀 ~ AuthProvider ~ {email, password, first_name, last_name}:`,
-        {email, password, first_name, last_name},
+        { email, password, first_name, last_name },
       );
       const response = await fetch(`${BASE_URL}/api/auth/signup`, {
         method: 'POST',
@@ -162,13 +163,13 @@ export default function AuthProvider({children}: PropsWithChildren) {
       const BASE_URL = process.env.BASE_URL;
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
-        body: JSON.stringify({email, password}),
+        body: JSON.stringify({ email, password }),
         headers: {
           'content-type': 'application/json',
         },
       });
       const result = await response.json();
-      const {userId, token, name} = result;
+      const { userId, token, name } = result;
       if (result.success && result.token) {
         setIsAuthenticated(true);
         await Promise.all([
@@ -195,11 +196,11 @@ export default function AuthProvider({children}: PropsWithChildren) {
     }
   };
 
-  const signInWithGoogle = async ({idToken}: {idToken: string}) => {
+  const signInWithGoogle = async ({ idToken }: { idToken: string }) => {
     console.log("🚀 ~ signInWithGoogle ~ idToken:", idToken)
     setLoading(true);
     try {
-      if(!idToken){
+      if (!idToken) {
         throw new Error('ID token is required');
       }
       const BASE_URL = process.env.BASE_URL;
@@ -214,7 +215,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
       console.log("🚀 ~ signInWithGoogle ~ response:", response)
       const result = await response.json();
       console.log("🚀 ~ signInWithGoogle ~ result:", result)
-      const {userId, token, name} = result;
+      const { userId, token, name } = result;
       if (result.success && result.token) {
         setIsAuthenticated(true);
         await Promise.all([
@@ -249,25 +250,29 @@ export default function AuthProvider({children}: PropsWithChildren) {
       const token = await AsyncStorage.getItem('token');
       setIsAuthenticated(!!token);
     };
-    const getUser = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get('/api/users/me');
-        setUser({
-          ...user,
-          photoUrl: response.data.user.photoUrl,
-        });
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchAuthStatus();
-    isAuthenticated && getUser();
+    if (isAuthenticated) {
+      getUser();
+    }
   }, [isAuthenticated]);
 
+  const getUser = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/users/me');
+      setUser({
+        ...user,
+        photoUrl: response.data.user.photoUrl,
+      });
+    } catch (error) {
+      console.log(error);
+      signOut();
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
+
+  
   const signIn = async () => setIsAuthenticated(true);
   const signOut = async () => {
     await AsyncStorage.clear();

@@ -10,6 +10,8 @@ import AuthProvider, {useAuth} from './src/providers/AuthProvider';
 import UserProvider from './src/providers/UserContext';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import 'react-native-get-random-values';
+
 const RootNavigator = () => {
   const {isAuthenticated} = useAuth();
   return isAuthenticated ? <AuthorizeNavigation /> : <UnauthorizeNavigation />;
