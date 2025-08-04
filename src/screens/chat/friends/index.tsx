@@ -20,9 +20,9 @@ const FriendItem = ({ id, image, firstName, lastName, lastMessage, lastMessageTi
             <View style={{ flex: 1 }}>
                 <View style={styles.nameContainer}>
                     <Text style={styles.name}>{firstName + ' ' + lastName}</Text>
-                    {lastMessageTime && <Text style={styles.time}>{new Date(lastMessageTime).toLocaleTimeString().split(':')[0].slice(0, 2).padStart(2, '0') + ':' + new Date(lastMessageTime).toLocaleTimeString().split(':')[1].slice(0, 2).padStart(2, '0')}</Text>}
+                    {lastMessageTime && <Text  style={styles.time}>{new Date(lastMessageTime).toLocaleTimeString().split(':')[0].slice(0, 2).padStart(2, '0') + ':' + new Date(lastMessageTime).toLocaleTimeString().split(':')[1].slice(0, 2).padStart(2, '0')}</Text>}
                 </View>
-                {lastMessage && <Text style={styles.lastMessage}>{lastMessage}</Text>}
+                {lastMessage && <Text numberOfLines={1} style={styles.lastMessage}>{lastMessage}</Text>}
             </View>
         </TouchableOpacity>
     );
@@ -105,6 +105,7 @@ const styles = StyleSheet.create({
     lastMessage: {
         color: '#666',
         fontSize: 14,
+        maxWidth: '80%',
     },
     subContainer: {
         flexDirection: 'row',
