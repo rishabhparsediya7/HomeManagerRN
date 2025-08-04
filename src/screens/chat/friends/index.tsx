@@ -9,8 +9,13 @@ const FriendItem = ({ id, image, firstName, lastName, lastMessage, lastMessageTi
     if (!image) {
         profileImage = createInitialsForImage(firstName + ' ' + lastName);
     }    
+
+    const handleOnFriendRowPress = () => {
+        navigation.navigate('FriendChat', { id, firstName, lastName, image, lastMessage, lastMessageTime })
+    }
+
     return (
-        <TouchableOpacity onPress={() => { navigation.navigate('FriendChat', { id, firstName, lastName, image, lastMessage, lastMessageTime }) }} style={styles.subContainer}>
+        <TouchableOpacity onPress={handleOnFriendRowPress} style={styles.subContainer}>
             {image ? <Image source={{ uri: image }} style={styles.image} /> : <View style={styles.initialsContainer}><Text style={styles.initials}>{profileImage}</Text></View>}
             <View style={{ flex: 1 }}>
                 <View style={styles.nameContainer}>
