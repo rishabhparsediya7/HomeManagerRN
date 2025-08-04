@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-type Message = {
+
+export type Message = {
   id: number;
-  sender_id: string;
+  sender_id: string | null;
   receiver_id: string;
   message: string;
   nonce: string;
@@ -11,15 +12,17 @@ type Message = {
 
 type ChatState = {
   chats: Record<string, Message[]>;
-  setMessagesOnStore: (friendId: string, messages: Message[]) => void;
-  addMessageOnStore: (friendId: string, message: Message) => void;
-  clearMessagesOnStore: () => void;
+  lastMessages: Record<string, string>;
+  setMessages: (friendId: string, messages: Message[]) => void;
+  addMessage: (friendId: string, message: Message) => void;
+  lastMessage: (friendId: string, message: string) => void;
+  clearMessages: () => void;
 };
 
 export const useChatStore = create<ChatState>((set) => ({
   chats: {},
-
-  setMessagesOnStore: (friendId, messages) =>
+  lastMessages: {},
+  setMessages: (friendId: string, messages: Message[]) =>
     set((state) => ({
       chats: {
         ...state.chats,
@@ -27,19 +30,21 @@ export const useChatStore = create<ChatState>((set) => ({
       },
     })),
 
-  addMessageOnStore: (friendId, message) =>
-    set((state) => {
-      const prev = state.chats[friendId] || [];
-      return {
-        chats: {
-          ...state.chats,
-          [friendId]: [...prev, message],
-        },
-      };
-    }),
-
-  clearMessagesOnStore: () =>
-    set(() => ({
-      chats: {},
+  addMessage: (friendId: string, message: Message) =>
+    set((state) => ({
+      chats: {
+        ...state.chats,
+        [friendId]: [...(state.chats[friendId] || []), message],
+      },
     })),
+  lastMessage: (friendId: string, message: string) =>
+    set((state) => ({
+      ...state,
+      lastMessages: {
+        ...state.lastMessages,
+        [friendId]: message,
+      },
+    })),
+
+  clearMessages: () => set({ chats: {}, lastMessages: {} }),
 }));

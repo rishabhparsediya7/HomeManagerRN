@@ -1,23 +1,26 @@
-import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
-import {NavigationContainer} from '@react-navigation/native';
-import React, { useEffect } from 'react';
-import {StyleSheet, View, Text, Button} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, Button } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthorizeNavigation from './src/navigators/authorizeStack';
 import UnauthorizeNavigation from './src/navigators/unauthorizeStack';
-import AuthProvider, {useAuth} from './src/providers/AuthProvider';
+import AuthProvider, { useAuth } from './src/providers/AuthProvider';
 import UserProvider from './src/providers/UserContext';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import 'react-native-get-random-values';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import socket from './src/utils/socket';
 
 const RootNavigator = () => {
-  const {isAuthenticated} = useAuth();
+  const { isAuthenticated } = useAuth();
   return isAuthenticated ? <AuthorizeNavigation /> : <UnauthorizeNavigation />;
 };
 
 const App = () => {
+  const [userId, setUserId] = useState<string | null>(null);
   const fallbackUI = (
     <View style={styles.errorContainer}>
       <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
@@ -26,6 +29,20 @@ const App = () => {
       </Text>
     </View>
   );
+  useEffect(() => {
+    async function init() {
+      const userId = await AsyncStorage.getItem('userId');
+      setUserId(userId);
+      if (userId) {
+        socket.connect();
+        socket.emit('register', userId);
+      }
+    }
+    init();
+    return () => {
+      socket.disconnect();
+    };
+  }, [userId]);
 
   useEffect(() => {
     GoogleSignin.configure({

@@ -2,17 +2,64 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuthorizeNavigation } from '../../../navigators/navigators';
 import { createInitialsForImage } from '../../../utils/users';
+import { getStoredKeyPair } from '../../../utils/cryptoUtils';
+import naclUtil from 'tweetnacl-util';
+import nacl from 'tweetnacl';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useChatStore } from '../../../store';
 
-const FriendItem = ({ id, image, firstName, lastName, lastMessage, lastMessageTime }: { id: number, image: string, firstName: string, lastName: string, lastMessage: string, lastMessageTime: string }) => {
+const handleReceiveMessage = async (payload: {
+    senderId: string;
+    message: string;
+    nonce: string;
+}) => {
+    const pair = await getStoredKeyPair();
+    if (!pair) throw new Error('Keypair not found');
+    const { secretKey: mySK } = pair;
+
+    const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/public-key/${payload.senderId}`);
+    const { publicKey: theirPubB64 } = resp.data;
+    const theirPub = naclUtil.decodeBase64(theirPubB64);
+
+    const decrypted = nacl.box.open(
+        naclUtil.decodeBase64(payload.message),
+        naclUtil.decodeBase64(payload.nonce),
+        theirPub,
+        mySK
+    );
+
+    if (decrypted) {
+        const plaintext = naclUtil.encodeUTF8(decrypted);
+        console.log("Decrypted message:", plaintext);
+        return plaintext;
+    } else {
+        console.warn("❌ Could not decrypt message");
+        return null;
+    }
+};
+const FriendItem = ({ id, image, firstName, lastName, lastMessage, lastMessageTime, nonce }: { id: string, image: string, firstName: string, lastName: string, lastMessage: string, lastMessageTime: string, nonce: string }) => {
     const navigation = useAuthorizeNavigation();
+    const { lastMessage: lastMessageOnStore } = useChatStore();
+    const [lastMessageToDisplay, setLastMessageToDisplay] = useState(lastMessageOnStore[id]);
     let profileImage = image;
     if (!image) {
         profileImage = createInitialsForImage(firstName + ' ' + lastName);
-    }    
+    }
 
     const handleOnFriendRowPress = () => {
         navigation.navigate('FriendChat', { id, firstName, lastName, image, lastMessage, lastMessageTime })
     }
+    useEffect(() => {
+        async function fetchLastMessage() {
+            const lastMessageToDisplay = await handleReceiveMessage({ senderId: id, message: lastMessage, nonce: nonce });
+            if (!lastMessageToDisplay) return;
+            setLastMessageToDisplay(lastMessageToDisplay);
+        }
+        if (!lastMessageOnStore[id]) {
+            fetchLastMessage();
+        }
+    }, [lastMessageOnStore[id]]);
 
     return (
         <TouchableOpacity onPress={handleOnFriendRowPress} style={styles.subContainer}>
@@ -20,9 +67,9 @@ const FriendItem = ({ id, image, firstName, lastName, lastMessage, lastMessageTi
             <View style={{ flex: 1 }}>
                 <View style={styles.nameContainer}>
                     <Text style={styles.name}>{firstName + ' ' + lastName}</Text>
-                    {lastMessageTime && <Text  style={styles.time}>{new Date(lastMessageTime).toLocaleTimeString().split(':')[0].slice(0, 2).padStart(2, '0') + ':' + new Date(lastMessageTime).toLocaleTimeString().split(':')[1].slice(0, 2).padStart(2, '0')}</Text>}
+                    {lastMessageTime && <Text style={styles.time}>{new Date(lastMessageTime).toLocaleTimeString().split(':')[0].slice(0, 2).padStart(2, '0') + ':' + new Date(lastMessageTime).toLocaleTimeString().split(':')[1].slice(0, 2).padStart(2, '0')}</Text>}
                 </View>
-                {lastMessage && <Text numberOfLines={1} style={styles.lastMessage}>{lastMessage}</Text>}
+                {lastMessageToDisplay && <Text numberOfLines={1} style={styles.lastMessage}>{lastMessageToDisplay}</Text>}
             </View>
         </TouchableOpacity>
     );
@@ -58,7 +105,7 @@ const FriendsScreen = ({ friends, loading }: { friends: any, loading: boolean })
             showsVerticalScrollIndicator={false}
             data={friends}
             contentContainerStyle={styles.container}
-            renderItem={({ item }) => <FriendItem id={item?.friendId} image={item?.image} firstName={item?.firstName} lastName={item?.lastName} lastMessage={item?.lastMessage} lastMessageTime={item?.lastMessageTime} />}
+            renderItem={({ item }) => <FriendItem id={item?.friendId} image={item?.image} firstName={item?.firstName} lastName={item?.lastName} lastMessage={item?.lastMessage} lastMessageTime={item?.lastMessageTime} nonce={item?.nonce} />}
             ListEmptyComponent={<ListEmptyComponent />}
         />
     );

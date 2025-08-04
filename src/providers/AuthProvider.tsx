@@ -130,7 +130,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         await Promise.all([
           AsyncStorage.setItem('userId', result.userId),
           AsyncStorage.setItem('token', result.token),
-          // AsyncStorage.setItem('isLoggedIn', true.toString()),
         ]);
         setUser({
           userId: result?.userId || '',
@@ -266,7 +265,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       });
     } catch (error) {
       console.log(error);
-      signOut();
     } finally {
       setLoading(false);
     }

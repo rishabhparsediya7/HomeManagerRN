@@ -14,7 +14,7 @@ export type AuthorizeNavigationStackList = {
   Dashboard: undefined;
   AddExpense: undefined;
   Chat: undefined;
-  FriendChat: { id: number, firstName: string, lastName: string, image: string, lastMessage: string, lastMessageTime: string };
+  FriendChat: { id: string, firstName: string, lastName: string, image: string, lastMessage: string, lastMessageTime: string };
 };
 
 export type AuthorizeNavigationProp<
