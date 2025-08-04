@@ -1,26 +1,44 @@
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuthorizeNavigation } from '../../../navigators/navigators';
-import { friends } from '../../../constants';
+import { createInitialsForImage } from '../../../utils/users';
 
-const FriendItem = ({ id, image, name, lastMessage, timestamp }: { id: number, image: string, name: string, lastMessage: string, timestamp: string }) => {
+const FriendItem = ({ id, image, firstName, lastName, lastMessage, lastMessageTime }: { id: number, image: string, firstName: string, lastName: string, lastMessage: string, lastMessageTime: string }) => {
     const navigation = useAuthorizeNavigation();
+    let profileImage = image;
+    if (!image) {
+        profileImage = createInitialsForImage(firstName + ' ' + lastName);
+    }    
     return (
-        <TouchableOpacity onPress={() => { navigation.navigate('FriendChat', { id, name, image, lastMessage, timestamp }) }} style={styles.subContainer}>
-            <Image source={{ uri: image }} style={styles.image} />
+        <TouchableOpacity onPress={() => { navigation.navigate('FriendChat', { id, firstName, lastName, image, lastMessage, lastMessageTime }) }} style={styles.subContainer}>
+            {image ? <Image source={{ uri: image }} style={styles.image} /> : <View style={styles.initialsContainer}><Text style={styles.initials}>{profileImage}</Text></View>}
             <View style={{ flex: 1 }}>
                 <View style={styles.nameContainer}>
-                    <Text style={styles.name}>{name}</Text>
-                    <Text style={styles.time}>{new Date(timestamp).toLocaleTimeString().split(':')[0].slice(0, 2) + ':' + new Date(timestamp).toLocaleTimeString().split(':')[1].slice(0, 2)}</Text>
+                    <Text style={styles.name}>{firstName + ' ' + lastName}</Text>
+                    {lastMessageTime && <Text style={styles.time}>{new Date(lastMessageTime).toLocaleTimeString().split(':')[0].slice(0, 2).padStart(2, '0') + ':' + new Date(lastMessageTime).toLocaleTimeString().split(':')[1].slice(0, 2).padStart(2, '0')}</Text>}
                 </View>
-                <Text style={styles.lastMessage}>{lastMessage}</Text>
+                {lastMessage && <Text style={styles.lastMessage}>{lastMessage}</Text>}
             </View>
         </TouchableOpacity>
     );
 };
 
-const FriendsScreen = () => {
-   
+const LoadingComponent = () => {
+    return <View style={styles.container}><Text>Loading...</Text></View>
+}
+
+const ListEmptyComponent = () => {
+    return <View style={styles.emptyTextContainer}>
+        <Text style={styles.emptyText}>No friends found</Text>
+    </View>;
+}
+
+
+const FriendsScreen = ({ friends, loading }: { friends: any, loading: boolean }) => {
+
+    if (loading) {
+        return <LoadingComponent />
+    }
     return (
         <FlatList
             ListHeaderComponent={
@@ -35,7 +53,8 @@ const FriendsScreen = () => {
             showsVerticalScrollIndicator={false}
             data={friends}
             contentContainerStyle={styles.container}
-            renderItem={({ item }) => <FriendItem id={item.id} image={item.image} name={item.name} lastMessage={item.lastMessage} timestamp={item.timestamp} />}
+            renderItem={({ item }) => <FriendItem id={item?.id} image={item?.image} firstName={item?.firstName} lastName={item?.lastName} lastMessage={item?.lastMessage} lastMessageTime={item?.lastMessageTime} />}
+            ListEmptyComponent={<ListEmptyComponent />}
         />
     );
 };
@@ -46,11 +65,12 @@ const styles = StyleSheet.create({
         gap: 24,
         padding: 20,
         backgroundColor: '#fff',
+        flex: 1,
     },
-    header: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: 20
     },
     headerText: {
@@ -95,5 +115,28 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    emptyTextContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    initialsContainer: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#F5F6FA',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    initials: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
     },
 });

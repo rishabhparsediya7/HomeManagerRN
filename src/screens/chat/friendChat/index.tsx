@@ -1,16 +1,22 @@
-import { Text, View, Image, StyleSheet, TouchableOpacity, FlatList, TextInput } from "react-native";
-import { friends } from "../../../constants";
+import { useRef, useState } from "react";
+import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import EntypoIcon from "react-native-vector-icons/Entypo";
-import { useAuthorizeNavigation } from "../../../navigators/navigators";
-import { useState } from "react";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { useAuthorizeNavigation } from "../../../navigators/navigators";
+import { createInitialsForImage } from "../../../utils/users";
 
 const FriendChatScreen = ({ route }) => {
 
-    const { id, name, image, lastMessage, timestamp } = route?.params;
-    const friend = friends.find((friend) => friend.id === id);
+    const { id, firstName, lastName, image } = route?.params;
     const [message, setMessage] = useState('');
     const navigation = useAuthorizeNavigation();
+    const flatListRef= useRef<FlatList>(null);
+    const [initialScrollDone, setInitialScrollDone] = useState(false);
+    let profileImage = image;
+    if (!image) {
+        profileImage = createInitialsForImage(firstName + ' ' + lastName);
+    }    
+
     const messages = [
         {
             id: 1,
@@ -128,8 +134,8 @@ const FriendChatScreen = ({ route }) => {
                 <TouchableOpacity style={styles.headerIconContainer} onPress={() => navigation.canGoBack() && navigation.goBack()}>
                     <EntypoIcon name="chevron-thin-left" size={28} style={styles.headerIcon} />
                 </TouchableOpacity>
-                <Image source={{ uri: friend?.image }} style={styles.headerImage} />
-                <Text style={styles.headerText}>{friend?.name}</Text>
+                {image ? <Image source={{ uri: image }} style={styles.headerImage} /> : <View style={styles.initialsContainer}><Text style={styles.initials}>{profileImage}</Text></View>}
+                <Text style={styles.headerText}>{firstName + ' ' + lastName}</Text>
             </View>
             <View style={styles.content}>
                 <FlatList
@@ -139,15 +145,27 @@ const FriendChatScreen = ({ route }) => {
                     renderItem={({ item }) => (
                         <View style={[
                             styles.messageContainer,
-                            item.senderId === friend?.id && styles.messageContainerSender
+                            item.senderId === id && styles.messageContainerSender
                         ]}>
-                            <View style={item.senderId === friend?.id ? styles.sender : styles.receiver  }>
-                                <Text style={[styles.messageText, item.senderId === friend?.id && styles.messageTextSender]}>{item.senderId === friend?.id ? 'You: ' : friends.find((friend) => friend.id === item.senderId)?.name + ': '}{item.message}</Text>
-                                <Text style={[styles.messageTime, item.senderId === friend?.id && styles.messageTimeSender]}>{new Date(item.timestamp).toLocaleTimeString().split(':')[0].slice(0, 2) + ':' + new Date(item.timestamp).toLocaleTimeString().split(':')[1].slice(0, 2)}</Text>
+                            <View style={item.senderId === id ? styles.sender : styles.receiver  }>
+                                <Text style={[styles.messageText, item.senderId === id && styles.messageTextSender]}>{item.senderId === id ? 'You: ' : firstName + ' ' + lastName + ': '}{item.message}</Text>
+                                <Text style={[styles.messageTime, item.senderId === id && styles.messageTimeSender]}>{new Date(item.timestamp).toLocaleTimeString().split(':')[0].slice(0, 2) + ':' + new Date(item.timestamp).toLocaleTimeString().split(':')[1].slice(0, 2)}</Text>
                             </View>
                         </View>
                     )}
                     keyExtractor={(item) => item.id.toString()+item.senderId.toString()+item.timestamp.toString()+ Math.floor(Math.random() * 1000000).toString()}
+                    ref={flatListRef}
+                    onLayout={() => {
+                        if (!initialScrollDone) {
+                          flatListRef.current?.scrollToEnd({ animated: false }); // Instant jump
+                          setInitialScrollDone(true);
+                        }
+                      }}
+                      onContentSizeChange={() => {
+                        if (initialScrollDone) {
+                          flatListRef.current?.scrollToEnd({ animated: true }); // Smooth scroll for new message
+                        }
+                      }}
                 />
             </View>
             <View style={styles.inputContainer}>
@@ -200,6 +218,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 25,
+        marginLeft: -12,
     },
     headerIcon: {
         color: '#333',
@@ -285,5 +304,19 @@ const styles = StyleSheet.create({
     },
     sendIcon: {
         color: '#333',
+    },
+    initialsContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#007AFF',
+        marginLeft: -12,
+    },
+    initials: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
     },
 });

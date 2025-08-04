@@ -8,7 +8,7 @@ import api from '../../services/api';
 import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FriendsScreen from './friends';
-
+import axios from 'axios';
 const userIds = ['e0e85d63-fab2-4f16-b55d-7a3439f0494c', '62292c6a-8a7a-457c-ad02-2fea0023f6a1'];
 async function initKeys() {
     try {
@@ -89,7 +89,24 @@ async function fetchAndDecryptChat(withUser: string) {
 const ChatScreen = () => {
     const [message, setMessage] = useState('');
     const [toggler, setToggler] = useState(true);
+    const [loading, setLoading] = useState(false);
     const withUserId = toggler ? userIds[0] : userIds[1];
+    const [friends, setFriends] = useState([]);
+    
+    const fetchFriends = async () => {
+        const userId = await AsyncStorage.getItem('userId');
+        setLoading(true);
+        try {
+            const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/getFriends/${userId}`);
+            console.log("🚀 ~ fetchFriends ~ resp:", resp.data)
+            setFriends(resp.data);
+        } catch (error) {
+            console.error('Failed to fetch friends:', error);
+        }
+        finally {
+            setLoading(false);
+        }
+    }
     const [chat, setChat] = useState([
         {
             senderId: 'alice',
@@ -111,6 +128,10 @@ const ChatScreen = () => {
     );
 
     useEffect(() => {
+        fetchFriends();
+    }, []);
+
+    useEffect(() => {
         // initKeys();
         // const fetchChat = async () => {
         //     const chat = await fetchAndDecryptChat(withUserId);
@@ -120,7 +141,7 @@ const ChatScreen = () => {
     }, []);
 
     return (
-      <FriendsScreen/>
+      <FriendsScreen friends={friends} loading={loading}/>
     );
 };
 
