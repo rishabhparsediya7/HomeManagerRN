@@ -1,5 +1,6 @@
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useRef, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import EntypoIcon from "react-native-vector-icons/Entypo";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useAuthorizeNavigation } from "../../../navigators/navigators";
@@ -9,6 +10,7 @@ import { getStoredKeyPair } from "../../../utils/cryptoUtils";
 import naclUtil from "tweetnacl-util";
 import nacl from "tweetnacl";
 import axios from 'axios';
+import { useKeyboardStatus } from "../../../hooks/useKeyboardStatus";
 
 interface Message {
     id: number;
@@ -53,7 +55,7 @@ async function fetchAndDecryptChat(withUser: string) {
     const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/public-key/${withUser}`);
     const { publicKey: theirPubB64 } = await resp.data;
     const theirPub = naclUtil.decodeBase64(theirPubB64);
-    
+
 
     return messages.map((msg: Message) => {
         const plain = nacl.box.open(
@@ -70,19 +72,32 @@ async function fetchAndDecryptChat(withUser: string) {
     });
 }
 
+const ListHeaderComponent = ({ navigation, firstName, lastName, image, profileImage }: any) => {
+    return (
+        <View style={styles.header}>
+            <TouchableOpacity style={styles.headerIconContainer} onPress={() => navigation.canGoBack() && navigation.goBack()}>
+                <EntypoIcon name="chevron-thin-left" size={28} style={styles.headerIcon} />
+            </TouchableOpacity>
+            {image ? <Image source={{ uri: image }} style={styles.headerImage} /> : <View style={styles.initialsContainer}><Text style={styles.initials}>{profileImage}</Text></View>}
+            <Text style={styles.headerText}>{firstName + ' ' + lastName}</Text>
+        </View>
+    )
+}
+
 const FriendChatScreen = ({ route }) => {
     const { id, firstName, lastName, image } = route?.params;
     const [message, setMessage] = useState('');
     const navigation = useAuthorizeNavigation();
-    const flatListRef= useRef<FlatList>(null);
+    const flatListRef = useRef<FlatList>(null);
     const [initialScrollDone, setInitialScrollDone] = useState(false);
     const [chatMessages, setChatMessages] = useState<Message[]>([]);
     const [userId, setUserId] = useState<string | null>('');
     const [loading, setLoading] = useState(false);
+    const isKeyboardVisible = useKeyboardStatus();
     let profileImage = image;
     if (!image) {
         profileImage = createInitialsForImage(firstName + ' ' + lastName);
-    }    
+    }
 
     useEffect(() => {
         const fetchChat = async () => {
@@ -116,16 +131,13 @@ const FriendChatScreen = ({ route }) => {
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity style={styles.headerIconContainer} onPress={() => navigation.canGoBack() && navigation.goBack()}>
-                    <EntypoIcon name="chevron-thin-left" size={28} style={styles.headerIcon} />
-                </TouchableOpacity>
-                {image ? <Image source={{ uri: image }} style={styles.headerImage} /> : <View style={styles.initialsContainer}><Text style={styles.initials}>{profileImage}</Text></View>}
-                <Text style={styles.headerText}>{firstName + ' ' + lastName}</Text>
-            </View>
-            <View style={styles.content}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom', 'left', 'right']}>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : isKeyboardVisible ? 24 : 0}>
                 <FlatList
+                    ListHeaderComponent={() => <ListHeaderComponent navigation={navigation} firstName={firstName} lastName={lastName} image={image} profileImage={profileImage} />}
                     data={chatMessages}
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
@@ -134,7 +146,7 @@ const FriendChatScreen = ({ route }) => {
                             styles.messageContainer,
                             item.sender_id === id && styles.messageContainerSender
                         ]}>
-                            <View style={item.sender_id === id ? styles.sender : styles.receiver  }>
+                            <View style={item.sender_id === id ? styles.sender : styles.receiver}>
                                 <Text style={[styles.messageText, item.sender_id === id && styles.messageTextSender]}>{item.sender_id === id ? 'You: ' : firstName + ' ' + lastName + ': '}{item.plaintext}</Text>
                                 <Text style={[styles.messageTime, item.sender_id === id && styles.messageTimeSender]}>{new Date(item.sent_at).toLocaleTimeString().split(':')[0].slice(0, 2) + ':' + new Date(item.sent_at).toLocaleTimeString().split(':')[1].slice(0, 2)}</Text>
                             </View>
@@ -144,42 +156,36 @@ const FriendChatScreen = ({ route }) => {
                     ref={flatListRef}
                     onLayout={() => {
                         if (!initialScrollDone) {
-                          flatListRef.current?.scrollToEnd({ animated: false }); // Instant jump
-                          setInitialScrollDone(true);
+                            flatListRef.current?.scrollToEnd({ animated: false }); // Instant jump
+                            setInitialScrollDone(true);
                         }
-                      }}
-                      onContentSizeChange={() => {
+                    }}
+                    onContentSizeChange={() => {
                         if (initialScrollDone) {
-                          flatListRef.current?.scrollToEnd({ animated: true }); // Smooth scroll for new message
+                            flatListRef.current?.scrollToEnd({ animated: true }); // Smooth scroll for new message
                         }
-                      }}
+                    }}
                 />
-            </View>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Type your message..."
-                    value={message}
-                    onChangeText={setMessage}
-                />
-                <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-                    <Icon name="send" size={24} style={styles.sendIcon} />
-                </TouchableOpacity>
-            </View>
-        </View>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Type your message..."
+                        value={message}
+                        multiline
+                        onChangeText={setMessage}
+                    />
+                    <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+                        <Icon name="send" size={24} style={styles.sendIcon} />
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
-};
+}
 
 export default FriendChatScreen;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#fff',
-        width:'100%',
-    },
     headerIconContainer: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -197,8 +203,6 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         flexGrow: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 12,
         width: '100%',
     },
     headerImage: {
@@ -210,28 +214,20 @@ const styles = StyleSheet.create({
     headerIcon: {
         color: '#333',
     },
-    content: {
-        width: '100%',
-        flex: 1,
-    },
     headerText: {
         fontSize: 24,
         fontWeight: 'semibold',
         color: '#333',
     },
-    contentText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
     messageContainer: {
         width: '100%',
-        marginVertical: 4,
         alignItems: 'flex-start',
+        paddingVertical: 4,
+        paddingHorizontal: 12,
     },
     messageContainerSender: {
         alignItems: 'flex-end',
-        width:'100%'
+        width: '100%'
     },
     messageText: {
         fontSize: 18,
@@ -251,27 +247,27 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 10,
         maxWidth: '70%',
-        width:'100%',
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'space-between',
-        gap:6,
-        flexWrap:'wrap',
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 6,
+        flexWrap: 'wrap',
     },
     receiver: {
         backgroundColor: '#F5F6FA',
         padding: 10,
         borderRadius: 10,
         alignSelf: 'flex-start',
-        width:'100%',
+        width: '100%',
         maxWidth: '70%',
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'space-between',
-        gap:6,
-        flexWrap:'wrap',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 6,
+        flexWrap: 'wrap',
     },
-    inputContainer: {   
+    inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
@@ -285,6 +281,8 @@ const styles = StyleSheet.create({
         borderColor: '#ddd',
         borderRadius: 10,
         padding: 12,
+        minHeight: 40,
+        maxHeight: 120,
     },
     sendButton: {
         padding: 12,
