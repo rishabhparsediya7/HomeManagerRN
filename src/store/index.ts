@@ -15,7 +15,6 @@ type ChatState = {
   lastMessages: Record<string, string>;
   setMessages: (friendId: string, messages: Message[]) => void;
   addMessage: (friendId: string, message: Message) => void;
-  lastMessage: (friendId: string, message: string) => void;
   clearMessages: () => void;
 };
 
@@ -36,15 +35,10 @@ export const useChatStore = create<ChatState>((set) => ({
         ...state.chats,
         [friendId]: [...(state.chats[friendId] || []), message],
       },
-    })),
-  lastMessage: (friendId: string, message: string) =>
-    set((state) => ({
-      ...state,
       lastMessages: {
         ...state.lastMessages,
-        [friendId]: message,
+        [friendId]: message.plaintext || message.message, // fallback to encrypted if plaintext not yet available
       },
     })),
-
   clearMessages: () => set({ chats: {}, lastMessages: {} }),
 }));

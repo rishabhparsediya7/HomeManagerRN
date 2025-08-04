@@ -73,7 +73,7 @@ const FriendChatScreen = ({ route }) => {
     const [userId, setUserId] = useState<string | null>('');
     const [loading, setLoading] = useState(false);
     const isKeyboardVisible = useKeyboardStatus();
-    const { chats, setMessages, addMessage, lastMessage } = useChatStore();
+    const { chats, setMessages, addMessage } = useChatStore();
     const messages = chats[id] || [];
 
     let profileImage = image;
@@ -118,8 +118,6 @@ const FriendChatScreen = ({ route }) => {
                     sent_at: new Date().toISOString(),
                 };
                 addMessage(id, newMessage);
-                lastMessage(id, plaintext);
-
             } else {
                 console.warn("❌ Could not decrypt message");
             }
@@ -129,7 +127,6 @@ const FriendChatScreen = ({ route }) => {
         return () => socket.off('receive-message', handleReceiveMessage);
 
     }, [userId]);
-
 
     const sendMessage = async () => {
         if (message.trim() !== '' && userId) {
@@ -161,7 +158,6 @@ const FriendChatScreen = ({ route }) => {
                 nonce: naclUtil.encodeBase64(nonce),
             });
             flatListRef.current?.scrollToEnd({ animated: true });
-            lastMessage(id, message);
         }
     }
 

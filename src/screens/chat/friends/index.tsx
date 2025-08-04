@@ -40,8 +40,8 @@ const handleReceiveMessage = async (payload: {
 };
 const FriendItem = ({ id, image, firstName, lastName, lastMessage, lastMessageTime, nonce }: { id: string, image: string, firstName: string, lastName: string, lastMessage: string, lastMessageTime: string, nonce: string }) => {
     const navigation = useAuthorizeNavigation();
-    const { lastMessage: lastMessageOnStore } = useChatStore();
-    const [lastMessageToDisplay, setLastMessageToDisplay] = useState(lastMessageOnStore[id]);
+    const { lastMessages } = useChatStore();
+    const [lastMessageToDisplay, setLastMessageToDisplay] = useState(lastMessages[id]);
     let profileImage = image;
     if (!image) {
         profileImage = createInitialsForImage(firstName + ' ' + lastName);
@@ -56,10 +56,10 @@ const FriendItem = ({ id, image, firstName, lastName, lastMessage, lastMessageTi
             if (!lastMessageToDisplay) return;
             setLastMessageToDisplay(lastMessageToDisplay);
         }
-        if (!lastMessageOnStore[id]) {
+        if (!lastMessages[id]) {
             fetchLastMessage();
         }
-    }, [lastMessageOnStore[id]]);
+    }, [lastMessages[id]]);
 
     return (
         <TouchableOpacity onPress={handleOnFriendRowPress} style={styles.subContainer}>
