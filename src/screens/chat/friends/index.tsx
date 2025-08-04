@@ -58,7 +58,7 @@ const FriendsScreen = ({ friends, loading }: { friends: any, loading: boolean })
             showsVerticalScrollIndicator={false}
             data={friends}
             contentContainerStyle={styles.container}
-            renderItem={({ item }) => <FriendItem id={item?.id} image={item?.image} firstName={item?.firstName} lastName={item?.lastName} lastMessage={item?.lastMessage} lastMessageTime={item?.lastMessageTime} />}
+            renderItem={({ item }) => <FriendItem id={item?.friendId} image={item?.image} firstName={item?.firstName} lastName={item?.lastName} lastMessage={item?.lastMessage} lastMessageTime={item?.lastMessageTime} />}
             ListEmptyComponent={<ListEmptyComponent />}
         />
     );

@@ -1,128 +1,115 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import EntypoIcon from "react-native-vector-icons/Entypo";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useAuthorizeNavigation } from "../../../navigators/navigators";
 import { createInitialsForImage } from "../../../utils/users";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getStoredKeyPair } from "../../../utils/cryptoUtils";
+import naclUtil from "tweetnacl-util";
+import nacl from "tweetnacl";
+import axios from 'axios';
+
+interface Message {
+    id: number;
+    message: string;
+    nonce: string;
+    plaintext?: string;
+    receiver_id: string;
+    sender_id: string | null;
+    sent_at: string;
+}
+
+async function sendMessage(toId: string, plaintext: string) {
+    const userId = await AsyncStorage.getItem('userId');
+    const pair = await getStoredKeyPair();
+    if (!pair) throw new Error('Keypair not found');
+    const { secretKey: mySK } = pair;
+
+    const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/public-key/${toId}`);
+    const { publicKey: theirPubB64 } = await resp.data;
+    const theirPub = naclUtil.decodeBase64(theirPubB64);
+
+    const nonce = nacl.randomBytes(nacl.box.nonceLength);
+    const cipher = nacl.box(naclUtil.decodeUTF8(plaintext), nonce, theirPub, mySK);
+
+    await axios.post('https://1222457b3111.ngrok-free.app/api/chat/message', {
+        senderId: userId,
+        receiverId: toId,
+        message: naclUtil.encodeBase64(cipher),
+        nonce: naclUtil.encodeBase64(nonce),
+    });
+}
+
+
+async function fetchAndDecryptChat(withUser: string) {
+    const userId = await AsyncStorage.getItem('userId');
+    const pair = await getStoredKeyPair();
+    if (!pair) throw new Error('Keypair not found');
+    const { secretKey: mySK } = pair;
+
+    const messages = await (await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/history?userId=${userId}&withUser=${withUser}`)).data;
+
+    const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/public-key/${withUser}`);
+    const { publicKey: theirPubB64 } = await resp.data;
+    const theirPub = naclUtil.decodeBase64(theirPubB64);
+    
+
+    return messages.map((msg: Message) => {
+        const plain = nacl.box.open(
+            naclUtil.decodeBase64(msg.message),
+            naclUtil.decodeBase64(msg.nonce),
+            theirPub,
+            mySK
+        );
+
+        return {
+            ...msg,
+            plaintext: plain ? naclUtil.encodeUTF8(plain) : '[These messages are from before you reinstalled the app and can no longer be decrypted]',
+        };
+    });
+}
 
 const FriendChatScreen = ({ route }) => {
-
     const { id, firstName, lastName, image } = route?.params;
     const [message, setMessage] = useState('');
     const navigation = useAuthorizeNavigation();
     const flatListRef= useRef<FlatList>(null);
     const [initialScrollDone, setInitialScrollDone] = useState(false);
+    const [chatMessages, setChatMessages] = useState<Message[]>([]);
+    const [userId, setUserId] = useState<string | null>('');
+    const [loading, setLoading] = useState(false);
     let profileImage = image;
     if (!image) {
         profileImage = createInitialsForImage(firstName + ' ' + lastName);
     }    
 
-    const messages = [
-        {
-            id: 1,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 1,
-        },
-        {
-            id: 2,
-            message: 'Hello, I am fine, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 2,
-        },
-        {
-            id: 3,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 2,
-        },
-        {
-            id: 4,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 1,
-        },
-        {
-            id: 1,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 2,
-        },
-        {
-            id: 2,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 1,
-        },
-        {
-            id: 3,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 1,
-        },
-        {
-            id: 4,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 2,
-        },
-        {
-            id: 1,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 1,
-        },
-        {
-            id: 2,
-            message: 'Hello, I am fine, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 2,
-        },
-        {
-            id: 3,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 2,
-        },
-        {
-            id: 4,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 1,
-        },
-        {
-            id: 1,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 2,
-        },
-        {
-            id: 2,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 1,
-        },
-        {
-            id: 3,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 1,
-        },
-        {
-            id: 4,
-            message: 'Hello, how are you?',
-            timestamp: '2022-01-01T00:00:00Z',
-            senderId: 2,
-        },
-    ]
+    useEffect(() => {
+        const fetchChat = async () => {
+            const userId = await AsyncStorage.getItem('userId');
+            setUserId(userId);
+            setLoading(true);
+            try {
+                const chat = await fetchAndDecryptChat(id);
+                setChatMessages(chat);
+            } catch (error) {
+                console.error('Failed to fetch chat:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchChat();
+    }, []);
 
     const sendMessage = () => {
-        if (message.trim() !== '') {
-            messages.push({
-                id: messages.length + 1,
+        if (message.trim() !== '' && userId) {
+            chatMessages.push({
+                id: chatMessages.length + 1,
                 message,
-                timestamp: new Date().toISOString(),
-                senderId: 2,
+                nonce: naclUtil.encodeBase64(nacl.randomBytes(nacl.box.nonceLength)),
+                receiver_id: id,
+                sender_id: userId,
+                sent_at: new Date().toISOString(),
             });
             setMessage('');
         }
@@ -139,21 +126,21 @@ const FriendChatScreen = ({ route }) => {
             </View>
             <View style={styles.content}>
                 <FlatList
-                    data={messages}
+                    data={chatMessages}
                     contentContainerStyle={styles.contentContainer}
                     showsVerticalScrollIndicator={false}
                     renderItem={({ item }) => (
                         <View style={[
                             styles.messageContainer,
-                            item.senderId === id && styles.messageContainerSender
+                            item.sender_id === id && styles.messageContainerSender
                         ]}>
-                            <View style={item.senderId === id ? styles.sender : styles.receiver  }>
-                                <Text style={[styles.messageText, item.senderId === id && styles.messageTextSender]}>{item.senderId === id ? 'You: ' : firstName + ' ' + lastName + ': '}{item.message}</Text>
-                                <Text style={[styles.messageTime, item.senderId === id && styles.messageTimeSender]}>{new Date(item.timestamp).toLocaleTimeString().split(':')[0].slice(0, 2) + ':' + new Date(item.timestamp).toLocaleTimeString().split(':')[1].slice(0, 2)}</Text>
+                            <View style={item.sender_id === id ? styles.sender : styles.receiver  }>
+                                <Text style={[styles.messageText, item.sender_id === id && styles.messageTextSender]}>{item.sender_id === id ? 'You: ' : firstName + ' ' + lastName + ': '}{item.plaintext}</Text>
+                                <Text style={[styles.messageTime, item.sender_id === id && styles.messageTimeSender]}>{new Date(item.sent_at).toLocaleTimeString().split(':')[0].slice(0, 2) + ':' + new Date(item.sent_at).toLocaleTimeString().split(':')[1].slice(0, 2)}</Text>
                             </View>
                         </View>
                     )}
-                    keyExtractor={(item) => item.id.toString()+item.senderId.toString()+item.timestamp.toString()+ Math.floor(Math.random() * 1000000).toString()}
+                    keyExtractor={(item) => item.id.toString()}
                     ref={flatListRef}
                     onLayout={() => {
                         if (!initialScrollDone) {
