@@ -13,6 +13,11 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import 'react-native-get-random-values';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import socket from './src/utils/socket';
+import { Buffer } from 'buffer';
+
+if (typeof global.Buffer === 'undefined') {
+  global.Buffer = Buffer;
+}
 
 const RootNavigator = () => {
   const { isAuthenticated } = useAuth();

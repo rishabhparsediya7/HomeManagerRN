@@ -25,17 +25,28 @@ interface Message {
 }
 
 async function fetchAndDecryptChat(withUser: string) {
+
+    try {
     const userId = await AsyncStorage.getItem('userId');
-    const pair = await getStoredKeyPair();
-    if (!pair) throw new Error('Keypair not found');
-    const { secretKey: mySK } = pair;
+    console.log("🚀 ~ fetchAndDecryptChat ~ userId:", userId)
 
-    const messages = await (await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/history?userId=${userId}&withUser=${withUser}`)).data;
+    const privateKey = await AsyncStorage.getItem('privateKey');
+    console.log("🚀 ~ fetchAndDecryptChat ~ privateKey:", privateKey)
+    const publicKey = await AsyncStorage.getItem('publicKey');
+    console.log("🚀 ~ fetchAndDecryptChat ~ publicKey:", publicKey)
 
-    const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/public-key/${withUser}`);
+    if(!privateKey || !publicKey){
+        throw new Error('Keypair not found');
+    }
+    
+    const messages = await (await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/history?userId=${userId}&withUser=${withUser}`)).data;
+
+    const resp = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/get-user-keys/${withUser}`);
+    console.log("🚀 ~ fetchAndDecryptChat ~ resp:", resp)
     const { publicKey: theirPubB64 } = await resp.data;
     const theirPub = naclUtil.decodeBase64(theirPubB64);
 
+    const mySK = naclUtil.decodeBase64(privateKey);
 
     return messages.map((msg: Message) => {
         const plain = nacl.box.open(
@@ -50,6 +61,10 @@ async function fetchAndDecryptChat(withUser: string) {
             plaintext: plain ? naclUtil.encodeUTF8(plain) : '[These messages are from before you reinstalled the app and can no longer be decrypted]',
         };
     });
+    } catch (error) {
+        console.error("Failed to fetch and decrypt chat:", error);
+        return [];
+    }
 }
 
 const ListHeaderComponent = ({ navigation, firstName, lastName, image, profileImage }: any) => {
@@ -74,6 +89,7 @@ const FriendChatScreen = ({ route }) => {
     const [loading, setLoading] = useState(false);
     const isKeyboardVisible = useKeyboardStatus();
     const { chats, setMessages, addMessage } = useChatStore();
+    console.log("🚀 ~ FriendChatScreen ~ chats:", chats)
     const messages = chats[id] || [];
 
     let profileImage = image;
@@ -93,9 +109,17 @@ const FriendChatScreen = ({ route }) => {
 
             const pair = await getStoredKeyPair();
             if (!pair) throw new Error('Keypair not found');
-            const { secretKey: mySK } = pair;
+            let mySK = pair?.secretKey;
 
-            const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/public-key/${payload.senderId}`);
+            if(!mySK){
+                mySK = naclUtil.decodeBase64(await String(await AsyncStorage.getItem('privateKey')));
+            }
+
+            if(!mySK){
+                throw new Error('Secret key not found');
+            }
+
+            const resp = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/get-user-keys/${payload.senderId}`);
             const { publicKey: theirPubB64 } = resp.data;
             const theirPub = naclUtil.decodeBase64(theirPubB64);
 
@@ -142,9 +166,17 @@ const FriendChatScreen = ({ route }) => {
             setMessage('');
             const pair = await getStoredKeyPair();
             if (!pair) throw new Error('Keypair not found');
-            const { secretKey: mySK } = pair;
+            let mySK = pair?.secretKey;
 
-            const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/public-key/${id}`);
+            if(!mySK){
+                mySK = naclUtil.decodeBase64(await String(await AsyncStorage.getItem('privateKey')));
+            }
+
+            if(!mySK){
+                throw new Error('Secret key not found');
+            }
+
+            const resp = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/get-user-keys/${id}`);
             const { publicKey: theirPubB64 } = await resp.data;
             const theirPub = naclUtil.decodeBase64(theirPubB64);
 
@@ -168,10 +200,11 @@ const FriendChatScreen = ({ route }) => {
 
         const fetchChat = async () => {
             const chat = await fetchAndDecryptChat(id);
+            console.log("🚀 ~ fetchChat ~ chat:", chat)
             setMessages(id, chat);
         };
 
-        if (!messages.length) {
+        if (messages.length === 0) {
             fetchChat();
         }
     }, [userId]);
@@ -199,7 +232,7 @@ const FriendChatScreen = ({ route }) => {
                             </View>
                         </View>
                     )}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={(item) => new Date(item.sent_at).getTime().toString()}
                     ref={flatListRef}
                     onLayout={() => {
                         if (!initialScrollDone) {

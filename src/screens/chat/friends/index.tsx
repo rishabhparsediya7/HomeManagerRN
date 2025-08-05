@@ -18,7 +18,7 @@ const handleReceiveMessage = async (payload: {
     if (!pair) throw new Error('Keypair not found');
     const { secretKey: mySK } = pair;
 
-    const resp = await axios.get(`https://1222457b3111.ngrok-free.app/api/chat/public-key/${payload.senderId}`);
+    const resp = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/get-user-keys/${payload.senderId}`);
     const { publicKey: theirPubB64 } = resp.data;
     const theirPub = naclUtil.decodeBase64(theirPubB64);
 
