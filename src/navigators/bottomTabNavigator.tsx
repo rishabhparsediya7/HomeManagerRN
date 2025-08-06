@@ -1,11 +1,13 @@
+// BottomTabNavigator.tsx
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import AddExpense from '../screens/addExpense';
-import Expense from '../screens/expense';
-import Home from '../screens/home';
-import Profile from '../screens/profile';
-import ChatScreen from '../screens/chat';
 import CustomTabBar from '../components/customTabBar/CustomTabBar';
+
+import Home from '../screens/home';
+import Expense from '../screens/expense';
+import AddExpense from '../screens/addExpense';
+import ChatScreen from '../screens/chat';
+import Profile from '../screens/profile';
 
 export type TabStackParamList = {
   Home: undefined;
@@ -14,7 +16,6 @@ export type TabStackParamList = {
   Chat: undefined;
   Profile: undefined;
 };
-
 const Tab = createBottomTabNavigator<TabStackParamList>();
 
 const BottomTabNavigator = () => {
