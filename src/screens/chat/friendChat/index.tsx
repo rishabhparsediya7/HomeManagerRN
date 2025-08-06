@@ -39,9 +39,9 @@ async function fetchAndDecryptChat(withUser: string) {
         throw new Error('Keypair not found');
     }
     
-    const messages = await (await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/history?userId=${userId}&withUser=${withUser}`)).data;
+    const messages = await (await axios.get(`${process.env.BASE_URL}/api/chat/history?userId=${userId}&withUser=${withUser}`)).data;
 
-    const resp = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/get-user-keys/${withUser}`);
+    const resp = await axios.get(`${process.env.BASE_URL}/api/chat/get-user-keys/${withUser}`);
     console.log("🚀 ~ fetchAndDecryptChat ~ resp:", resp)
     const { publicKey: theirPubB64 } = await resp.data;
     const theirPub = naclUtil.decodeBase64(theirPubB64);
@@ -119,7 +119,7 @@ const FriendChatScreen = ({ route }) => {
                 throw new Error('Secret key not found');
             }
 
-            const resp = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/get-user-keys/${payload.senderId}`);
+            const resp = await axios.get(`${process.env.BASE_URL}/api/chat/get-user-keys/${payload.senderId}`);
             const { publicKey: theirPubB64 } = resp.data;
             const theirPub = naclUtil.decodeBase64(theirPubB64);
 
@@ -176,7 +176,7 @@ const FriendChatScreen = ({ route }) => {
                 throw new Error('Secret key not found');
             }
 
-            const resp = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/get-user-keys/${id}`);
+            const resp = await axios.get(`${process.env.BASE_URL}/api/chat/get-user-keys/${id}`);
             const { publicKey: theirPubB64 } = await resp.data;
             const theirPub = naclUtil.decodeBase64(theirPubB64);
 

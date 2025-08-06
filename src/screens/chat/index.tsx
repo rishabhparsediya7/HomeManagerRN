@@ -13,7 +13,7 @@ const uploadEncryptedPassphrase = async (userId: string) => {
         const { cipherText, iv } = await encryptPassphrase(passphrase, userId);
         await savePassphraseToAsyncStorage(passphrase);
 
-        await axios.post('https://0e622c717fbb.ngrok-free.app/api/chat/upload-passphrase', {
+        await axios.post(`${process.env.BASE_URL}/api/chat/upload-passphrase`, {
             headers: { 'Content-Type': 'application/json' },
             userId,
             cipherText,
@@ -42,7 +42,7 @@ async function initKeys() {
             return;
         }
 
-        const response = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/get-user-keys/${userId}`, { validateStatus: () => true });
+        const response = await axios.get(`${process.env.BASE_URL}/api/chat/get-user-keys/${userId}`, { validateStatus: () => true });
         if (response.status === 200) {
             console.log("🚀 ~ initKeys ~ response.data:", response.data)
             const encryptedPrivateKey = JSON.parse(response?.data?.encryptedPrivateKey);
@@ -70,7 +70,7 @@ async function initKeys() {
         const encryptedPrivateKey = await encryptPrivateKey(privateKeyB64, passphrase);
 
         console.log("🚀 ~ initKeys ~ userId:", userId)
-        const uploadKeyResponse = await axios.post('https://0e622c717fbb.ngrok-free.app/api/chat/upload-key', {
+        const uploadKeyResponse = await axios.post(`${process.env.BASE_URL}/api/chat/upload-key`, {
             userId,
             publicKey: publicKeyB64,
             privateKey: JSON.stringify(encryptedPrivateKey),
@@ -101,7 +101,7 @@ const ChatScreen = () => {
         if (!userId) return;
         setLoading(true);
         try {
-            const resp = await axios.get(`https://0e622c717fbb.ngrok-free.app/api/chat/getFriends/${userId}`);
+            const resp = await axios.get(`${process.env.BASE_URL}/api/chat/getFriends/${userId}`);
             setFriends(resp.data);
         } catch (error) {
             console.error('Failed to fetch friends:', error);
