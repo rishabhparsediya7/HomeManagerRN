@@ -12,6 +12,16 @@
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		EE52D121456CC6C4EF643C2C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		514AF43ACA9140B1B1D6680D /* NataSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A2A13A85BCA14498AF35909A /* NataSans.ttf */; };
+		242FEADCFAD44FD5A4853ECC /* NataSans-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1122CE4D6D004C52A4105EB8 /* NataSans-Black.ttf */; };
+		FF7AEAD2E03C4EFF981E226A /* NataSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8B91C349843040769A60AABA /* NataSans-Bold.ttf */; };
+		E79E1CE0332E4FF6AFC583FD /* NataSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272CBC6F8C044D5B8AE9D0D8 /* NataSans-ExtraBold.ttf */; };
+		53EDE7E4F85943AEB36C7FEE /* NataSans-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 33533A8EA5374740BD546AC4 /* NataSans-ExtraLight.ttf */; };
+		B979CCE9195D4E7CBAD8959B /* NataSans-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DFE62829721846F5B9AD0354 /* NataSans-Light.ttf */; };
+		51FF4E89F04D41D3A3754FD6 /* NataSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB8EE33684B84F79BA97BC9E /* NataSans-Medium.ttf */; };
+		11E4AD76AACA46378D328351 /* NataSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4953DDDE1CE04AB18E405E2C /* NataSans-Regular.ttf */; };
+		12D97038B6EB4D8EA8A991C3 /* NataSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9403766387514860B33B0079 /* NataSans-SemiBold.ttf */; };
+		EADC6C5725EE4D85911C9740 /* NataSans-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3F45EEC8C71345B5A3836932 /* NataSans-Thin.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +35,16 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ExpenseManagerRN/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ExpenseManagerRN/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		A2A13A85BCA14498AF35909A /* NataSans.ttf */ = {isa = PBXFileReference; name = "NataSans.ttf"; path = "../assets/fonts/NataSans.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		1122CE4D6D004C52A4105EB8 /* NataSans-Black.ttf */ = {isa = PBXFileReference; name = "NataSans-Black.ttf"; path = "../assets/fonts/NataSans-Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		8B91C349843040769A60AABA /* NataSans-Bold.ttf */ = {isa = PBXFileReference; name = "NataSans-Bold.ttf"; path = "../assets/fonts/NataSans-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		272CBC6F8C044D5B8AE9D0D8 /* NataSans-ExtraBold.ttf */ = {isa = PBXFileReference; name = "NataSans-ExtraBold.ttf"; path = "../assets/fonts/NataSans-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		33533A8EA5374740BD546AC4 /* NataSans-ExtraLight.ttf */ = {isa = PBXFileReference; name = "NataSans-ExtraLight.ttf"; path = "../assets/fonts/NataSans-ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DFE62829721846F5B9AD0354 /* NataSans-Light.ttf */ = {isa = PBXFileReference; name = "NataSans-Light.ttf"; path = "../assets/fonts/NataSans-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DB8EE33684B84F79BA97BC9E /* NataSans-Medium.ttf */ = {isa = PBXFileReference; name = "NataSans-Medium.ttf"; path = "../assets/fonts/NataSans-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		4953DDDE1CE04AB18E405E2C /* NataSans-Regular.ttf */ = {isa = PBXFileReference; name = "NataSans-Regular.ttf"; path = "../assets/fonts/NataSans-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9403766387514860B33B0079 /* NataSans-SemiBold.ttf */ = {isa = PBXFileReference; name = "NataSans-SemiBold.ttf"; path = "../assets/fonts/NataSans-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3F45EEC8C71345B5A3836932 /* NataSans-Thin.ttf */ = {isa = PBXFileReference; name = "NataSans-Thin.ttf"; path = "../assets/fonts/NataSans-Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +95,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				99E8088F6EDB4BABA11ABC39 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -97,6 +118,24 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
+		};
+		99E8088F6EDB4BABA11ABC39 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				A2A13A85BCA14498AF35909A /* NataSans.ttf */,
+				1122CE4D6D004C52A4105EB8 /* NataSans-Black.ttf */,
+				8B91C349843040769A60AABA /* NataSans-Bold.ttf */,
+				272CBC6F8C044D5B8AE9D0D8 /* NataSans-ExtraBold.ttf */,
+				33533A8EA5374740BD546AC4 /* NataSans-ExtraLight.ttf */,
+				DFE62829721846F5B9AD0354 /* NataSans-Light.ttf */,
+				DB8EE33684B84F79BA97BC9E /* NataSans-Medium.ttf */,
+				4953DDDE1CE04AB18E405E2C /* NataSans-Regular.ttf */,
+				9403766387514860B33B0079 /* NataSans-SemiBold.ttf */,
+				3F45EEC8C71345B5A3836932 /* NataSans-Thin.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -161,6 +200,16 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				EE52D121456CC6C4EF643C2C /* PrivacyInfo.xcprivacy in Resources */,
+				514AF43ACA9140B1B1D6680D /* NataSans.ttf in Resources */,
+				242FEADCFAD44FD5A4853ECC /* NataSans-Black.ttf in Resources */,
+				FF7AEAD2E03C4EFF981E226A /* NataSans-Bold.ttf in Resources */,
+				E79E1CE0332E4FF6AFC583FD /* NataSans-ExtraBold.ttf in Resources */,
+				53EDE7E4F85943AEB36C7FEE /* NataSans-ExtraLight.ttf in Resources */,
+				B979CCE9195D4E7CBAD8959B /* NataSans-Light.ttf in Resources */,
+				51FF4E89F04D41D3A3754FD6 /* NataSans-Medium.ttf in Resources */,
+				11E4AD76AACA46378D328351 /* NataSans-Regular.ttf in Resources */,
+				12D97038B6EB4D8EA8A991C3 /* NataSans-SemiBold.ttf in Resources */,
+				EADC6C5725EE4D85911C9740 /* NataSans-Thin.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

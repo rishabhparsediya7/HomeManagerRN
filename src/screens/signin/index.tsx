@@ -16,7 +16,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { signInWithGitHub } from './githubSigninUtil';
 import { googleSignIn } from './googleSigninUtil';
 import Icons from '../../components/icons';
-
+import {fonts} from '../../utils/styles'
 const SignInScreen = ({navigation}) => {
   const {signInWithGoogle} = useAuth();
   const [signInForm, setSignInForm] = useState({
@@ -189,8 +189,8 @@ export default SignInScreen;
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#fff'},
   scrollContainer: {padding: 24, justifyContent: 'center', flexGrow: 1},
-  header: {fontSize: 28, fontWeight: 'bold', marginBottom: 10},
-  subHeader: {fontSize: 16, color: '#888', marginBottom: 30},
+  header: {fontSize: 32, marginBottom: 10, fontFamily: fonts.bold},
+  subHeader: {fontSize: 16, color: '#888', marginBottom: 30, fontFamily: fonts.medium},
   googleButton: {
     flexDirection: 'row',
     borderWidth: 1,
