@@ -13,7 +13,7 @@ export const getBGColor = (type: string | undefined) => {
   return colors[index];
 };
 
-export const fonts={
+export const fonts = {
   black: 'NataSans-Black',
   default: 'NataSans-Regular',
   bold: 'NataSans-Bold',
@@ -24,4 +24,38 @@ export const fonts={
   extraLight: 'NataSans-ExtraLight',
   semiBold: 'NataSans-SemiBold',
 
+}
+
+export const commonStyles = {
+  textDefault: {
+    fontFamily: fonts.default,
+
+  },
+  textBold: {
+    fontFamily: fonts.bold,
+
+  },
+  textMedium: {
+    fontFamily: fonts.medium,
+
+  },
+  textLight: {
+    fontFamily: fonts.light,
+
+  },
+  textExtraBold: {
+    fontFamily: fonts.extraBold,
+
+  },
+  textThin: {
+    fontFamily: fonts.thin,
+
+  },
+  textExtraLight: {
+    fontFamily: fonts.extraLight,
+
+  },
+  textSemiBold: {
+    fontFamily: fonts.semiBold,
+  },
 }

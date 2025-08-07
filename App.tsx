@@ -14,6 +14,8 @@ import 'react-native-get-random-values';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import socket from './src/utils/socket';
 import { Buffer } from 'buffer';
+import { ThemeProvider } from './src/providers/ThemeContext';
+import { useTheme } from './src/providers/ThemeContext';
 
 if (typeof global.Buffer === 'undefined') {
   global.Buffer = Buffer;
@@ -55,23 +57,26 @@ const App = () => {
       offlineAccess: false,
     });
   }, []);
+  const theme = useTheme();
 
   return (
-    <ErrorBoundary fallback={fallbackUI}>
-      <GestureHandlerRootView style={styles.container}>
-        <BottomSheetModalProvider>
-          <SafeAreaView style={StyleSheet.absoluteFill}>
-            <AuthProvider>
-              <UserProvider>
-                <NavigationContainer>
-                  <RootNavigator />
-                </NavigationContainer>
-              </UserProvider>
-            </AuthProvider>
-          </SafeAreaView>
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary fallback={fallbackUI}>
+        <GestureHandlerRootView style={styles.container}>
+          <BottomSheetModalProvider>
+            <SafeAreaView style={StyleSheet.absoluteFill}>
+              <AuthProvider>
+                <UserProvider>
+                  <NavigationContainer>
+                    <RootNavigator />
+                  </NavigationContainer>
+                </UserProvider>
+              </AuthProvider>
+            </SafeAreaView>
+          </BottomSheetModalProvider>
+        </GestureHandlerRootView>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 };
 

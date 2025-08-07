@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -12,21 +12,28 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {useAuth} from '../../providers/AuthProvider';
+import { useAuth } from '../../providers/AuthProvider';
 import Icons from '../../components/icons';
 import { googleSignIn } from '../../screens/signin/googleSigninUtil';
+import { useTheme } from '../../providers/ThemeContext';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { commonStyles } from '../../utils/styles';
+import LinearGradient from 'react-native-linear-gradient';
 
-const SignUpScreen = ({navigation}) => {
-  const {signupWithPassword, signInWithGoogle} = useAuth();
+const SignUpScreen = ({ navigation }) => {
+  const { signupWithPassword, signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
   const [signUpForm, setSignUpForm] = useState({
     firstName: '',
     lastName: '',
-    email: '',  
+    email: '',
     password: '',
     confirmPassword: '',
     firstNameError: '',
@@ -45,7 +52,7 @@ const SignUpScreen = ({navigation}) => {
       passwordError: '',
       confirmPasswordError: '',
     });
-    const {firstName, lastName, email, password, confirmPassword} = signUpForm;
+    const { firstName, lastName, email, password, confirmPassword } = signUpForm;
     if (!firstName) {
       setSignUpForm({
         ...signUpForm,
@@ -134,7 +141,7 @@ const SignUpScreen = ({navigation}) => {
       });
       console.log(result);
       if (result.success) {
-        navigation.navigate('OTPVerification', {email});
+        navigation.navigate('OTPVerification', { email });
       } else {
         setError(result.message);
       }
@@ -148,10 +155,10 @@ const SignUpScreen = ({navigation}) => {
   const handleGoogleSignup = async () => {
     try {
       setGoogleLoading(true);
-      const {success, userInfo} = await googleSignIn();
+      const { success, userInfo } = await googleSignIn();
       if (success) {
         console.log("🚀 ~ handleGoogleSignup ~ success:", success)
-        await signInWithGoogle({idToken: userInfo?.data?.idToken || ''});
+        await signInWithGoogle({ idToken: userInfo?.data?.idToken || '' });
         console.log('User signed in successfully:', userInfo);
       } else {
         console.log('Failed to sign in:', userInfo);
@@ -165,10 +172,137 @@ const SignUpScreen = ({navigation}) => {
     }
   };
 
+  const styles = useMemo(() => StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContainer: {
+      padding: 24,
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    title: {
+      ...commonStyles.textExtraBold,
+      color: colors.text,
+      marginBottom: 8,
+      fontSize: 32,
+    },
+    subtitle: {
+      ...commonStyles.textMedium,
+      color: colors.text,
+      marginBottom: 24,
+    },
+    label: {
+      marginBottom: 6,
+      color: colors.text,
+      ...commonStyles.textMedium,
+      fontSize: 16,
+    },
+    input: {
+      backgroundColor: colors.inputBackground,
+      padding: 14,
+      borderRadius: 10,
+      marginBottom: 18,
+      fontSize: 14,
+      ...commonStyles.textMedium,
+    },
+    passwordContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.inputBackground,
+      paddingHorizontal: 14,
+      borderRadius: 10,
+      marginBottom: 18,
+      fontSize: 14,
+      ...commonStyles.textMedium,
+    },
+    inputInner: {
+      flex: 1,
+      paddingVertical: 14,
+      fontSize: 14,
+      ...commonStyles.textMedium,
+    },
+    signUpButton: {
+      backgroundColor: colors.buttonBackground,
+      paddingVertical: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+      marginTop: 8,
+      marginBottom: 20,
+    },
+    signUpText: {
+      color: colors.buttonText,
+      ...commonStyles.textMedium,
+      fontSize: 16,
+    },
+    orContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    line: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.mutedText,
+    },
+    orText: {
+      marginHorizontal: 10,
+      color: colors.mutedText,
+    },
+    dividerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    divider: { flex: 1, height: 1 },
+    or: { marginHorizontal: 12, color: colors.mutedText, ...commonStyles.textMedium, fontSize: 16 },
+    socialContainer: {
+      flexDirection: 'row',
+      marginBottom: 32,
+      gap: 16,
+    },
+    socialButton: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+      backgroundColor: colors.inputBackground,
+      borderColor: colors.border,
+      borderWidth: 1,
+      padding: 16,
+      borderRadius: 10,
+      width: '30%',
+      flex: 1,
+    },
+    socialButtonText: {
+      color: colors.text,
+      ...commonStyles.textMedium,
+      fontSize: 16,
+    },
+    signInText: {
+      textAlign: 'center',
+      color: colors.mutedText,
+      ...commonStyles.textMedium,
+      fontSize: 16,
+    },
+    error: {
+      color: colors.error,
+      marginBottom: 16,
+      ...commonStyles.textMedium,
+      fontSize: 16,
+    },
+    signInLink: {
+      color: colors.buttonText,
+      ...commonStyles.textMedium,
+      fontSize: 16,
+    },
+  }), [theme]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        style={{flex: 1}}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
         <ScrollView
@@ -186,7 +320,7 @@ const SignUpScreen = ({navigation}) => {
             placeholder="Enter your first name"
             value={signUpForm.firstName}
             onChangeText={text =>
-              setSignUpForm({...signUpForm, firstName: text})
+              setSignUpForm({ ...signUpForm, firstName: text })
             }
           />
           {signUpForm.firstNameError && (
@@ -199,7 +333,7 @@ const SignUpScreen = ({navigation}) => {
             placeholder="Enter your last name"
             value={signUpForm.lastName}
             onChangeText={text =>
-              setSignUpForm({...signUpForm, lastName: text})
+              setSignUpForm({ ...signUpForm, lastName: text })
             }
           />
           {signUpForm.lastNameError && (
@@ -211,7 +345,7 @@ const SignUpScreen = ({navigation}) => {
             style={styles.input}
             placeholder="Enter your email"
             value={signUpForm.email}
-            onChangeText={text => setSignUpForm({...signUpForm, email: text})}
+            onChangeText={text => setSignUpForm({ ...signUpForm, email: text })}
             keyboardType="email-address"
           />
           {signUpForm.emailError && (
@@ -226,7 +360,7 @@ const SignUpScreen = ({navigation}) => {
               secureTextEntry={secureText}
               value={signUpForm.password}
               onChangeText={text =>
-                setSignUpForm({...signUpForm, password: text})
+                setSignUpForm({ ...signUpForm, password: text })
               }
             />
             <TouchableOpacity onPress={() => setSecureText(!secureText)}>
@@ -249,7 +383,7 @@ const SignUpScreen = ({navigation}) => {
               secureTextEntry={secureText}
               value={signUpForm.confirmPassword}
               onChangeText={text =>
-                setSignUpForm({...signUpForm, confirmPassword: text})
+                setSignUpForm({ ...signUpForm, confirmPassword: text })
               }
             />
             <TouchableOpacity onPress={() => setSecureText(!secureText)}>
@@ -274,22 +408,35 @@ const SignUpScreen = ({navigation}) => {
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.orContainer}>
-            <View style={styles.line} />
-            <Text style={styles.orText}>Or sign up with</Text>
-            <View style={styles.line} />
+          <View style={styles.dividerContainer}>
+            <LinearGradient
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              colors={['transparent', colors.borderLight]}
+              style={styles.divider}
+            />
+
+            <Text style={styles.or}>or</Text>
+
+            <LinearGradient
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              colors={[colors.borderLight, 'transparent']}
+              style={styles.divider}
+            />
           </View>
 
           <View style={styles.socialContainer}>
             <TouchableOpacity onPress={handleGoogleSignup} style={styles.socialButton}>
               <Icons.GoogleIcon width={24} height={24} color="black" />
+              <Text style={styles.socialButtonText}>Continue with Google</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
             <Text style={styles.signInText}>
               Already have an account?{' '}
-              <Text style={{color: '#2e6eff'}}>Sign In</Text>
+              <Text style={styles.signInLink}>Sign In</Text>
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -298,98 +445,6 @@ const SignUpScreen = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContainer: {
-    padding: 24,
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 24,
-  },
-  label: {
-    marginBottom: 6,
-    color: '#333',
-    fontWeight: '500',
-  },
-  input: {
-    backgroundColor: '#f8f8f8',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 18,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    marginBottom: 18,
-  },
-  inputInner: {
-    flex: 1,
-    paddingVertical: 14,
-  },
-  signUpButton: {
-    backgroundColor: '#2e6eff',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 20,
-  },
-  signUpText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  orContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ddd',
-  },
-  orText: {
-    marginHorizontal: 10,
-    color: '#666',
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    // justifyContent: 'space-between',
-    marginBottom: 32,
-    gap: 16,
-  },
-  socialButton: {
-    backgroundColor: '#f1f1f1',
-    padding: 16,
-    borderRadius: 10,
-    width: '30%',
-    alignItems: 'center',
-    flex: 1,
-  },
-  signInText: {
-    textAlign: 'center',
-    color: '#666',
-  },
-  error: {
-    color: 'red',
-    marginBottom: 16,
-  },
-});
+
 
 export default SignUpScreen;
