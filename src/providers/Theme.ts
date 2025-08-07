@@ -98,7 +98,7 @@ export const lightTheme: AppTheme = {
 };
 
 export const darkTheme: AppTheme = {
-    background: '#000000',
+    background: '#121212',
     surface: '#121212',
     text: '#FFFFFF',
     mutedText: '#9CA3AF',
@@ -130,7 +130,7 @@ export const darkTheme: AppTheme = {
     overlay: 'rgba(255, 255, 255, 0.2)',
     modalBackground: '#1C1C1E',
 
-    tabBarBackground: '#121212',
+    tabBarBackground: '#242424',
     tabBarIconActive: '#0A84FF',
     tabBarIconInactive: '#7C7C7C',
 
