@@ -61,6 +61,7 @@ const Header: React.FC<HeaderProps> = ({
       backgroundColor: colors.background,
       height: 72,
       paddingHorizontal: 16,
+      paddingVertical: 8,
       ...Platform.select({
         ios: {
           shadowColor: 'white',
@@ -81,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({
       justifyContent: 'center',
     },
     title: {
-      fontSize: 28,
+      fontSize: 32,
       ...commonStyles.textExtraBold,
       color: colors.buttonText,
     },
