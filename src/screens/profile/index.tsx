@@ -1,7 +1,8 @@
 // screens/Profile.js
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {
+  FlatList,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +20,10 @@ import RupeeIcon from '../../components/rupeeIcon';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {Modal} from '../../components/modal';
 import {COLORS} from '../../providers/theme.style';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
+import { commonStyles } from '../../utils/styles';
+import accountOptions from '../../components/accountOptions';
 
 const Profile = () => {
   const {signOut, user} = useAuth();
@@ -29,12 +34,53 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState<Asset | undefined>(
     undefined,
   );
+  
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const handleLogout = () => {
     bottomSheetModalRef.current?.present();
   };
 
+  const accountOptionsData = [
+    {
+      icon: 'edit',
+      label: 'Personal Information',
+      onPress: () => {},
+    },
+    {
+      icon: 'credit-card',
+      label: 'Payment Methods',
+      onPress: () => {},
+    },
+    {
+      icon: 'bell',
+      label: 'Notifications',
+      onPress: () => {},
+    },
+    {
+      icon: 'shield',
+      label: 'Security & Privacy',
+      onPress: () => {},
+    },
+    {
+      icon: 'dollar-sign',
+      label: 'Currency Preferences',
+      onPress: () => {},
+    },
+    {
+      icon: 'download',
+      label: 'Export Data',
+      onPress: () => {},
+    },
+    {
+      icon: 'log-out',
+      label: 'Logout',
+      onPress: handleLogout,
+    },
+  ]
   const getUser = async () => {
     setLoading(true);
     try {
@@ -56,6 +102,91 @@ const Profile = () => {
     }, []),
   );
 
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      alignItems: 'center',
+      paddingVertical: 20,
+      backgroundColor: colors.background,
+    },
+    name: {
+      fontSize: 22,
+      ...commonStyles.textDefault,
+      marginTop: 12,
+    },
+    email: {
+      fontSize: 14,
+      ...commonStyles.textDefault,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginVertical: 20,
+      paddingHorizontal: 16,
+      gap: 8,
+    },
+    statBox: {
+      flex: 1,
+      backgroundColor: colors.inputBackground,
+      borderColor: colors.inputBorder,
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+    },
+    statLabel: {
+      fontSize: 14,
+      ...commonStyles.textDefault,
+      marginTop: 6,
+    },
+    statValue: {
+      fontSize: 18,
+      ...commonStyles.textDefault,
+      marginTop: 4,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      marginHorizontal: 20,
+      marginTop: 10,
+      marginBottom: 10,
+    },
+    button: {
+      backgroundColor: colors.buttonBackground,
+      padding: 12,
+      borderRadius: 8,
+      marginVertical: 8,
+      flex: 1,
+      alignItems: 'center',
+    },
+    modalContainer: {
+      flex: 1,
+      flexDirection: 'column',
+      padding: 20,
+      gap: 12,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: 8,
+      width: '100%',
+      justifyContent: 'center',
+    },
+    buttonText: {
+      color: colors.buttonText,
+      fontSize: 16,
+      ...commonStyles.textDefault,
+    },
+    modalText: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+      // textAlign: 'center',
+    },
+  }), [theme]);
+
   return (
     <ScrollView
       contentContainerStyle={{paddingBottom: 100}}
@@ -75,26 +206,29 @@ const Profile = () => {
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
-          <Ionicons name="wallet" size={24} color="#4F46E5" />
+          <Ionicons name="wallet" size={24} color={colors.buttonText} />
           <Text style={styles.statLabel}>Remaining Budget</Text>
           <RupeeIcon amount={12450} />
         </View>
         <View style={styles.statBox}>
-          <FontAwesome5 name="coins" size={24} color="#4F46E5" />
+          <FontAwesome5 name="coins" size={24} color={colors.buttonText} />
           <Text style={styles.statLabel}>Monthly Budget</Text>
           <RupeeIcon amount={3000} />
         </View>
       </View>
-
       <Text style={styles.sectionTitle}>Account Settings</Text>
+      <FlatList
+        data={accountOptionsData}
+        renderItem={({item}) => (
+          <AccountOption
+            icon={item.icon}
+            label={item.label}
+            onPress={item.onPress}
+          />
+        )}
+        keyExtractor={item => item.label}
+      />
 
-      <AccountOption icon="edit" label="Personal Information" />
-      <AccountOption icon="credit-card" label="Payment Methods" />
-      <AccountOption icon="bell" label="Notifications" />
-      <AccountOption icon="shield" label="Security & Privacy" />
-      <AccountOption icon="dollar-sign" label="Currency Preferences" />
-      <AccountOption icon="download" label="Export Data" />
-      <AccountOption icon="log-out" label="Logout" onPress={handleLogout} />
       <Modal
         onCrossPress={() => bottomSheetModalRef.current?.dismiss()}
         headerTitle="Logout"
@@ -119,88 +253,6 @@ const Profile = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: '#F6F6F6',
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginTop: 12,
-  },
-  email: {
-    fontSize: 14,
-    color: 'gray',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 20,
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: '#F6F6F6',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 14,
-    color: 'gray',
-    marginTop: 6,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  button: {
-    backgroundColor: '#4F46E5',
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 8,
-    flex: 1,
-    alignItems: 'center',
-  },
-  modalContainer: {
-    flex: 1,
-    flexDirection: 'column',
-    padding: 20,
-    // alignItems: 'center',
-    gap: 12,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    width: '100%',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.secondary,
-    // textAlign: 'center',
-  },
-});
+
 
 export default Profile;
