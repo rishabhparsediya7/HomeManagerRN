@@ -1,35 +1,48 @@
-import React from 'react';
-import {TouchableOpacity, Text, StyleSheet} from 'react-native';
+import React, { useMemo } from 'react';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { commonStyles } from '../../utils/styles';
 
-const FilterButton = ({label, selected, onPress}) => {
+const FilterButton = ({ label, selected, onPress, colors }: any) => {
+
+  const styles = useMemo(() => StyleSheet.create({
+    button: {
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+    },
+    selectedButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+    },
+    label: {
+      color: colors.text,
+      ...commonStyles.textDefault,
+    },
+    selectedLabel: {
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+    },
+  }), [colors]);
   return (
-    <TouchableOpacity
+    <LinearGradient
+      start={{ x: 1, y: 0 }}
+      end={{ x: 0, y: 0 }}
+      colors={[colors.primary, selected ? colors.buttonTextSecondary : colors.primaryLight]}
       style={[styles.button, selected && styles.selectedButton]}
-      onPress={onPress}>
-      <Text style={[styles.label, selected && styles.selectedLabel]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
+    >
+      <TouchableOpacity
+        onPress={onPress}
+        >
+        <Text style={[styles.label, selected && styles.selectedLabel]}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </LinearGradient>
   );
 };
 
-const styles = StyleSheet.create({
-  button: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-  },
-  selectedButton: {
-    backgroundColor: '#3B82F6',
-  },
-  label: {
-    color: '#111827',
-  },
-  selectedLabel: {
-    color: 'white',
-    fontWeight: '600',
-  },
-});
+
 
 export default FilterButton;
