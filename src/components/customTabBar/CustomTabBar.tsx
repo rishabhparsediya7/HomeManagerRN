@@ -1,11 +1,39 @@
 // components/CustomTabBar.tsx
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import TabButton from './TabButton';
+import { useMemo } from 'react';
+import { useTheme } from '../../providers/ThemeContext';
+import { darkTheme, lightTheme } from '../../providers/Theme';
 
 const CustomTabBar = ({ state, navigation }: BottomTabBarProps) => {
   const focusedIndex = state.index;
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
+  const styles = useMemo(() => StyleSheet.create({
+    tabBarContainer: {
+      flexDirection: 'row',
+      height: 84,
+      paddingVertical: 4,
+      alignItems: 'center',
+      justifyContent: 'space-around',
+      backgroundColor: colors.background,
+      paddingHorizontal: 8,
+      ...Platform.select({
+        ios: {
+          shadowColor: colors.shadowColor,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+        },
+        android: {
+          elevation: 10,
+        },
+      }),
+    }
+  }), [theme]);
 
   return (
     <View style={styles.tabBarContainer}>
@@ -23,6 +51,7 @@ const CustomTabBar = ({ state, navigation }: BottomTabBarProps) => {
             isFocused={isFocused}
             isLeftOfFocused={isLeftOfFocused}
             isRightOfFocused={isRightOfFocused}
+            maxIndex={state.routes.length - 1}
             onPress={() => {
               const event = navigation.emit({
                 type: 'tabPress',
@@ -40,18 +69,6 @@ const CustomTabBar = ({ state, navigation }: BottomTabBarProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  tabBarContainer: {
-    flexDirection: 'row',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 65,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-  },
-});
+
 
 export default CustomTabBar;

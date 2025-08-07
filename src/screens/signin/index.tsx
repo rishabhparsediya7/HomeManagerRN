@@ -191,7 +191,7 @@ const SignInScreen = ({ navigation }) => {
         alignItems: 'center',
         marginBottom: 20,
       },
-      continueText: { color: colors.buttonTextSecondary, ...commonStyles.textMedium, fontSize: 16 },
+      continueText: { color: colors.buttonText, ...commonStyles.textMedium, fontSize: 16 },
       terms: { fontSize: 14, color: colors.mutedText, textAlign: 'left', marginBottom: 10, ...commonStyles.textMedium },
       link: { color: colors.buttonText, ...commonStyles.textMedium, fontSize: 14 },
       footer: { textAlign: 'center', color: colors.mutedText, ...commonStyles.textMedium, fontSize: 14 },
@@ -269,7 +269,7 @@ const SignInScreen = ({ navigation }) => {
         <TouchableOpacity style={importedStyles.continueBtn} onPress={handleSignIn}>
           <Text style={importedStyles.continueText}>
             {loading ? (
-              <ActivityIndicator size="small" color={colors.buttonText} />
+              <ActivityIndicator size="small" color={colors.buttonTextSecondary} />
             ) : (
               'Sign In'
             )}
