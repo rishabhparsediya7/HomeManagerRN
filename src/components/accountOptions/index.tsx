@@ -1,16 +1,14 @@
-// components/AccountOption.js
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
-import { useTheme } from '../../providers/ThemeContext';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { useMemo } from 'react';
-import { commonStyles } from '../../utils/styles';
+import React, { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Accordion from '../../components/accordion';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
+import { commonStyles } from '../../utils/styles';
+
 interface AccountOptionProps {
   icon: string;
   label: string;
-  onPress?: () => void;
+  onPress?: (T: any) => void;
   options?: string[];
 }
 
@@ -46,7 +44,7 @@ const AccountOption = ({ icon, label, onPress, options }: AccountOptionProps) =>
         title={label}
         icon={icon}
         options={options || []}
-        onOptionPress={onPress}
+        onOptionPress={(option) => onPress?.(option)}
       />
     </View>
   );

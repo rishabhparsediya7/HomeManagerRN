@@ -3,6 +3,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  ColorSchemeName,
   FlatList,
   ScrollView,
   StyleSheet,
@@ -38,6 +39,12 @@ const Profile = () => {
   const {theme, toggleTheme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
+  const handleToggleTheme = (theme: ColorSchemeName) => {
+    if(theme){
+      toggleTheme(theme.toLowerCase() as ColorSchemeName);
+    }
+  }
+
   const handleLogout = () => {
     bottomSheetModalRef.current?.present();
   };
@@ -52,7 +59,7 @@ const Profile = () => {
     {
       icon: 'dark-mode',
       label: 'Theme',
-      onPress: toggleTheme,
+      onPress: handleToggleTheme,
       options: ['Light', 'Dark'],
     },
     {

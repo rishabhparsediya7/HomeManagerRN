@@ -3,7 +3,7 @@ import { Appearance, ColorSchemeName } from 'react-native';
 
 type ThemeContextType = {
   theme: ColorSchemeName;
-  toggleTheme: () => void;
+  toggleTheme: (theme: ColorSchemeName) => void;
 };
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -22,8 +22,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     return () => listener.remove();
   }, []);
 
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  const toggleTheme = (theme: ColorSchemeName) => {
+    
+    setTheme(theme);
   };
 
   return (
