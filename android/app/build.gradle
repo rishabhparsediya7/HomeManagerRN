@@ -1,3 +1,7 @@
+project.ext.react = [
+    enableHermes: true
+]
+
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
@@ -7,8 +11,6 @@ apply plugin: "com.google.gms.google-services"
 react {
     autolinkLibrariesWithApp()
 }
-
-def enableProguardInReleaseBuilds = false
 
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
@@ -26,7 +28,7 @@ android {
         versionName "1.0.0"
         manifestPlaceholders = [
             appAuthRedirectScheme: 'com.expensemanagerrn' // or whatever your scheme is
-        ]   
+        ]
     }
     signingConfigs {
         debug {
@@ -42,8 +44,18 @@ android {
         }
         release {
             signingConfig signingConfigs.debug
-            minifyEnabled enableProguardInReleaseBuilds
+            shrinkResources true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+
+    // Optional: Let Play Store split APKs, but keep universal for manual
+    splits {
+        abi {
+            enable true
+            reset()
+            universalApk true
         }
     }
 }
