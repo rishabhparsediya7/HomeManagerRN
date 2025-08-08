@@ -303,7 +303,7 @@ const Profile = () => {
       <Modal
         onCrossPress={() => bottomSheetModalRef.current?.dismiss()}
         headerTitle="Logout"
-        variant="scrollableModal"
+        variant="viewModal"
         bottomSheetRef={bottomSheetModalRef}
         modalSnapPoints={['35%']}>
         <View style={styles.modalContainer}>
@@ -318,7 +318,7 @@ const Profile = () => {
               <Text style={styles.buttonText}>Logout</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </View> 
       </Modal>
     </ScrollView>
   );

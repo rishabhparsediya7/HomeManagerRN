@@ -33,7 +33,8 @@ interface ModalProps {
   footerComponent?: React.ReactNode;
   headerTitle?: string;
   onCrossPress?: () => void;
-  variant?: 'scrollableModal';
+  variant?: 'scrollableModal' | 'viewModal';
+  showImage?: boolean;
 }
 export const Modal = ({
   isBottomSheetNonDismissible = false,
@@ -45,6 +46,7 @@ export const Modal = ({
   headerTitle,
   onCrossPress,
   variant,
+  showImage=false,
   ...rest
 }: ModalProps) => {
   const {theme} = useTheme();
@@ -175,6 +177,7 @@ export const Modal = ({
               showCrossButton
               onCrossPress={onCrossPress}
               headerStyle={styles.header}
+              showImage={showImage}
               headerTitleStyle={styles.headerTitle}
             />
           )}
