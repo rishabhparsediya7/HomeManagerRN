@@ -1,5 +1,7 @@
-import React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
+import React, { useEffect } from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { StatusBar, Platform } from 'react-native';
+import { useTheme } from '../providers/ThemeContext';
 import BottomTabNavigator from './bottomTabNavigator';
 import {RouteProp} from '@react-navigation/native';
 import Dashboard from '../screens/dashboard';
@@ -24,6 +26,18 @@ export type AuthorizeNavigationProp<
 const AuthorizeNavigationStack =
   createStackNavigator<AuthorizeNavigationStackList>();
 const AuthorizeNavigation = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  // Update status bar style based on theme
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor('transparent', false);
+      StatusBar.setTranslucent(false);
+    }
+    StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content');
+  }, [isDark]);
+
   return (
     <AuthorizeNavigationStack.Navigator
       screenOptions={{

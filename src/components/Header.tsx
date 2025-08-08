@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  StatusBar,
   StyleProp,
   ViewStyle,
   Platform,
   TextStyle,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../providers/AuthProvider';
@@ -63,11 +63,11 @@ const Header: React.FC<HeaderProps> = ({
       justifyContent: 'space-between',
       backgroundColor: colors.background,
       height: 72,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingHorizontal:16,
+      marginTop: StatusBar.currentHeight,
       ...Platform.select({
         ios: {
-          shadowColor: 'white',
+          shadowColor: colors.shadowColor,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 1,
           shadowRadius: 2,
@@ -104,7 +104,6 @@ const Header: React.FC<HeaderProps> = ({
   
   return (
     <View style={[styles.container, headerStyle]}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" />
       <View style={styles.titleBackButtonContainer}>
         {showBackButton && (
           <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
