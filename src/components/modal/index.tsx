@@ -105,6 +105,8 @@ export const Modal = ({
       borderTopLeftRadius: 12,
       borderTopRightRadius: 12,
       backgroundColor: colors.background,
+      height: 72,
+      marginTop: 0,
     },
     headerTitle: {
       fontSize: 28,
