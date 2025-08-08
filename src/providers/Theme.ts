@@ -51,6 +51,14 @@ export type AppTheme = {
 
     // System
     isDark: boolean;
+
+
+
+    senderBackground: string;
+    receiverBackground: string;
+
+    senderText: string;
+    receiverText: string;
 };
 
 export const lightTheme: AppTheme = {
@@ -95,6 +103,12 @@ export const lightTheme: AppTheme = {
     rippleColor: 'rgba(0, 0, 0, 0.1)',
 
     isDark: false,
+
+    senderBackground: '#F9FAFB',
+    receiverBackground: '#F9FAFB',
+
+    senderText: '#121212',
+    receiverText: '#121212',
 };
 
 export const darkTheme: AppTheme = {
@@ -139,4 +153,12 @@ export const darkTheme: AppTheme = {
     rippleColor: 'rgba(255, 255, 255, 0.1)',
 
     isDark: true,
+
+
+
+    senderBackground: '#1C1C1E',
+    receiverBackground: '#F9FAFB',
+
+    senderText: '#FFFFFF',
+    receiverText: '#121212',
 };

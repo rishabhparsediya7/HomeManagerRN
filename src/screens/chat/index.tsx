@@ -6,7 +6,11 @@ import React, { useEffect, useState } from 'react';
 import { decryptPassphrase, decryptPrivateKey, encryptPassphrase, encryptPrivateKey, generateAndStoreKeyPair, generatePassphrase, getStoredKeyPair, resetKeyPair } from '../../utils/cryptoUtils';
 import FriendsScreen from './friends';
 import { savePassphraseToAsyncStorage, savePrivateKeyToAsyncStorage, savePublicKeyToAsyncStorage } from '../../utils/users';
-
+import { View } from 'react-native';
+import { useTheme } from '../../providers/ThemeContext';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { StyleSheet } from 'react-native';
+import Header from '../../components/Header';
 const uploadEncryptedPassphrase = async (userId: string) => {
     try {
         const passphrase = await generatePassphrase();
@@ -118,9 +122,21 @@ const ChatScreen = () => {
     useEffect(() => {
         initKeys();
     }, []);
+    const { theme } = useTheme();
+    const colors = theme === 'dark' ? darkTheme : lightTheme;
+
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+    });
 
     return (
-        <FriendsScreen friends={friends} loading={loading} />
+        <View style={styles.container}>
+            <Header title="Chat" />
+            <FriendsScreen friends={friends} loading={loading} />
+        </View>
     );
 };
 
