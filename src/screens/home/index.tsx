@@ -18,14 +18,14 @@ import Input from '../../components/form/input';
 import Header from '../../components/Header';
 import { Modal } from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import { COLORS } from '../../providers/theme.style';
+import { category } from '../../constants';
+import { useAuth } from '../../providers/AuthProvider';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
 import api from '../../services/api';
 import { getMonthStartAndEndDates } from '../../utils/dates';
-import { category } from '../../constants';
-import { useTheme } from '../../providers/ThemeContext';
-import { darkTheme, lightTheme } from '../../providers/Theme';
 import { commonStyles } from '../../utils/styles';
-import ActionButtonComponent from './ActionButton';
+
 interface ExpenseDataProps {
   amount: string;
   category: string;
@@ -88,6 +88,7 @@ const Home = () => {
   const [weekChartData, setWeekChartData] = useState([]);
   const [categoryChartData, setCategoryChartData] = useState([]);
   const { theme } = useTheme();
+  const {user} = useAuth();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const onBudgetChange = (text: string) => {
     setBudget(Number(text));
@@ -412,10 +413,10 @@ const Home = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="Trakio" showNotification showImage />
+      <Header title="Trakio" showNotification showImage image={user?.photoUrl} />
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 12 }}
         showsVerticalScrollIndicator={false}
         style={styles.container}>
         <View style={styles.homeContainer}>

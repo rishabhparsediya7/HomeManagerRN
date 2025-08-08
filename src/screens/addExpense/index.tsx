@@ -227,7 +227,7 @@ const AddExpenseScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
       <ScrollView
-        contentContainerStyle={{paddingBottom: 100}}
+        contentContainerStyle={{paddingBottom: 12}}
         showsVerticalScrollIndicator={false}>
         <Header title="Add Expense" onBackPress={() => {}} />
         <View style={styles.container}>

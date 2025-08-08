@@ -22,6 +22,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 const filterOptions = ['All', 'Today', 'Week', 'Month'];
 
+//helper function to get expense change label
 function getExpenseChangeLabel(current: number, previous: number): string {
   if (previous === 0) {
     if (current === 0) return 'No change from last month';
@@ -40,6 +41,7 @@ function getExpenseChangeLabel(current: number, previous: number): string {
   }
 }
 
+// ListHeaderComponent
 const ListHeaderComponent = ({
   selectedFilter,
   totalExpense,
@@ -123,8 +125,10 @@ const ListHeaderComponent = ({
   );
 };
 
+// renderItem
 const renderItem = ({ item }: { item: any }) => <View style={{ paddingHorizontal: 16 }}><ExpenseCard expense={item} /></View>;
 
+// Expense
 const Expense = () => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [expenses, setExpenses] = useState([]);
@@ -235,7 +239,7 @@ const Expense = () => {
       fontSize: 16,
     },
     contentContainerStyle: {
-      paddingBottom: 160,
+      paddingBottom: 20,
       paddingTop: 20,
     },
   });
