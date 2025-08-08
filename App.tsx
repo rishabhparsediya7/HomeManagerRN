@@ -1,21 +1,20 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { NavigationContainer } from '@react-navigation/native';
+import { Buffer } from 'buffer';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Button } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-get-random-values';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import AuthorizeNavigation from './src/navigators/authorizeStack';
 import UnauthorizeNavigation from './src/navigators/unauthorizeStack';
 import AuthProvider, { useAuth } from './src/providers/AuthProvider';
-import UserProvider from './src/providers/UserContext';
-import ErrorBoundary from './src/components/ErrorBoundary';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import 'react-native-get-random-values';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import socket from './src/utils/socket';
-import { Buffer } from 'buffer';
 import { ThemeProvider } from './src/providers/ThemeContext';
-import { useTheme } from './src/providers/ThemeContext';
+import UserProvider from './src/providers/UserContext';
+import socket from './src/utils/socket';
 
 if (typeof global.Buffer === 'undefined') {
   global.Buffer = Buffer;
@@ -57,7 +56,6 @@ const App = () => {
       offlineAccess: false,
     });
   }, []);
-  const theme = useTheme();
 
   return (
     <ThemeProvider>

@@ -255,6 +255,7 @@ const Home = () => {
       width: '100%',
       justifyContent: 'space-between',
       gap: 12,
+      marginBottom: 12,
     },
     actionButtonContainer: {
       flexDirection: 'row',

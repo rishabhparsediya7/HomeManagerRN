@@ -1,7 +1,7 @@
 // screens/Profile.js
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ColorSchemeName,
   FlatList,
@@ -23,6 +23,7 @@ import { darkTheme, lightTheme } from '../../providers/Theme';
 import { useTheme } from '../../providers/ThemeContext';
 import api from '../../services/api';
 import { commonStyles } from '../../utils/styles';
+import { DeviceInfo, getDeviceInfo } from '../../utils/deviceInfo';
 
 const Profile = () => {
   const {signOut, user} = useAuth();
@@ -30,6 +31,7 @@ const Profile = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [profilePicture, setProfilePicture] = useState('');
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [selectedImage, setSelectedImage] = useState<Asset | undefined>(
     undefined,
   );
@@ -120,6 +122,15 @@ const Profile = () => {
     }, []),
   );
 
+  useEffect(() => {
+    getDeviceInfo().then(info => {
+      if(info){
+        setDeviceInfo(info);
+      }
+    });
+  }, []);
+  
+
   const styles = useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
@@ -208,11 +219,35 @@ const Profile = () => {
       color: colors.buttonText,
       // textAlign: 'center',
     },
+    sectionTitleText: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    versionSection: {
+      marginHorizontal: 20,
+      marginTop: 10,   
+      alignItems: 'center',
+    },
+    versionText: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    madeBySection: {
+      marginTop: 12,   
+      alignItems: 'center',
+    },
+    madeByText: {
+      fontSize: 12,
+      ...commonStyles.textDefault,
+      color: colors.mutedText,
+    },
   }), [theme]);
 
   return (
     <ScrollView
-      contentContainerStyle={{paddingBottom: 100}}
+      contentContainerStyle={{paddingBottom: 12}}
       showsVerticalScrollIndicator={false}
       style={styles.container}>
       <View style={styles.header}>
@@ -252,6 +287,18 @@ const Profile = () => {
         )}
         keyExtractor={item => item.label}
       />
+
+      <View style={styles.versionSection}>
+        <Text style={styles.versionText}>
+          {`v${deviceInfo?.versionName || ""} (${deviceInfo?.versionCode || ""})`}
+        </Text>
+      </View>
+
+      <View style={styles.madeBySection}>
+        <Text style={styles.madeByText}>
+          Made with ❤️ by Rishabh Parsediya
+        </Text>
+      </View>
 
       <Modal
         onCrossPress={() => bottomSheetModalRef.current?.dismiss()}
