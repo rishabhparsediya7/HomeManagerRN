@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
+  StatusBar,
 } from 'react-native';
 import Icons from '../../components/icons';
+import { useTheme } from '../../providers/ThemeContext';
+import { darkTheme, lightTheme } from '../../providers/Theme';
 const slides = [
   {
     id: '1',
@@ -36,6 +39,8 @@ const OnboardingScreen = ({navigation}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const {width} = useWindowDimensions();
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
@@ -59,8 +64,86 @@ const OnboardingScreen = ({navigation}) => {
     </View>
   );
 
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      alignItems: 'center',
+      paddingTop: 0, // Remove any top padding that might interfere with status bar
+    },
+    buttonContainer: {
+      paddingHorizontal: 16,
+      width: '100%',
+    },
+    slide: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+    },
+    imageContainer: {
+      backgroundColor: colors.inputBackground,
+      borderRadius: 100,
+      padding: 40,
+      marginBottom: 30,
+    },
+    image: {
+      width: 80,
+      height: 80,
+      tintColor: colors.text,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 10,
+    },
+    description: {
+      fontSize: 16,
+      color: colors.mutedText,
+      textAlign: 'center',
+      paddingHorizontal: 20,
+    },
+    pagination: {
+      flexDirection: 'row',
+      marginBottom: 20,
+      marginTop: 10,
+      justifyContent:'center'
+    },
+    dot: {
+      height: 8,
+      width: 8,
+      borderRadius: 4,
+      backgroundColor: colors.mutedText,
+      marginHorizontal: 5,
+    },
+    dotActive: {
+      backgroundColor: colors.buttonText,
+    },
+    button: {
+      width: '100%',
+      backgroundColor: colors.buttonBackground,
+      paddingVertical: 15,
+      borderRadius: 8,
+      marginBottom: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: colors.buttonTextSecondary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+  }), [theme]);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: 0 }]}>
+      <StatusBar
+        backgroundColor="transparent"
+        translucent
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
+      />
+      <View style={{ flex: 1, backgroundColor: colors.background, width: '100%' }}>
       <FlatList
         data={slides}
         keyExtractor={item => item.id}
@@ -89,78 +172,11 @@ const OnboardingScreen = ({navigation}) => {
           </Text>
         </TouchableOpacity>
       </View>
+      </View>
     </View>
   );
 };
 
 export default OnboardingScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  buttonContainer: {
-    paddingHorizontal: 16,
-    width: '100%',
-  },
-  slide: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  imageContainer: {
-    backgroundColor: '#f0f6ff',
-    borderRadius: 100,
-    padding: 40,
-    marginBottom: 30,
-  },
-  image: {
-    width: 80,
-    height: 80,
-    tintColor: '#3366FF',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  description: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  pagination: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    marginTop: 10,
-  },
-  dot: {
-    height: 8,
-    width: 8,
-    borderRadius: 4,
-    backgroundColor: '#e5e7eb',
-    marginHorizontal: 5,
-  },
-  dotActive: {
-    backgroundColor: '#3366FF',
-  },
-  button: {
-    width: '100%',
-    backgroundColor: '#3366FF',
-    paddingVertical: 15,
-    borderRadius: 8,
-    marginBottom: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+

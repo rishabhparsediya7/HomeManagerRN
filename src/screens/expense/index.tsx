@@ -1,6 +1,6 @@
 // screens/ExpensesScreen.js
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,12 +12,17 @@ import ExpenseCard from '../../components/expenseCard';
 import FilterButton from '../../components/filterButton';
 import Header from '../../components/Header';
 import api from '../../services/api';
-import {formatDMYDate} from '../../utils/formatDate';
+import { formatDMYDate } from '../../utils/formatDate';
 import RupeeIcon from '../../components/rupeeIcon';
 import Icon from 'react-native-vector-icons/Octicons';
+import { useTheme } from '../../providers/ThemeContext';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { commonStyles } from '../../utils/styles';
+import LinearGradient from 'react-native-linear-gradient';
 
 const filterOptions = ['All', 'Today', 'Week', 'Month'];
 
+//helper function to get expense change label
 function getExpenseChangeLabel(current: number, previous: number): string {
   if (previous === 0) {
     if (current === 0) return 'No change from last month';
@@ -36,12 +41,102 @@ function getExpenseChangeLabel(current: number, previous: number): string {
   }
 }
 
+// ListHeaderComponent
+const ListHeaderComponent = ({
+  selectedFilter,
+  totalExpense,
+  expenseChange,
+  setSelectedFilter,
+  styles,
+  colors,
+}: {
+  selectedFilter: string;
+  totalExpense: number;
+  expenseChange: string;
+  setSelectedFilter: (filter: string) => void;
+  styles: any;
+  colors: any;
+
+}) => {
+  return (
+    <>
+      <LinearGradient
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        colors={[colors.tabBarBackground, colors.primary]}
+        style={styles.summaryCard}
+      >
+
+        <View>
+          <Text style={styles.totalAmount}>
+            <RupeeIcon
+              amount={totalExpense}
+              size={28}
+              textStyle={{ color: 'white', fontSize: 28 }}
+              color="white"
+            />
+          </Text>
+          <Text
+            style={[
+              styles.summaryMonth,
+              { fontSize: 18, marginTop: 8, fontWeight: '600' },
+            ]}>
+            {selectedFilter === 'All'
+              ? 'All '
+              : selectedFilter === 'Today'
+                ? "Today's "
+                : selectedFilter === 'Week'
+                  ? "Week's "
+                  : "Month's "}
+            Expenses
+          </Text>
+          <View style={styles.summaryNote}>
+            <Text style={{ color: 'white' }}>{expenseChange}</Text>
+            <Icon
+              name={
+                expenseChange.includes('less')
+                  ? 'arrow-down'
+                  : 'arrow-up'
+              }
+              size={18}
+              color={
+                expenseChange.includes('less') ? 'orange' : 'green'
+              }
+            />
+          </View>
+        </View>
+        <Text style={styles.summaryMonth}>
+          {formatDMYDate(new Date())}
+        </Text>
+      </LinearGradient>
+
+      <View style={styles.filters}>
+        {filterOptions.map(option => (
+          <FilterButton
+            key={option}
+            label={option}
+            selected={selectedFilter === option}
+            onPress={() => setSelectedFilter(option)}
+            colors={colors}
+          />
+        ))}
+      </View>
+    </>
+  );
+};
+
+// renderItem
+const renderItem = ({ item }: { item: any }) => <View style={{ paddingHorizontal: 16 }}><ExpenseCard expense={item} /></View>;
+
+// Expense
 const Expense = () => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalExpense, setTotalExpense] = useState(0);
   const [expenseChange, setExpenseChange] = useState('');
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const getExpenses = async () => {
     setLoading(true);
@@ -51,7 +146,7 @@ const Expense = () => {
           filter: selectedFilter.toLowerCase(),
           t: Date.now(), // cache buster
         },
-        headers: {'Cache-Control': 'no-cache'},
+        headers: { 'Cache-Control': 'no-cache' },
       });
       setExpenses(response.data?.data);
       console.log(response.data?.data);
@@ -81,6 +176,74 @@ const Expense = () => {
     getExpenses();
   }, [selectedFilter]);
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      fontSize: 22,
+      color: colors.text,
+      ...commonStyles.textDefault,
+      marginLeft: 20,
+      marginBottom: 10,
+    },
+    summaryCard: {
+      backgroundColor: colors.primary,
+      marginHorizontal: 20,
+      borderRadius: 12,
+      padding: 20,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    totalAmount: {
+      color: colors.text,
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    summaryNote: {
+      color: colors.text,
+      marginTop: 4,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    summaryMonth: {
+      color: colors.text,
+      fontSize: 14,
+      ...commonStyles.textDefault,
+      alignSelf: 'flex-start',
+    },
+    filters: {
+      flexDirection: 'row',
+      gap: 8,
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+    },
+    addButton: {
+      position: 'absolute',
+      backgroundColor: colors.primary,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      borderRadius: 12,
+      bottom: 80,
+      left: 20,
+      right: 20,
+    },
+    addButtonText: {
+      color: colors.text,
+      marginLeft: 8,
+      ...commonStyles.textDefault,
+      fontSize: 16,
+    },
+    contentContainerStyle: {
+      paddingBottom: 20,
+      paddingTop: 20,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <Header
@@ -95,151 +258,33 @@ const Expense = () => {
           onRefresh={getExpenses}
           refreshing={loading}
           ListHeaderComponent={
-            <>
-              <View style={styles.summaryCard}>
-                <View>
-                  <Text style={styles.totalAmount}>
-                    <RupeeIcon
-                      amount={totalExpense}
-                      size={28}
-                      textStyle={{color: 'white', fontSize: 28}}
-                      color="white"
-                    />
-                  </Text>
-                  <Text
-                    style={[
-                      styles.summaryMonth,
-                      {fontSize: 18, marginTop: 8, fontWeight: '600'},
-                    ]}>
-                    {selectedFilter === 'All'
-                      ? 'All '
-                      : selectedFilter === 'Today'
-                      ? "Today's "
-                      : selectedFilter === 'Week'
-                      ? "Week's "
-                      : "Month's "}
-                    Expenses
-                  </Text>
-                  <View style={styles.summaryNote}>
-                    <Text style={{color: 'white'}}>{expenseChange}</Text>
-                    <Icon
-                      name={
-                        expenseChange.includes('less')
-                          ? 'arrow-down'
-                          : 'arrow-up'
-                      }
-                      size={18}
-                      color={
-                        expenseChange.includes('less') ? 'orange' : 'green'
-                      }
-                    />
-                  </View>
-                </View>
-                <Text style={styles.summaryMonth}>
-                  {formatDMYDate(new Date())}
-                </Text>
-              </View>
-              <View style={styles.filters}>
-                {filterOptions.map(option => (
-                  <FilterButton
-                    key={option}
-                    label={option}
-                    selected={selectedFilter === option}
-                    onPress={() => setSelectedFilter(option)}
-                  />
-                ))}
-              </View>
-            </>
+            <ListHeaderComponent
+              setSelectedFilter={setSelectedFilter}
+              selectedFilter={selectedFilter}
+              totalExpense={totalExpense}
+              expenseChange={expenseChange}
+              styles={styles}
+              colors={colors}
+            />
           }
           ListEmptyComponent={
             loading ? (
-              <View style={{padding: 20, alignItems: 'center'}}>
+              <View style={{ padding: 20, alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#3B82F6" />
               </View>
             ) : (
-              <View style={{padding: 20, alignItems: 'center'}}>
+              <View style={{ padding: 20, alignItems: 'center' }}>
                 <Text>No expenses found.</Text>
               </View>
             )
           }
-          keyExtractor={(item:any) => item.id}
-          renderItem={({item}) => (
-            <View style={{paddingHorizontal: 16}}>
-              <ExpenseCard expense={item} />
-            </View>
-          )}
-          contentContainerStyle={{paddingBottom: 160}}
+          keyExtractor={(item: any) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.contentContainerStyle}
         />
-
-        {/* <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add" size={20} color="white" />
-          <Text style={styles.addButtonText}>Add Expense</Text>
-        </TouchableOpacity> */}
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginLeft: 20,
-    marginBottom: 10,
-  },
-  summaryCard: {
-    backgroundColor: '#3B82F6',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  totalAmount: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  summaryNote: {
-    color: 'white',
-    marginTop: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  summaryMonth: {
-    color: 'white',
-    fontSize: 14,
-    alignSelf: 'flex-start',
-  },
-  filters: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  addButton: {
-    position: 'absolute',
-    backgroundColor: '#3B82F6',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    bottom: 80,
-    left: 20,
-    right: 20,
-  },
-  addButtonText: {
-    color: 'white',
-    marginLeft: 8,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-});
 
 export default Expense;

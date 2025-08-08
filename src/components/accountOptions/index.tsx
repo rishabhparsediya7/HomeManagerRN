@@ -1,50 +1,55 @@
-// components/AccountOption.js
-import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import React, { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Accordion from '../../components/accordion';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
+import { commonStyles } from '../../utils/styles';
+
 interface AccountOptionProps {
   icon: string;
   label: string;
-  onPress?: () => void;
+  onPress?: (T: any) => void;
+  options?: string[];
 }
 
-const AccountOption = ({icon, label, onPress}: AccountOptionProps) => {
+const AccountOption = ({ icon, label, onPress, options }: AccountOptionProps) => {
+
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const styles = useMemo(() => StyleSheet.create({
+    row: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: 10,
+    },
+    iconContainer: {
+      width: 30,
+    },
+    label: {
+      flex: 1,
+      fontSize: 16,
+      marginLeft: 10,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    arrow: {
+      alignSelf: 'center',
+    },
+  }), [theme]);
+
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress}>
-      <View style={styles.iconContainer}>
-        <Feather name={icon} size={20} color="#374151" />
-      </View>
-      <Text style={styles.label}>{label}</Text>
-      <Feather
-        name="chevron-right"
-        size={20}
-        color="gray"
-        style={styles.arrow}
+    <View style={styles.row}>
+      <Accordion
+        title={label}
+        icon={icon}
+        options={options || []}
+        onOptionPress={(option) => onPress?.(option)}
       />
-    </TouchableOpacity>
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    marginHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  iconContainer: {
-    width: 30,
-  },
-  label: {
-    flex: 1,
-    fontSize: 16,
-    marginLeft: 10,
-  },
-  arrow: {
-    alignSelf: 'center',
-  },
-});
+
 
 export default AccountOption;

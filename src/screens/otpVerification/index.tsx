@@ -13,8 +13,8 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../../services/api';
 
 const OtpVerificationScreen = ({navigation, route}) => {
   const email = route?.params?.email;
@@ -74,12 +74,13 @@ const OtpVerificationScreen = ({navigation, route}) => {
   const handleVerify = async () => {
     setLoading(true);
     try {
-      const result = await axios.post(`${BASE_URL}/api/auth/verify-otp`, {
+      const result = await api.post(`/api/auth/verify-otp`, {
         email,
         otp: otp.join(''),
       });
-      if (result.data.success && result.data.token) {
-        await AsyncStorage.setItem('token', result.data.token);
+      const {success, token} = result.data;
+      if (success && token) {
+        await AsyncStorage.setItem('token', token);
         await signIn();
       }
     } catch (error) {
@@ -98,10 +99,11 @@ const OtpVerificationScreen = ({navigation, route}) => {
   const handleResend = async () => {
     setResendLoading(true);
     try {
-      const result = await axios.post(`${BASE_URL}/api/auth/resend-otp`, {
+      const result = await api.post(`/api/auth/resend-otp`, {
         email,
       });
-      if (result.data.success) {
+      const {success} = result.data;
+      if (success) {
         setTimer(30);
       }
     } catch (error) {

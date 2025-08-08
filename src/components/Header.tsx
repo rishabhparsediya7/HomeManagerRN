@@ -5,12 +5,18 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  StatusBar,
   StyleProp,
   ViewStyle,
+  Platform,
+  TextStyle,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../providers/AuthProvider';
+import {useTheme} from '../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../providers/Theme';
+import { useMemo } from 'react';
+import { commonStyles } from '../utils/styles';
 
 interface HeaderProps {
   title?: string;
@@ -23,6 +29,7 @@ interface HeaderProps {
   showCrossButton?: boolean;
   onCrossPress?: () => void;
   headerStyle?: StyleProp<ViewStyle>;
+  headerTitleStyle?: StyleProp<TextStyle>;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -36,28 +43,83 @@ const Header: React.FC<HeaderProps> = ({
   showCrossButton = false,
   onCrossPress,
   headerStyle,
+  headerTitleStyle,
 }) => {
   const {user} = useAuth();
   const {photoUrl} = user;
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
+  const styles = useMemo(() => StyleSheet.create({
+    titleBackButtonContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 8,
+      flexDirection: 'row',
+    },
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background,
+      height: 72,
+      paddingHorizontal:16,
+      marginTop: StatusBar.currentHeight,
+      ...Platform.select({
+        ios: {
+          shadowColor: colors.shadowColor,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 1,
+          shadowRadius: 2,
+        },
+        android: {
+          elevation: 2,
+        },
+      }),
+    },
+    backButton: {
+      padding: 8,
+    },
+    titleContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 32,
+      ...commonStyles.textExtraBold,
+      color: colors.buttonText,
+    },
+    iconContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 12,
+    },
+    image: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+    },
+  }), [theme]);
+  
   return (
     <View style={[styles.container, headerStyle]}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" />
       <View style={styles.titleBackButtonContainer}>
         {showBackButton && (
           <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
-            <Icon name="arrow-back" size={24} color="#000" />
+            <Icon name="arrow-back" size={24} color={colors.buttonText} />
           </TouchableOpacity>
         )}
 
         <View style={styles.titleContainer}>
-          {title && <Text style={styles.title}>{title}</Text>}
+          {title && <Text style={[styles.title, headerTitleStyle]}>{title}</Text>}
         </View>
       </View>
 
       <View style={styles.iconContainer}>
         {showNotification && (
           <TouchableOpacity onPress={onNotificationPress}>
-            <Icon name="notifications" size={24} color="#000" />
+            <Icon name="notifications" size={24} color={colors.buttonText} />
           </TouchableOpacity>
         )}
         {showImage && (
@@ -65,7 +127,7 @@ const Header: React.FC<HeaderProps> = ({
         )}
         {showCrossButton && (
           <TouchableOpacity onPress={onCrossPress}>
-            <Icon name="close" size={24} color="#000" />
+            <Icon name="close" size={24} color={colors.buttonText} />
           </TouchableOpacity>
         )}
       </View>
@@ -73,49 +135,5 @@ const Header: React.FC<HeaderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  titleBackButtonContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-    flexDirection: 'row',
-  },
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    height: 64,
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  titleContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  iconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 12,
-  },
-  image: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-});
 
 export default Header;

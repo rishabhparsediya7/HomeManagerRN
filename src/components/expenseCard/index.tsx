@@ -1,10 +1,58 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {formatDate} from '../../utils/formatDate';
 import {category} from '../../constants';
+import { useTheme } from '../../providers/ThemeContext';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { commonStyles } from '../../utils/styles';
+import RupeeIcon from '../../components/rupeeIcon';
 
 const ExpenseCard = ({expense}) => {
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      paddingVertical: 12,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    left: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    iconWrapper: {
+      backgroundColor: colors.inputBackground,
+      padding: 10,
+      borderRadius: 30,
+      marginRight: 12,
+    },
+    category: {
+      ...commonStyles.textDefault,
+      fontSize: 16,
+      textTransform: 'capitalize',
+      color: colors.buttonText,
+    },
+    date: {
+      ...commonStyles.textDefault,
+      fontSize: 13,
+      color: colors.buttonText,
+    },
+    right: {
+      alignItems: 'flex-end',
+    },
+    amount: {
+      ...commonStyles.textDefault,
+      fontSize: 16,
+      color: colors.buttonText,
+    },
+    method: {
+      ...commonStyles.textDefault,
+      fontSize: 13,
+      color: colors.buttonText,
+    },
+  }), [theme]);
   return (
     <View style={styles.container}>
       <View style={styles.left}>
@@ -22,54 +70,11 @@ const ExpenseCard = ({expense}) => {
         </View>
       </View>
       <View style={styles.right}>
-        <Text style={styles.amount}>
-          <FontAwesome name="rupee" size={16} color="green" />
-          {Number(expense?.amount).toFixed(2)}
-        </Text>
+        <RupeeIcon amount={expense?.amount} textStyle={styles.amount} />
         <Text style={styles.method}>{expense?.paymentMethod}</Text>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    // paddingHorizontal: 20,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  left: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconWrapper: {
-    backgroundColor: '#EFF6FF',
-    padding: 10,
-    borderRadius: 30,
-    marginRight: 12,
-  },
-  category: {
-    fontWeight: '600',
-    fontSize: 16,
-    textTransform: 'capitalize',
-  },
-  date: {
-    color: '#6B7280',
-    fontSize: 13,
-  },
-  right: {
-    alignItems: 'flex-end',
-  },
-  amount: {
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  method: {
-    color: '#6B7280',
-    fontSize: 13,
-  },
-});
 
 export default ExpenseCard;

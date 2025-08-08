@@ -1,24 +1,29 @@
 // screens/Profile.js
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ColorSchemeName,
+  FlatList,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Asset} from 'react-native-image-picker';
+import { Asset } from 'react-native-image-picker';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AccountOption from '../../components/accountOptions';
 import ImageUploader from '../../components/imageUploader';
-import {useAuth} from '../../providers/AuthProvider';
-import api from '../../services/api';
+import { Modal } from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import {Modal} from '../../components/modal';
-import {COLORS} from '../../providers/theme.style';
+import { useAuth } from '../../providers/AuthProvider';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
+import api from '../../services/api';
+import { commonStyles } from '../../utils/styles';
+import { DeviceInfo, getDeviceInfo } from '../../utils/deviceInfo';
 
 const Profile = () => {
   const {signOut, user} = useAuth();
@@ -26,15 +31,76 @@ const Profile = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [profilePicture, setProfilePicture] = useState('');
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [selectedImage, setSelectedImage] = useState<Asset | undefined>(
     undefined,
   );
+  
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const {theme, toggleTheme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
+  const handleToggleTheme = (theme: ColorSchemeName) => {
+    if(theme){
+      toggleTheme(theme.toLowerCase() as ColorSchemeName);
+    }
+  }
 
   const handleLogout = () => {
     bottomSheetModalRef.current?.present();
   };
 
+  const accountOptionsData = [
+    {
+      icon: 'edit',
+      label: 'Personal Information',
+      onPress: () => {},
+      options: ['Edit Personal Information'],
+    },
+    {
+      icon: 'dark-mode',
+      label: 'Theme',
+      onPress: handleToggleTheme,
+      options: ['Light', 'Dark'],
+    },
+    {
+      icon: 'credit-card',
+      label: 'Payment Methods',
+      onPress: () => {},
+      options: ['Add Payment Method'],
+    },
+    {
+      icon: 'bell',
+      label: 'Notifications',
+      onPress: () => {},
+      options: ['Enable Notifications'],
+    },
+    {
+      icon: 'shield',
+      label: 'Security & Privacy',
+      onPress: () => {},
+      options: ['Change Password'],
+    },
+    {
+      icon: 'dollar-sign',
+      label: 'Currency Preferences',
+      onPress: () => {},
+      options: ['Change Currency'],
+    },
+    {
+      icon: 'download',
+      label: 'Export Data',
+      onPress: () => {},
+      options: ['Export Data'],
+    },
+    {
+      icon: 'log-out',
+      label: 'Logout',
+      onPress: handleLogout,
+      options: ['Logout'],
+    },
+  ]
   const getUser = async () => {
     setLoading(true);
     try {
@@ -56,9 +122,132 @@ const Profile = () => {
     }, []),
   );
 
+  useEffect(() => {
+    getDeviceInfo().then(info => {
+      if(info){
+        setDeviceInfo(info);
+      }
+    });
+  }, []);
+  
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      alignItems: 'center',
+      paddingVertical: 20,
+      backgroundColor: colors.background,
+    },
+    name: {
+      fontSize: 22,
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+      marginTop: 12,
+    },
+    email: {
+      fontSize: 14,
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginVertical: 20,
+      paddingHorizontal: 16,
+      gap: 8,
+    },
+    statBox: {
+      flex: 1,
+      backgroundColor: colors.inputBackground,
+      borderColor: colors.inputBorder,
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+    },
+    statLabel: {
+      fontSize: 14,
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+      marginTop: 6,
+    },
+    statValue: {
+      fontSize: 18,
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+      marginTop: 4,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+      marginHorizontal: 20,
+      marginTop: 10,
+      marginBottom: 10,
+    },
+    button: {
+      backgroundColor: colors.buttonBackground,
+      padding: 12,
+      borderRadius: 8,
+      marginVertical: 8,
+      flex: 1,
+      alignItems: 'center',
+    },
+    modalContainer: {
+      flex: 1,
+      flexDirection: 'column',
+      padding: 20,
+      gap: 12,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: 8,
+      width: '100%',
+      justifyContent: 'center',
+    },
+    buttonText: {
+      color: colors.buttonText,
+      fontSize: 16,
+      ...commonStyles.textDefault,
+    },
+    modalText: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+      // textAlign: 'center',
+    },
+    sectionTitleText: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    versionSection: {
+      marginHorizontal: 20,
+      marginTop: 10,   
+      alignItems: 'center',
+    },
+    versionText: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    madeBySection: {
+      marginTop: 12,   
+      alignItems: 'center',
+    },
+    madeByText: {
+      fontSize: 12,
+      ...commonStyles.textDefault,
+      color: colors.mutedText,
+    },
+  }), [theme]);
+
   return (
     <ScrollView
-      contentContainerStyle={{paddingBottom: 100}}
+      contentContainerStyle={{paddingBottom: 12}}
       showsVerticalScrollIndicator={false}
       style={styles.container}>
       <View style={styles.header}>
@@ -75,30 +264,46 @@ const Profile = () => {
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
-          <Ionicons name="wallet" size={24} color="#4F46E5" />
+          <Ionicons name="wallet" size={24} color={colors.buttonText} />
           <Text style={styles.statLabel}>Remaining Budget</Text>
           <RupeeIcon amount={12450} />
         </View>
         <View style={styles.statBox}>
-          <FontAwesome5 name="coins" size={24} color="#4F46E5" />
+          <FontAwesome5 name="coins" size={24} color={colors.buttonText} />
           <Text style={styles.statLabel}>Monthly Budget</Text>
           <RupeeIcon amount={3000} />
         </View>
       </View>
-
       <Text style={styles.sectionTitle}>Account Settings</Text>
+      <FlatList
+        data={accountOptionsData}
+        renderItem={({item}) => (
+          <AccountOption
+            icon={item.icon}
+            label={item.label}
+            onPress={item.onPress}
+            options={item.options}
+          />
+        )}
+        keyExtractor={item => item.label}
+      />
 
-      <AccountOption icon="edit" label="Personal Information" />
-      <AccountOption icon="credit-card" label="Payment Methods" />
-      <AccountOption icon="bell" label="Notifications" />
-      <AccountOption icon="shield" label="Security & Privacy" />
-      <AccountOption icon="dollar-sign" label="Currency Preferences" />
-      <AccountOption icon="download" label="Export Data" />
-      <AccountOption icon="log-out" label="Logout" onPress={handleLogout} />
+      <View style={styles.versionSection}>
+        <Text style={styles.versionText}>
+          {`v${deviceInfo?.versionName || ""} (${deviceInfo?.versionCode || ""})`}
+        </Text>
+      </View>
+
+      <View style={styles.madeBySection}>
+        <Text style={styles.madeByText}>
+          Made with ❤️ by Rishabh Parsediya
+        </Text>
+      </View>
+
       <Modal
         onCrossPress={() => bottomSheetModalRef.current?.dismiss()}
         headerTitle="Logout"
-        variant="scrollableModal"
+        variant="viewModal"
         bottomSheetRef={bottomSheetModalRef}
         modalSnapPoints={['35%']}>
         <View style={styles.modalContainer}>
@@ -113,94 +318,12 @@ const Profile = () => {
               <Text style={styles.buttonText}>Logout</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </View> 
       </Modal>
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: '#F6F6F6',
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginTop: 12,
-  },
-  email: {
-    fontSize: 14,
-    color: 'gray',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 20,
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: '#F6F6F6',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 14,
-    color: 'gray',
-    marginTop: 6,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  button: {
-    backgroundColor: '#4F46E5',
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 8,
-    flex: 1,
-    alignItems: 'center',
-  },
-  modalContainer: {
-    flex: 1,
-    flexDirection: 'column',
-    padding: 20,
-    // alignItems: 'center',
-    gap: 12,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    width: '100%',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.secondary,
-    // textAlign: 'center',
-  },
-});
+
 
 export default Profile;

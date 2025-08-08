@@ -1,0 +1,45 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/NataSans-Black.ttf",
+      "sha1": "5c5318d494fc27c7ad924c6f8a8e76d19d2e9e64"
+    },
+    {
+      "path": "assets/fonts/NataSans-Bold.ttf",
+      "sha1": "b8139d9b71d9076e4951a19b4756ce0222fdfe88"
+    },
+    {
+      "path": "assets/fonts/NataSans-ExtraBold.ttf",
+      "sha1": "1a65529e617dd1b6d2ab7fdd81cfb0401651590f"
+    },
+    {
+      "path": "assets/fonts/NataSans-ExtraLight.ttf",
+      "sha1": "adb0f92927576aa8d18f6883539ed40de0ed5c11"
+    },
+    {
+      "path": "assets/fonts/NataSans-Light.ttf",
+      "sha1": "b378c06bd940709b4a8e9cdceb2ff8f8916d9006"
+    },
+    {
+      "path": "assets/fonts/NataSans-Medium.ttf",
+      "sha1": "af57c7ccf8af20916872e162f9454d2fa6086689"
+    },
+    {
+      "path": "assets/fonts/NataSans-Regular.ttf",
+      "sha1": "3b2c5e3b8b469d158391d579b2bf9a7014d30f44"
+    },
+    {
+      "path": "assets/fonts/NataSans-SemiBold.ttf",
+      "sha1": "e95912ca9ce475026ddd434cf9adaa1964df46e6"
+    },
+    {
+      "path": "assets/fonts/NataSans-Thin.ttf",
+      "sha1": "9ad4747026f4b1334adce71aca2b97f3291f6149"
+    },
+    {
+      "path": "assets/fonts/NataSans.ttf",
+      "sha1": "fbac65408e65c4a1b8ea98deb65ed5d7b1720fb8"
+    }
+  ]
+}

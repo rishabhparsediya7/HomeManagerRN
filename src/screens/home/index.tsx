@@ -1,5 +1,5 @@
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,12 +16,15 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import Input from '../../components/form/input';
 import Header from '../../components/Header';
-import {Modal} from '../../components/modal';
+import { Modal } from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import {COLORS} from '../../providers/theme.style';
+import { category } from '../../constants';
+import { useAuth } from '../../providers/AuthProvider';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
 import api from '../../services/api';
-import {getMonthStartAndEndDates} from '../../utils/dates';
-import {category} from '../../constants';
+import { getMonthStartAndEndDates } from '../../utils/dates';
+import { commonStyles } from '../../utils/styles';
 
 interface ExpenseDataProps {
   amount: string;
@@ -75,7 +78,7 @@ const mapCategoryExpensePercentageToChartData = (categoryData: any) => {
 
 const Home = () => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const {startDate, endDate} = getMonthStartAndEndDates();
+  const { startDate, endDate } = getMonthStartAndEndDates();
   const [recentExpenses, setRecentExpenses] = useState<ExpenseDataProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [budget, setBudget] = useState(0);
@@ -84,6 +87,9 @@ const Home = () => {
   const [actionType, setActionType] = useState<'income' | 'bills' | 'budget'>();
   const [weekChartData, setWeekChartData] = useState([]);
   const [categoryChartData, setCategoryChartData] = useState([]);
+  const { theme } = useTheme();
+  const {user} = useAuth();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
   const onBudgetChange = (text: string) => {
     setBudget(Number(text));
   };
@@ -178,32 +184,261 @@ const Home = () => {
     getHomeData();
   }, [fetchHomeData]);
 
+  const bannerGradient = useMemo(() => theme === 'dark' ? [colors.tabBarBackground, colors.primary] : [colors.primary, colors.buttonTextSecondary], [theme]);
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+      flex: 1,
+    },
+    contentContainer: {
+      flex: 1,
+      alignItems: 'center',
+    },
+
+    homeContainer: {
+      paddingHorizontal: 16,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    title: {
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    avatar: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+    },
+    budgetCard: {
+      backgroundColor: colors.background,
+    },
+    budgetLabel: {
+      // color: colors.buttonText,
+      fontSize: 14,
+      ...commonStyles.textDefault,
+    },
+    budgetAmount: {
+      fontSize: 28,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+      marginVertical: 6,
+    },
+    budgetDetails: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    income: {
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+      fontSize: 16,
+    },
+    expense: {
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+      fontSize: 16,
+    },
+    caption: {
+      color: colors.buttonText,
+      fontSize: 12,
+      ...commonStyles.textDefault,
+    },
+    actions: {
+      width: '100%',
+      justifyContent: 'space-between',
+      gap: 12,
+      marginBottom: 12,
+    },
+    actionButtonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    seeAll: {
+      color: colors.buttonText,
+      fontSize: 16,
+      ...commonStyles.textDefault,
+    },
+    chartContainer: {
+      marginTop: 10,
+      padding: 14,
+      borderRadius: 14,
+    },
+    chartBars: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 20,
+      height: 120, // Fixed height for the chart container
+    },
+    chartBarContainer: {
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      height: '100%',
+    },
+    chartBarItem: {
+      width: 30,
+      height: '100%',
+      justifyContent: 'flex-end',
+    },
+    bar: {
+      width: 20,
+      backgroundColor: colors.primary,
+      borderRadius: 6,
+      marginBottom: 6,
+    },
+    dayLabel: {
+      fontSize: 12,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    progressItem: {
+      marginVertical: 6,
+      gap: 6,
+    },
+    progressLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 4,
+    },
+    progressText: {
+      fontSize: 14,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    progressBarBackground: {
+      height: 6,
+      backgroundColor: colors.inputBackground,
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    progressBarFill: {
+      height: 6,
+      backgroundColor: colors.buttonText,
+    },
+    progressPercent: {
+      fontSize: 12,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+      textAlign: 'right',
+      marginTop: 2,
+    },
+    saveBtn: {
+      backgroundColor: colors.buttonText,
+      borderRadius: 12,
+      paddingVertical: 16,
+      marginHorizontal: 16,
+      alignItems: 'center',
+      marginTop: 12,
+    },
+    saveText: {
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+      fontSize: 16,
+    },
+    linearGradient: {
+      flex: 1,
+      alignItems: 'flex-start',
+      paddingLeft: 20,
+      paddingRight: 20,
+      borderRadius: 14,
+      padding: 16,
+      marginVertical: 20,
+      gap: 10,
+    },
+    buttonText: {
+      fontSize: 18,
+      textAlign: 'center',
+      margin: 10,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+      backgroundColor: 'transparent',
+    },
+    whiteText: {
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    shadow: {
+      shadowColor: colors.shadowColor,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    progressContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingTop: 4,
+    },
+    sectionTitleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    paddingBottom: {
+      paddingBottom: 16,
+    },
+    paddingTop: {
+      paddingTop: 20,
+    },
+    loadingContainer: {
+      padding: 20,
+      alignItems: 'center',
+    },
+  }), [theme]);
+
   return (
     <View style={styles.container}>
-      <Header title="HomeTrack" showNotification showImage />
+      <Header title="Trakio" showNotification showImage image={user?.photoUrl} />
 
       <ScrollView
-        contentContainerStyle={{paddingBottom: 100}}
+        contentContainerStyle={{ paddingBottom: 12 }}
         showsVerticalScrollIndicator={false}
         style={styles.container}>
         <View style={styles.homeContainer}>
           <LinearGradient
-            colors={['#8B5CF6', '#D946EF']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            colors={bannerGradient}
             style={styles.linearGradient}>
             <Text style={[styles.budgetLabel, styles.whiteText]}>
               This Month's Budget
             </Text>
             <RupeeIcon
               amount={monthSummary.totalBudget}
-              color="#fff"
+              color={colors.buttonText}
               size={36}
-              textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
+              textStyle={[styles.whiteText, { fontSize: 36, fontWeight: 'bold' }]}
             />
             <View style={styles.budgetDetails}>
               <View>
                 <RupeeIcon
                   amount={monthSummary.totalIncome}
-                  color="#fff"
+                  color={colors.buttonText}
                   textStyle={styles.whiteText}
                 />
                 <Text style={[styles.caption, styles.whiteText]}>Income</Text>
@@ -211,14 +446,14 @@ const Home = () => {
               <View>
                 <RupeeIcon
                   amount={monthSummary.totalExpenses}
-                  color="#fff"
+                  color={colors.buttonText}
                   textStyle={styles.whiteText}
                 />
                 <Text
                   style={[
                     styles.caption,
                     styles.whiteText,
-                    {textAlign: 'right'},
+                    { textAlign: 'right' },
                   ]}>
                   Expenses
                 </Text>
@@ -226,31 +461,38 @@ const Home = () => {
             </View>
           </LinearGradient>
 
-          {/* Action Buttons */}
           <View style={styles.actions}>
-            <ActionButton
-              onPress={() => openActionModal('income')}
-              label="Add Income"
-              icon="wallet-outline"
-            />
-            <ActionButton
-              onPress={() => openActionModal('bills')}
-              label="Bills"
-              icon="receipt-outline"
-            />
-            <ActionButton
-              onPress={() => openActionModal('budget')}
-              label="Budget"
-              icon="bar-chart-outline"
-            />
+            <View style={styles.actionButtonContainer}>
+              <ActionButton
+                onPress={() => openActionModal('income')}
+                label="Add Income"
+                icon="wallet-outline"
+              />
+              <ActionButton
+                onPress={() => openActionModal('bills')}
+                label="Bills"
+                icon="receipt-outline"
+              />
+            </View>
+            <View style={styles.actionButtonContainer}>
+              <ActionButton
+                onPress={() => openActionModal('budget')}
+                label="Budget"
+                icon="bar-chart-outline"
+              />
+              <ActionButton
+                onPress={() => openActionModal('budget')}
+                label="Budget"
+                icon="bar-chart-outline"
+              />
+            </View>
           </View>
 
-          {/* Recent Transactions */}
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleContainer}>
               <Text style={styles.sectionTitle}>Recent Transactions</Text>
               <TouchableOpacity onPress={fetchHomeData}>
-                <Icon name="refresh" size={20} color="#3B82F6" />
+                <Icon name="refresh" size={20} color={colors.buttonText} />
               </TouchableOpacity>
             </View>
             <TouchableOpacity>
@@ -264,7 +506,7 @@ const Home = () => {
             ListEmptyComponent={
               loading ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#3B82F6" />
+                  <ActivityIndicator size="large" color={colors.buttonText} />
                 </View>
               ) : (
                 <View style={styles.loadingContainer}>
@@ -273,7 +515,7 @@ const Home = () => {
               )
             }
             keyExtractor={item => item.id}
-            renderItem={({item}) => <ExpenseCard expense={item} />}
+            renderItem={({ item }) => <ExpenseCard expense={item} />}
             contentContainerStyle={styles.paddingBottom}
           />
 
@@ -284,14 +526,19 @@ const Home = () => {
               {weekChartData.map((day: any, i: number) => (
                 <View key={i} style={styles.chartBarContainer}>
                   <View style={styles.chartBarItem}>
-                    <View style={[styles.bar, {height: day.height}]} />
+                    <LinearGradient
+                      start={{ x: 0, y: 1 }}
+                      end={{ x: 0, y: 0 }}
+                      colors={[colors.primary, colors.primaryLight]}
+                      style={[styles.bar, { height: day.height }]}
+                    />
                   </View>
                   <Text style={styles.dayLabel}>{day.label}</Text>
                 </View>
               ))}
             </View>
 
-            <Text style={[styles.sectionTitle, {marginVertical: 12}]}>
+            <Text style={[styles.sectionTitle, { marginVertical: 12 }]}>
               Category Overview
             </Text>
             {categoryChartData.map((item: any, i) => (
@@ -301,17 +548,20 @@ const Home = () => {
                   <Text style={styles.progressText}>{item.label}</Text>
                 </View>
                 <View style={styles.progressBarBackground}>
-                  <View
+                  <LinearGradient
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 0, y: 0 }}
+                    colors={[colors.primary, colors.primaryLight]}
                     style={[
                       styles.progressBarFill,
-                      {width: `${item.percentage}%`},
+                      { width: `${item.percentage}%` },
                     ]}
                   />
                 </View>
                 <View style={styles.progressContainer}>
                   <RupeeIcon
                     amount={item.amount}
-                    color="green"
+                    color={colors.buttonText}
                     size={14}
                     textStyle={styles.progressText}
                   />
@@ -368,235 +618,32 @@ const ActionButton = ({
   label: string;
   icon: string;
   onPress: () => void;
-}) => (
-  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-    <Icon name={icon} size={32} color={COLORS.primaryText} />
-    <Text style={styles.actionLabel}>{label}</Text>
-  </TouchableOpacity>
-);
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    flex: 1,
-  },
-  contentContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-
-  homeContainer: {
-    paddingHorizontal: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '600',
-  },
-  avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-  },
-  budgetCard: {
-    backgroundColor: '#f7f8fa',
-  },
-  budgetLabel: {
-    color: '#777',
-    fontSize: 14,
-  },
-  budgetAmount: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginVertical: 6,
-  },
-  budgetDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  income: {
-    color: 'green',
-    fontSize: 16,
-  },
-  expense: {
-    color: 'red',
-    fontSize: 16,
-  },
-  caption: {
-    color: '#888',
-    fontSize: 12,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-    gap: 12,
-  },
-  actionButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    width: '30%',
-    backgroundColor: COLORS.bgGhostWhite,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.bgGhostWhite,
-  },
-  actionLabel: {
-    fontSize: 16,
-    color: COLORS.primaryText,
-    fontWeight: '400',
-    textAlign: 'center',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  seeAll: {
-    color: COLORS.primaryText,
-    fontSize: 16,
-  },
-  chartContainer: {
-    marginTop: 10,
-    padding: 14,
-    borderRadius: 14,
-  },
-  chartBars: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    height: 120, // Fixed height for the chart container
-  },
-  chartBarContainer: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    height: '100%',
-  },
-  chartBarItem: {
-    width: 30,
-    height: '100%',
-    justifyContent: 'flex-end',
-  },
-  bar: {
-    width: 20,
-    backgroundColor: '#4B7BFF',
-    borderRadius: 6,
-    marginBottom: 6,
-  },
-  dayLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
-  progressItem: {
-    marginVertical: 6,
-  },
-  progressLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  progressText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  progressBarBackground: {
-    height: 6,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: 6,
-    backgroundColor: '#4B7BFF',
-  },
-  progressPercent: {
-    fontSize: 12,
-    color: '#888',
-    textAlign: 'right',
-    marginTop: 2,
-  },
-  saveBtn: {
-    backgroundColor: '#3366FF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginHorizontal: 16,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  saveText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  linearGradient: {
-    flex: 1,
-    alignItems: 'flex-start',
-    paddingLeft: 15,
-    paddingRight: 15,
-    borderRadius: 14,
-    padding: 16,
-    marginVertical: 20,
-    gap: 10,
-  },
-  buttonText: {
-    fontSize: 18,
-    fontFamily: 'Gill Sans',
-    textAlign: 'center',
-    margin: 10,
-    color: '#fff',
-    backgroundColor: 'transparent',
-  },
-  whiteText: {
-    color: '#fff',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
+}) => {
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const styles = useMemo(() => StyleSheet.create({
+    actionButton: {
+      flex:1,
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: colors.inputBackground,
+      borderRadius: 12,
+      width: '50%',
     },
-    shadowOpacity: 0,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  progressContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 4,
-  },
-  sectionTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  paddingBottom: {
-    paddingBottom: 16,
-  },
-  paddingTop: {
-    paddingTop: 20,
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-});
+    actionLabel: {
+      fontSize: 16,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+  }), [theme]);
+  return (
+    <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+      <Icon name={icon} size={32} color={colors.buttonText} />
+      <Text style={styles.actionLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
+
+
 
 export default Home;

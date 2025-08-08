@@ -1,21 +1,32 @@
-import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
-import {NavigationContainer} from '@react-navigation/native';
-import React, { useEffect } from 'react';
-import {StyleSheet, View, Text, Button} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { NavigationContainer } from '@react-navigation/native';
+import { Buffer } from 'buffer';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-get-random-values';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import AuthorizeNavigation from './src/navigators/authorizeStack';
 import UnauthorizeNavigation from './src/navigators/unauthorizeStack';
-import AuthProvider, {useAuth} from './src/providers/AuthProvider';
+import AuthProvider, { useAuth } from './src/providers/AuthProvider';
+import { ThemeProvider } from './src/providers/ThemeContext';
 import UserProvider from './src/providers/UserContext';
-import ErrorBoundary from './src/components/ErrorBoundary';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import socket from './src/utils/socket';
+
+if (typeof global.Buffer === 'undefined') {
+  global.Buffer = Buffer;
+}
+
 const RootNavigator = () => {
-  const {isAuthenticated} = useAuth();
+  const { isAuthenticated } = useAuth();
   return isAuthenticated ? <AuthorizeNavigation /> : <UnauthorizeNavigation />;
 };
 
 const App = () => {
+  const [userId, setUserId] = useState<string | null>(null);
   const fallbackUI = (
     <View style={styles.errorContainer}>
       <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
@@ -24,6 +35,20 @@ const App = () => {
       </Text>
     </View>
   );
+  useEffect(() => {
+    async function init() {
+      const userId = await AsyncStorage.getItem('userId');
+      setUserId(userId);
+      if (userId) {
+        socket.connect();
+        socket.emit('register', userId);
+      }
+    }
+    init();
+    return () => {
+      socket.disconnect();
+    };
+  }, [userId]);
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -33,21 +58,26 @@ const App = () => {
   }, []);
 
   return (
-    <ErrorBoundary fallback={fallbackUI}>
-      <GestureHandlerRootView style={styles.container}>
-        <BottomSheetModalProvider>
-          <SafeAreaView style={StyleSheet.absoluteFill}>
-            <AuthProvider>
-              <UserProvider>
-                <NavigationContainer>
-                  <RootNavigator />
-                </NavigationContainer>
-              </UserProvider>
-            </AuthProvider>
-          </SafeAreaView>
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary fallback={fallbackUI}>
+        <GestureHandlerRootView style={styles.container}>
+          <BottomSheetModalProvider>
+            <SafeAreaView 
+              style={StyleSheet.absoluteFill}
+              edges={['right', 'bottom', 'left']}
+            >
+              <AuthProvider>
+                <UserProvider>
+                  <NavigationContainer>
+                    <RootNavigator />
+                  </NavigationContainer>
+                </UserProvider>
+              </AuthProvider>
+            </SafeAreaView>
+          </BottomSheetModalProvider>
+        </GestureHandlerRootView>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 };
 
