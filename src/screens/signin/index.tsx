@@ -183,6 +183,7 @@ const SignInScreen = ({ navigation }) => {
       inputInner: {
         flex: 1,
         paddingVertical: 14,
+        color: colors.inputText
       },
       continueBtn: {
         backgroundColor: colors.buttonBackground,

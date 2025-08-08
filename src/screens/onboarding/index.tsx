@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
+  StatusBar,
 } from 'react-native';
 import Icons from '../../components/icons';
 import { useTheme } from '../../providers/ThemeContext';
@@ -68,6 +69,7 @@ const OnboardingScreen = ({navigation}) => {
       flex: 1,
       backgroundColor: colors.background,
       alignItems: 'center',
+      paddingTop: 0, // Remove any top padding that might interfere with status bar
     },
     buttonContainer: {
       paddingHorizontal: 16,
@@ -106,6 +108,7 @@ const OnboardingScreen = ({navigation}) => {
       flexDirection: 'row',
       marginBottom: 20,
       marginTop: 10,
+      justifyContent:'center'
     },
     dot: {
       height: 8,
@@ -134,7 +137,13 @@ const OnboardingScreen = ({navigation}) => {
   }), [theme]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: 0 }]}>
+      <StatusBar
+        backgroundColor="transparent"
+        translucent
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
+      />
+      <View style={{ flex: 1, backgroundColor: colors.background, width: '100%' }}>
       <FlatList
         data={slides}
         keyExtractor={item => item.id}
@@ -162,6 +171,7 @@ const OnboardingScreen = ({navigation}) => {
             {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
           </Text>
         </TouchableOpacity>
+      </View>
       </View>
     </View>
   );

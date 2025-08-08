@@ -62,7 +62,10 @@ const App = () => {
       <ErrorBoundary fallback={fallbackUI}>
         <GestureHandlerRootView style={styles.container}>
           <BottomSheetModalProvider>
-            <SafeAreaView style={StyleSheet.absoluteFill}>
+            <SafeAreaView 
+              style={StyleSheet.absoluteFill}
+              edges={['right', 'bottom', 'left']}
+            >
               <AuthProvider>
                 <UserProvider>
                   <NavigationContainer>
