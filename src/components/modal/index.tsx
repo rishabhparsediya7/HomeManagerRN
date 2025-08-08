@@ -6,7 +6,7 @@ import {
   BottomSheetScrollView,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +20,9 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
+import { useTheme } from '../../providers/ThemeContext';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { commonStyles } from '../../utils/styles';
 
 interface ModalProps {
   isBottomSheetNonDismissible?: boolean;
@@ -44,6 +47,9 @@ export const Modal = ({
   variant,
   ...rest
 }: ModalProps) => {
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
+
   const insets =
     Platform.OS == 'android'
       ? useSafeAreaInsets()
@@ -68,6 +74,42 @@ export const Modal = ({
   }, []);
   const onChange = () => {};
 
+  const styles = useMemo(() => StyleSheet.create({
+    bottomPadding: {
+      paddingBottom: 16,
+    },
+  
+    keyboardAvoidingView: {
+      flex: 1,
+      width: '100%',
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      justifyContent: 'flex-start',
+      width: '100%',
+    },
+  
+    viewModalContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+      width: '100%',
+    },
+    contentContainer: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    header: {
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
+      backgroundColor: colors.background,
+    },
+    headerTitle: {
+      fontSize: 28,
+      color: colors.buttonText,
+      ...commonStyles .textDefault,
+    },
+  }), [theme]);
+
   switch (variant) {
     case 'scrollableModal': {
       return (
@@ -88,8 +130,10 @@ export const Modal = ({
               <Header
                 title={headerTitle}
                 showCrossButton
+                showImage={false}
                 onCrossPress={onCrossPress}
                 headerStyle={styles.header}
+                headerTitleStyle={styles.headerTitle}
               />
             )}
             {...rest}
@@ -130,6 +174,7 @@ export const Modal = ({
               showCrossButton
               onCrossPress={onCrossPress}
               headerStyle={styles.header}
+              headerTitleStyle={styles.headerTitle}
             />
           )}
           {...rest}>
@@ -159,32 +204,4 @@ export const Modal = ({
   }
 };
 
-const styles = StyleSheet.create({
-  bottomPadding: {
-    paddingBottom: 16,
-  },
 
-  keyboardAvoidingView: {
-    flex: 1,
-    width: '100%',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
-    width: '100%',
-  },
-
-  viewModalContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    width: '100%',
-  },
-  contentContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  header: {
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-  },
-});

@@ -9,6 +9,7 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
+  TextStyle,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../providers/AuthProvider';
@@ -28,6 +29,7 @@ interface HeaderProps {
   showCrossButton?: boolean;
   onCrossPress?: () => void;
   headerStyle?: StyleProp<ViewStyle>;
+  headerTitleStyle?: StyleProp<TextStyle>;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -41,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({
   showCrossButton = false,
   onCrossPress,
   headerStyle,
+  headerTitleStyle,
 }) => {
   const {user} = useAuth();
   const {photoUrl} = user;
@@ -110,7 +113,7 @@ const Header: React.FC<HeaderProps> = ({
         )}
 
         <View style={styles.titleContainer}>
-          {title && <Text style={styles.title}>{title}</Text>}
+          {title && <Text style={[styles.title, headerTitleStyle]}>{title}</Text>}
         </View>
       </View>
 
@@ -125,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({
         )}
         {showCrossButton && (
           <TouchableOpacity onPress={onCrossPress}>
-            <Icon name="close" size={24} color="#000" />
+            <Icon name="close" size={24} color={colors.buttonText} />
           </TouchableOpacity>
         )}
       </View>
