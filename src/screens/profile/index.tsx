@@ -132,11 +132,13 @@ const Profile = () => {
     },
     name: {
       fontSize: 22,
+      color: colors.buttonText,
       ...commonStyles.textDefault,
       marginTop: 12,
     },
     email: {
       fontSize: 14,
+      color: colors.buttonText,
       ...commonStyles.textDefault,
     },
     statsContainer: {
@@ -157,16 +159,19 @@ const Profile = () => {
     },
     statLabel: {
       fontSize: 14,
+      color: colors.buttonText,
       ...commonStyles.textDefault,
       marginTop: 6,
     },
     statValue: {
       fontSize: 18,
+      color: colors.buttonText,
       ...commonStyles.textDefault,
       marginTop: 4,
     },
     sectionTitle: {
       fontSize: 16,
+      color: colors.buttonText,
       ...commonStyles.textDefault,
       marginHorizontal: 20,
       marginTop: 10,

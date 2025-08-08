@@ -32,10 +32,12 @@ const ExpenseCard = ({expense}) => {
       ...commonStyles.textDefault,
       fontSize: 16,
       textTransform: 'capitalize',
+      color: colors.buttonText,
     },
     date: {
       ...commonStyles.textDefault,
       fontSize: 13,
+      color: colors.buttonText,
     },
     right: {
       alignItems: 'flex-end',
@@ -43,10 +45,12 @@ const ExpenseCard = ({expense}) => {
     amount: {
       ...commonStyles.textDefault,
       fontSize: 16,
+      color: colors.buttonText,
     },
     method: {
       ...commonStyles.textDefault,
       fontSize: 13,
+      color: colors.buttonText,
     },
   }), [theme]);
   return (

@@ -166,6 +166,7 @@ const AddExpenseScreen = () => {
       ...commonStyles.textDefault,
       marginBottom: 12,
       marginTop: 24,
+      color: colors.buttonText,
     },
     grid: {
       flexDirection: 'row',
@@ -191,10 +192,12 @@ const AddExpenseScreen = () => {
       backgroundColor: colors.inputBackground,
       padding: 16,
       borderRadius: 12,
+      color: colors.buttonText,
     },
     dateText: {
       marginLeft: 8,
       fontSize: 14,
+      color: colors.buttonText,
     },
     notesInput: {
       backgroundColor: colors.inputBackground,

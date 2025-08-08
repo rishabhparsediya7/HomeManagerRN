@@ -86,7 +86,7 @@ export const lightTheme: AppTheme = {
     overlay: 'rgba(0, 0, 0, 0.3)',
     modalBackground: '#FFFFFF',
 
-    tabBarBackground: '#FFFFFF',
+    tabBarBackground: 'rgba(0, 0, 0, 0.1)',
     tabBarIconActive: '#007AFF',
     tabBarIconInactive: '#A0AEC0',
 

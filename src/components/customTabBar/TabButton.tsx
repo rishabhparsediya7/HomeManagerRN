@@ -46,7 +46,6 @@ const TabButton = (props: Props) => {
             bottom: 4,
             position: 'absolute',
             paddingHorizontal: 20,
-            
         },
         inactiveContainer: { 
             backgroundColor: 'transparent'
@@ -63,6 +62,7 @@ const TabButton = (props: Props) => {
             borderColor: colors.background ,  
             height: 74,
             width: '90%',
+            backgroundColor: colors.tabBarBackground,
         },
         immediateLeftAdjacent: { 
             borderTopRightRadius: 25, 

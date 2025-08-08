@@ -183,6 +183,8 @@ const Home = () => {
     getHomeData();
   }, [fetchHomeData]);
 
+  const bannerGradient = useMemo(() => theme === 'dark' ? [colors.tabBarBackground, colors.primary] : [colors.primary, colors.buttonTextSecondary], [theme]);
+
   const styles = useMemo(() => StyleSheet.create({
     container: {
       backgroundColor: colors.background,
@@ -219,7 +221,7 @@ const Home = () => {
       backgroundColor: colors.background,
     },
     budgetLabel: {
-      color: colors.buttonText,
+      // color: colors.buttonText,
       fontSize: 14,
       ...commonStyles.textDefault,
     },
@@ -419,7 +421,7 @@ const Home = () => {
           <LinearGradient
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            colors={[colors.tabBarBackground, colors.primary]}
+            colors={bannerGradient}
             style={styles.linearGradient}>
             <Text style={[styles.budgetLabel, styles.whiteText]}>
               This Month's Budget
