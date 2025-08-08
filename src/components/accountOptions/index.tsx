@@ -6,22 +6,24 @@ import { useTheme } from '../../providers/ThemeContext';
 import { darkTheme, lightTheme } from '../../providers/Theme';
 import { useMemo } from 'react';
 import { commonStyles } from '../../utils/styles';
+import Accordion from '../../components/accordion';
 interface AccountOptionProps {
   icon: string;
   label: string;
   onPress?: () => void;
+  options?: string[];
 }
 
-const AccountOption = ({ icon, label, onPress }: AccountOptionProps) => {
+const AccountOption = ({ icon, label, onPress, options }: AccountOptionProps) => {
 
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const styles = useMemo(() => StyleSheet.create({
     row: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
-      marginHorizontal: 20,
+      marginHorizontal: 10,
     },
     iconContainer: {
       width: 30,
@@ -37,19 +39,16 @@ const AccountOption = ({ icon, label, onPress }: AccountOptionProps) => {
       alignSelf: 'center',
     },
   }), [theme]);
+
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress}>
-      <View style={styles.iconContainer}>
-        <Feather name={icon} size={20} color={colors.buttonText} />
-      </View>
-      <Text style={styles.label}>{label}</Text>
-      <Feather
-        name="chevron-right"
-        size={20}
-        color={colors.buttonText}
-        style={styles.arrow}
+    <View style={styles.row}>
+      <Accordion
+        title={label}
+        icon={icon}
+        options={options || []}
+        onOptionPress={onPress}
       />
-    </TouchableOpacity>
+    </View>
   );
 };
 

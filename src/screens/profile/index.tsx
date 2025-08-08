@@ -1,6 +1,7 @@
 // screens/Profile.js
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   ScrollView,
@@ -9,21 +10,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Asset} from 'react-native-image-picker';
+import { Asset } from 'react-native-image-picker';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AccountOption from '../../components/accountOptions';
 import ImageUploader from '../../components/imageUploader';
-import {useAuth} from '../../providers/AuthProvider';
-import api from '../../services/api';
+import { Modal } from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import {Modal} from '../../components/modal';
-import {COLORS} from '../../providers/theme.style';
+import { useAuth } from '../../providers/AuthProvider';
 import { darkTheme, lightTheme } from '../../providers/Theme';
 import { useTheme } from '../../providers/ThemeContext';
+import api from '../../services/api';
 import { commonStyles } from '../../utils/styles';
-import accountOptions from '../../components/accountOptions';
 
 const Profile = () => {
   const {signOut, user} = useAuth();
@@ -37,7 +35,7 @@ const Profile = () => {
   
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  const {theme} = useTheme();
+  const {theme, toggleTheme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const handleLogout = () => {
@@ -49,36 +47,49 @@ const Profile = () => {
       icon: 'edit',
       label: 'Personal Information',
       onPress: () => {},
+      options: ['Edit Personal Information'],
+    },
+    {
+      icon: 'dark-mode',
+      label: 'Theme',
+      onPress: toggleTheme,
+      options: ['Light', 'Dark'],
     },
     {
       icon: 'credit-card',
       label: 'Payment Methods',
       onPress: () => {},
+      options: ['Add Payment Method'],
     },
     {
       icon: 'bell',
       label: 'Notifications',
       onPress: () => {},
+      options: ['Enable Notifications'],
     },
     {
       icon: 'shield',
       label: 'Security & Privacy',
       onPress: () => {},
+      options: ['Change Password'],
     },
     {
       icon: 'dollar-sign',
       label: 'Currency Preferences',
       onPress: () => {},
+      options: ['Change Currency'],
     },
     {
       icon: 'download',
       label: 'Export Data',
       onPress: () => {},
+      options: ['Export Data'],
     },
     {
       icon: 'log-out',
       label: 'Logout',
       onPress: handleLogout,
+      options: ['Logout'],
     },
   ]
   const getUser = async () => {
@@ -224,6 +235,7 @@ const Profile = () => {
             icon={item.icon}
             label={item.label}
             onPress={item.onPress}
+            options={item.options}
           />
         )}
         keyExtractor={item => item.label}
