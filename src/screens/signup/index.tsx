@@ -176,11 +176,12 @@ const SignUpScreen = ({ navigation }) => {
     safeArea: {
       flex: 1,
       backgroundColor: colors.background,
-    },
+    },  
     scrollContainer: {
       padding: 24,
       flexGrow: 1,
       justifyContent: 'center',
+      paddingTop: Platform.OS === 'ios' ? 20 : 24,
     },
     title: {
       ...commonStyles.textExtraBold,
@@ -206,6 +207,7 @@ const SignUpScreen = ({ navigation }) => {
       marginBottom: 18,
       fontSize: 14,
       ...commonStyles.textMedium,
+      color: colors.inputText,
     },
     passwordContainer: {
       flexDirection: 'row',
@@ -216,6 +218,7 @@ const SignUpScreen = ({ navigation }) => {
       marginBottom: 18,
       fontSize: 14,
       ...commonStyles.textMedium,
+      color: colors.inputText,
     },
     inputInner: {
       flex: 1,
@@ -319,6 +322,7 @@ const SignUpScreen = ({ navigation }) => {
             style={styles.input}
             placeholder="Enter your first name"
             value={signUpForm.firstName}
+            placeholderTextColor={colors.inputText}
             onChangeText={text =>
               setSignUpForm({ ...signUpForm, firstName: text })
             }
@@ -332,6 +336,7 @@ const SignUpScreen = ({ navigation }) => {
             style={styles.input}
             placeholder="Enter your last name"
             value={signUpForm.lastName}
+            placeholderTextColor={colors.inputText}
             onChangeText={text =>
               setSignUpForm({ ...signUpForm, lastName: text })
             }
@@ -345,6 +350,7 @@ const SignUpScreen = ({ navigation }) => {
             style={styles.input}
             placeholder="Enter your email"
             value={signUpForm.email}
+            placeholderTextColor={colors.inputText}
             onChangeText={text => setSignUpForm({ ...signUpForm, email: text })}
             keyboardType="email-address"
           />
@@ -357,6 +363,7 @@ const SignUpScreen = ({ navigation }) => {
             <TextInput
               style={styles.inputInner}
               placeholder="Create a password"
+              placeholderTextColor={colors.inputText}
               secureTextEntry={secureText}
               value={signUpForm.password}
               onChangeText={text =>
@@ -380,6 +387,7 @@ const SignUpScreen = ({ navigation }) => {
             <TextInput
               style={styles.inputInner}
               placeholder="Confirm your password"
+              placeholderTextColor={colors.inputText}
               secureTextEntry={secureText}
               value={signUpForm.confirmPassword}
               onChangeText={text =>
