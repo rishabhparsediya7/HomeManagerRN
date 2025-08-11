@@ -10,6 +10,8 @@ interface InputProps {
   variant?: 'default' | 'modal';
   value?: string | number;
   onChangeText?: (text: string) => void;
+  keyboardType?: 'default' | 'number-pad' | 'decimal-pad' | 'numeric' | 'email-address' | 'phone-pad';
+  autoFocus?: boolean;
 }
 const Input = ({
   ref,

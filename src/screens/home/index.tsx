@@ -1,5 +1,5 @@
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,15 +16,16 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import Input from '../../components/form/input';
 import Header from '../../components/Header';
-import { Modal } from '../../components/modal';
+import {Modal} from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import { category } from '../../constants';
-import { useAuth } from '../../providers/AuthProvider';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { useTheme } from '../../providers/ThemeContext';
+import {category} from '../../constants';
+import {useAuth} from '../../providers/AuthProvider';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
-import { getMonthStartAndEndDates } from '../../utils/dates';
-import { commonStyles } from '../../utils/styles';
+import {getMonthStartAndEndDates} from '../../utils/dates';
+import {commonStyles} from '../../utils/styles';
+import {useKeyboardStatus} from '../../hooks/useKeyboardStatus';
 
 interface ExpenseDataProps {
   amount: string;
@@ -76,18 +77,20 @@ const mapCategoryExpensePercentageToChartData = (categoryData: any) => {
   }));
 };
 
+type ActionType = 'income' | 'bills' | 'budget' | null;
+
 const Home = () => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const { startDate, endDate } = getMonthStartAndEndDates();
+  const {startDate, endDate} = getMonthStartAndEndDates();
   const [recentExpenses, setRecentExpenses] = useState<ExpenseDataProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [budget, setBudget] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
   const [actionPlaceHolder, setActionPlaceHolder] = useState('');
-  const [actionType, setActionType] = useState<'income' | 'bills' | 'budget'>();
+  const [actionType, setActionType] = useState<ActionType>(null);
   const [weekChartData, setWeekChartData] = useState([]);
   const [categoryChartData, setCategoryChartData] = useState([]);
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const {user} = useAuth();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const onBudgetChange = (text: string) => {
@@ -145,37 +148,62 @@ const Home = () => {
     }
   }, [filter, startDate, endDate, limit]);
 
-  const openActionModal = (type: 'income' | 'bills' | 'budget') => {
-    if (type === 'income') {
-      setActionPlaceHolder('Enter your income');
-      setActionType('income');
-    } else if (type === 'bills') {
-      setActionPlaceHolder('Enter your bills');
-      setActionType('bills');
-    } else {
-      setActionPlaceHolder('Enter your budget');
-      setActionType('budget');
-    }
-    bottomSheetModalRef.current?.present();
+  const openActionModal = (type: ActionType) => {
+    if (!type) return; // Guard against null/undefined
+    
+    // Set the action type and placeholder first
+    setActionType(type);
+    
+    // Set appropriate placeholder based on action type
+    const placeholder = {
+      'income': 'Enter income amount',
+      'budget': 'Enter budget amount',
+      'bills': 'Enter bill amount'
+    }[type] || 'Enter amount';
+    
+    setActionPlaceHolder(placeholder);
+    
+    // Use a small timeout to ensure state updates are processed before showing the modal
+    requestAnimationFrame(() => {
+      if (bottomSheetModalRef.current) {
+        bottomSheetModalRef.current.present();
+      }
+    });
   };
 
   const handleAddFinance = async () => {
+    if (!actionType) return;
+
     try {
-      console.log(actionType);
       await api.post('/api/expense/finance', {
         type: actionType,
         amount: actionType === 'income' ? totalIncome : budget,
       });
+      fetchHomeData();
     } catch (error) {
-      console.log(error);
+      console.error('Error adding finance:', error);
     }
-    fetchHomeData();
   };
 
-  const handleSubmitAction = () => {
-    bottomSheetModalRef.current?.dismiss();
-    handleAddFinance();
+  const handleSubmitAction = async () => {
+    try {
+      await handleAddFinance();
+      // Close the modal and reset form
+      bottomSheetModalRef.current?.dismiss();
+      setActionType(null);
+      setTotalIncome(0);
+      setBudget(0);
+    } catch (error) {
+      console.error('Error submitting action:', error);
+    }
   };
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      bottomSheetModalRef.current?.dismiss();
+    };
+  }, []);
 
   useEffect(() => {
     const getHomeData = async () => {
@@ -184,9 +212,15 @@ const Home = () => {
     getHomeData();
   }, [fetchHomeData]);
 
-  const bannerGradient = useMemo(() => theme === 'dark' ? [colors.tabBarBackground, colors.primary] : [colors.primary, colors.buttonTextSecondary], [theme]);
+  const bannerGradient = useMemo(
+    () =>
+      theme === 'dark'
+        ? [colors.tabBarBackground, colors.primary]
+        : [colors.primary, colors.buttonTextSecondary],
+    [theme],
+  );
 
-  const styles = useMemo(() => StyleSheet.create({
+  const styles = StyleSheet.create({
     container: {
       backgroundColor: colors.background,
       flex: 1,
@@ -195,7 +229,6 @@ const Home = () => {
       flex: 1,
       alignItems: 'center',
     },
-
     homeContainer: {
       paddingHorizontal: 16,
     },
@@ -343,19 +376,7 @@ const Home = () => {
       textAlign: 'right',
       marginTop: 2,
     },
-    saveBtn: {
-      backgroundColor: colors.buttonText,
-      borderRadius: 12,
-      paddingVertical: 16,
-      marginHorizontal: 16,
-      alignItems: 'center',
-      marginTop: 12,
-    },
-    saveText: {
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-      fontSize: 16,
-    },
+
     linearGradient: {
       flex: 1,
       alignItems: 'flex-start',
@@ -409,20 +430,44 @@ const Home = () => {
       padding: 20,
       alignItems: 'center',
     },
-  }), [theme]);
+    keyboardAvoidingView: {
+      flex: 1,
+    },
+    modalContent: {
+      padding: 20,
+      flex: 1,
+      justifyContent: 'center',
+    },
+    saveBtn: {
+      marginTop: 20,
+      padding: 15,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    saveText: {
+      color: 'white',
+      fontWeight: '600',
+      fontSize: 16,
+    },
+  });
 
   return (
     <View style={styles.container}>
-      <Header title="Trakio" showNotification showImage image={user?.photoUrl} />
+      <Header
+        title="Trakio"
+        showNotification
+        showImage
+        image={user?.photoUrl}
+      />
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 12 }}
+        contentContainerStyle={{paddingBottom: 12}}
         showsVerticalScrollIndicator={false}
         style={styles.container}>
         <View style={styles.homeContainer}>
           <LinearGradient
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
             colors={bannerGradient}
             style={styles.linearGradient}>
             <Text style={[styles.budgetLabel, styles.whiteText]}>
@@ -432,7 +477,7 @@ const Home = () => {
               amount={monthSummary.totalBudget}
               color={colors.buttonText}
               size={36}
-              textStyle={[styles.whiteText, { fontSize: 36, fontWeight: 'bold' }]}
+              textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
             />
             <View style={styles.budgetDetails}>
               <View>
@@ -453,7 +498,7 @@ const Home = () => {
                   style={[
                     styles.caption,
                     styles.whiteText,
-                    { textAlign: 'right' },
+                    {textAlign: 'right'},
                   ]}>
                   Expenses
                 </Text>
@@ -515,7 +560,7 @@ const Home = () => {
               )
             }
             keyExtractor={item => item.id}
-            renderItem={({ item }) => <ExpenseCard expense={item} />}
+            renderItem={({item}) => <ExpenseCard expense={item} />}
             contentContainerStyle={styles.paddingBottom}
           />
 
@@ -527,10 +572,10 @@ const Home = () => {
                 <View key={i} style={styles.chartBarContainer}>
                   <View style={styles.chartBarItem}>
                     <LinearGradient
-                      start={{ x: 0, y: 1 }}
-                      end={{ x: 0, y: 0 }}
+                      start={{x: 0, y: 1}}
+                      end={{x: 0, y: 0}}
                       colors={[colors.primary, colors.primaryLight]}
-                      style={[styles.bar, { height: day.height }]}
+                      style={[styles.bar, {height: day.height}]}
                     />
                   </View>
                   <Text style={styles.dayLabel}>{day.label}</Text>
@@ -538,7 +583,7 @@ const Home = () => {
               ))}
             </View>
 
-            <Text style={[styles.sectionTitle, { marginVertical: 12 }]}>
+            <Text style={[styles.sectionTitle, {marginVertical: 12}]}>
               Category Overview
             </Text>
             {categoryChartData.map((item: any, i) => (
@@ -549,12 +594,12 @@ const Home = () => {
                 </View>
                 <View style={styles.progressBarBackground}>
                   <LinearGradient
-                    start={{ x: 0, y: 1 }}
-                    end={{ x: 0, y: 0 }}
+                    start={{x: 0, y: 1}}
+                    end={{x: 0, y: 0}}
                     colors={[colors.primary, colors.primaryLight]}
                     style={[
                       styles.progressBarFill,
-                      { width: `${item.percentage}%` },
+                      {width: `${item.percentage}%`},
                     ]}
                   />
                 </View>
@@ -571,40 +616,49 @@ const Home = () => {
             ))}
           </View>
         </View>
-        <KeyboardAvoidingView
-          enabled
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{
-            flex: 1,
-          }}>
+        {actionType && (
           <Modal
             bottomSheetRef={bottomSheetModalRef}
-            modalSnapPoints={['35%']}
+            modalSnapPoints={['30%']}
             variant="scrollableModal"
             headerTitle={`Add ${actionType}`}
-            onCrossPress={() => bottomSheetModalRef.current?.dismiss()}>
-            <View style={styles.paddingTop}>
-              <Input
-                value={
-                  actionType === 'budget'
-                    ? budget.toString()
-                    : totalIncome.toString()
-                }
-                onChangeText={
-                  actionType === 'budget' ? onBudgetChange : onTotalIncomeChange
-                }
-                variant="modal"
-                placeholder={actionPlaceHolder}
-                placeholderTextColor="gray"
-              />
-              <TouchableOpacity
-                onPress={handleSubmitAction}
-                style={styles.saveBtn}>
-                <Text style={styles.saveText}>Save</Text>
-              </TouchableOpacity>
-            </View>
+            onCrossPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              setActionType(null);
+            }}
+            isBottomSheetNonDismissible={false}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={styles.keyboardAvoidingView}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+              <View style={styles.modalContent}>
+                <Input
+                  value={
+                    actionType === 'budget'
+                      ? budget.toString() || ''
+                      : totalIncome.toString() || ''
+                  }
+                  onChangeText={
+                    actionType === 'budget'
+                      ? onBudgetChange
+                      : onTotalIncomeChange
+                  }
+                  variant="modal"
+                  placeholder={actionPlaceHolder}
+                  placeholderTextColor={colors.buttonText}
+                  keyboardType="numeric"
+                  autoFocus
+                />
+                <TouchableOpacity
+                  onPress={handleSubmitAction}
+                  style={[styles.saveBtn, {backgroundColor: colors.primary}]}
+                  activeOpacity={0.8}>
+                  <Text style={styles.saveText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
           </Modal>
-        </KeyboardAvoidingView>
+        )}
       </ScrollView>
     </View>
   );
@@ -619,23 +673,27 @@ const ActionButton = ({
   icon: string;
   onPress: () => void;
 }) => {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
-  const styles = useMemo(() => StyleSheet.create({
-    actionButton: {
-      flex:1,
-      alignItems: 'center',
-      padding: 16,
-      backgroundColor: colors.inputBackground,
-      borderRadius: 12,
-      width: '50%',
-    },
-    actionLabel: {
-      fontSize: 16,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
-  }), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        actionButton: {
+          flex: 1,
+          alignItems: 'center',
+          padding: 16,
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          width: '50%',
+        },
+        actionLabel: {
+          fontSize: 16,
+          ...commonStyles.textDefault,
+          color: colors.buttonText,
+        },
+      }),
+    [theme],
+  );
   return (
     <TouchableOpacity style={styles.actionButton} onPress={onPress}>
       <Icon name={icon} size={32} color={colors.buttonText} />
@@ -643,7 +701,5 @@ const ActionButton = ({
     </TouchableOpacity>
   );
 };
-
-
 
 export default Home;
