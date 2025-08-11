@@ -30,7 +30,7 @@ const Profile = () => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [profilePicture, setProfilePicture] = useState('');
+  const [profilePicture, setProfilePicture] = useState(user?.photoUrl || '');
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [selectedImage, setSelectedImage] = useState<Asset | undefined>(
     undefined,
@@ -118,7 +118,10 @@ const Profile = () => {
 
   useFocusEffect(
     useCallback(() => {
-      getUser();
+      console.log("🚀 ~ Profile ~ user:", user)
+      if(!user){
+        getUser();
+      }
     }, []),
   );
 

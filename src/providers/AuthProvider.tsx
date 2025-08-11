@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 import api from '../services/api';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 type AuthContext = {
   signIn: () => void;
@@ -107,11 +108,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   }) => {
     setLoading(true);
     try {
-      console.log('BASE_URL', BASE_URL);
-      console.log(
-        `🚀 ~ AuthProvider ~ {email, password, first_name, last_name}:`,
-        { email, password, first_name, last_name },
-      );
       const response = await fetch(`${BASE_URL}/api/auth/signup`, {
         method: 'POST',
         body: JSON.stringify({
@@ -257,7 +253,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       const response = await api.get('/api/users/me');
       setUser({
         ...user,
-        photoUrl: response.data.user.photoUrl,
+        photoUrl: response.data.user.profilePicture,
       });
     } catch (error) {
       console.log(error);
@@ -270,7 +266,18 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const signIn = async () => setIsAuthenticated(true);
   const signOut = async () => {
     await AsyncStorage.clear();
+    if(GoogleSignin){
+      GoogleSignin.signOut();
+    }
     setIsAuthenticated(false);
+    setUser({
+      name: '',
+      photoUrl: '',
+      userId: '',
+      loggedIn: false,
+      token: '',
+      email: '',
+    });
   };
 
   return (
