@@ -11,6 +11,12 @@ import {
 import api from '../services/api';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
+GoogleSignin.configure({
+  webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
+  offlineAccess: true,
+  forceCodeForRefreshToken: true,
+});
+
 type AuthContext = {
   signIn: () => void;
   signOut: () => void;
