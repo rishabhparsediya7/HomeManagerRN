@@ -196,14 +196,12 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   };
 
   const signInWithGoogle = async ({ idToken }: { idToken: string }) => {
-    console.log("🚀 ~ signInWithGoogle ~ idToken:", idToken)
     setLoading(true);
     try {
       if (!idToken) {
         throw new Error('ID token is required');
       }
       const BASE_URL = process.env.BASE_URL;
-      console.log("🚀 ~ signInWithGoogle ~ BASE_URL:", BASE_URL)
       const response = await fetch(`${BASE_URL}/api/auth/signin-with-google`, {
         method: 'POST',
         headers: {
@@ -211,9 +209,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           'id-token': idToken,
         },
       });
-      console.log("🚀 ~ signInWithGoogle ~ response:", response)
       const result = await response.json();
-      console.log("🚀 ~ signInWithGoogle ~ result:", result)
       const { userId, token, name } = result;
       if (result.success && result.token) {
         setIsAuthenticated(true);

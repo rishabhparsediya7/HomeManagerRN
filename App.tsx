@@ -16,6 +16,12 @@ import { ThemeProvider } from './src/providers/ThemeContext';
 import UserProvider from './src/providers/UserContext';
 import socket from './src/utils/socket';
 
+GoogleSignin.configure({
+  webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
+  offlineAccess: true,
+  forceCodeForRefreshToken: true,
+});
+
 if (typeof global.Buffer === 'undefined') {
   global.Buffer = Buffer;
 }
@@ -49,13 +55,6 @@ const App = () => {
       socket.disconnect();
     };
   }, [userId]);
-
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
-      offlineAccess: false,
-    });
-  }, []);
 
   return (
     <ThemeProvider>

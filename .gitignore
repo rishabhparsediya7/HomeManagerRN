@@ -77,3 +77,5 @@ yarn-error.log
 .env*
 
 *.lock
+
+android/app/google-services.json

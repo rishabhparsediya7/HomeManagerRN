@@ -39,8 +39,6 @@ const SignInScreen = ({ navigation }) => {
 
   const { theme } = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
-  console.log("🚀 ~ SignInScreen ~ colors:", colors)
-
 
 
   const handleSignIn = async () => {
@@ -245,6 +243,7 @@ const SignInScreen = ({ navigation }) => {
           style={importedStyles.input}
           keyboardType="email-address"
           autoCapitalize="none"
+          placeholderTextColor={colors.inputText}
         />
 
         <View style={importedStyles.passwordContainer}>
@@ -256,6 +255,7 @@ const SignInScreen = ({ navigation }) => {
             }
             secureTextEntry={secureText}
             style={importedStyles.inputInner}
+            placeholderTextColor={colors.inputText}
           />
           <TouchableOpacity onPress={() => setSecureText(!secureText)}>
             <Icon
