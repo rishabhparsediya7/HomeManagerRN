@@ -1,30 +1,25 @@
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
-import Input from '../../components/form/input';
 import Header from '../../components/Header';
-import {Modal} from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import {category} from '../../constants';
-import {useAuth} from '../../providers/AuthProvider';
-import {darkTheme, lightTheme} from '../../providers/Theme';
-import {useTheme} from '../../providers/ThemeContext';
+import { category } from '../../constants';
+import { useAuthorizeNavigation } from '../../navigators/navigators';
+import { useAuth } from '../../providers/AuthProvider';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
 import api from '../../services/api';
-import {getMonthStartAndEndDates} from '../../utils/dates';
-import {commonStyles} from '../../utils/styles';
-import {MonthYearPicker} from '../../components/MonthYearPicker';
+import { getMonthStartAndEndDates } from '../../utils/dates';
+import { commonStyles } from '../../utils/styles';
 
 interface ExpenseDataProps {
   amount: string;
@@ -33,7 +28,7 @@ interface ExpenseDataProps {
   createdAt: string;
   description: string;
   expenseDate: string;
-  id: string; 
+  id: string;
   paymentMethod: string;
   paymentMethodId: number;
   updatedAt: string;
@@ -79,28 +74,16 @@ const mapCategoryExpensePercentageToChartData = (categoryData: any) => {
 type ActionType = 'income' | 'bills' | 'budget' | null;
 
 const Home = () => {
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const {startDate, endDate} = getMonthStartAndEndDates();
   const [recentExpenses, setRecentExpenses] = useState<ExpenseDataProps[]>([]);
   const [loading, setLoading] = useState(false);
-  const [budget, setBudget] = useState(0);
-  const [totalIncome, setTotalIncome] = useState(0);
-  const [actionPlaceHolder, setActionPlaceHolder] = useState('');
-  const [actionType, setActionType] = useState<ActionType>(null);
   const [weekChartData, setWeekChartData] = useState([]);
   const [categoryChartData, setCategoryChartData] = useState([]);
   const {theme} = useTheme();
   const {user} = useAuth();
-  const [currentDate, setCurrentDate] = useState({ month: 8, year: 2025 });
+  const navigation = useAuthorizeNavigation();
 
   const colors = theme === 'dark' ? darkTheme : lightTheme;
-  const onBudgetChange = (text: string) => {
-    setBudget(Number(text));
-  };
-
-  const onTotalIncomeChange = (text: string) => {
-    setTotalIncome(Number(text));
-  };
 
   const [monthSummary, setMonthSummary] = useState<{
     totalExpenses: number;
@@ -149,63 +132,34 @@ const Home = () => {
     }
   }, [filter, startDate, endDate, limit]);
 
-  const openActionModal = (type: ActionType) => {
-    if (!type) return; // Guard against null/undefined
-
-    // Set the action type and placeholder first
-    setActionType(type);
-
-    // Set appropriate placeholder based on action type
-    const placeholder =
-      {
-        income: 'Enter income amount',
-        budget: 'Enter budget amount',
-        bills: 'Enter bill amount',
-      }[type] || 'Enter amount';
-
-    setActionPlaceHolder(placeholder);
-
-    // Use a small timeout to ensure state updates are processed before showing the modal
-    requestAnimationFrame(() => {
-      if (bottomSheetModalRef.current) {
-        bottomSheetModalRef.current.present();
-      }
-    });
+  const openActionScreen = (type: ActionType) => {
+    if (!type) return;
+    navigation.navigate('Action', {type});
   };
 
-  const handleAddFinance = async () => {
-    if (!actionType) return;
+  // const openActionModal = (type: ActionType) => {
+  //   if (!type) return; // Guard against null/undefined
 
-    try {
-      await api.post('/api/expense/finance', {
-        type: actionType,
-        amount: actionType === 'income' ? totalIncome : budget,
-      });
-      fetchHomeData();
-    } catch (error) {
-      console.error('Error adding finance:', error);
-    }
-  };
+  //   // Set the action type and placeholder first
+  //   setActionType(type);
 
-  const handleSubmitAction = async () => {
-    try {
-      await handleAddFinance();
-      // Close the modal and reset form
-      bottomSheetModalRef.current?.dismiss();
-      setActionType(null);
-      setTotalIncome(0);
-      setBudget(0);
-    } catch (error) {
-      console.error('Error submitting action:', error);
-    }
-  };
+  //   // Set appropriate placeholder based on action type
+  //   const placeholder =
+  //     {
+  //       income: 'Enter income amount',
+  //       budget: 'Enter budget amount',
+  //       bills: 'Enter bill amount',
+  //     }[type] || 'Enter amount';
 
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      bottomSheetModalRef.current?.dismiss();
-    };
-  }, []);
+  //   setActionPlaceHolder(placeholder);
+
+  //   // Use a small timeout to ensure state updates are processed before showing the modal
+  //   requestAnimationFrame(() => {
+  //     if (bottomSheetModalRef.current) {
+  //       bottomSheetModalRef.current.present();
+  //     }
+  //   });
+  // };
 
   useEffect(() => {
     const getHomeData = async () => {
@@ -435,22 +389,6 @@ const Home = () => {
     keyboardAvoidingView: {
       flex: 1,
     },
-    modalContent: {
-      padding: 20,
-      flex: 1,
-      justifyContent: 'center',
-    },
-    saveBtn: {
-      marginTop: 20,
-      padding: 15,
-      borderRadius: 10,
-      alignItems: 'center',
-    },
-    saveText: {
-      color: 'white',
-      fontWeight: '600',
-      fontSize: 16,
-    },
   });
 
   return (
@@ -511,53 +449,29 @@ const Home = () => {
           <View style={styles.actions}>
             <View style={styles.actionButtonContainer}>
               <ActionButton
-                onPress={() => openActionModal('income')}
+                onPress={() => openActionScreen('income')}
                 label="Add Income"
                 icon="wallet-outline"
               />
               <ActionButton
-                onPress={() => openActionModal('bills')}
+                onPress={() => openActionScreen('bills')}
                 label="Bills"
                 icon="receipt-outline"
               />
             </View>
             <View style={styles.actionButtonContainer}>
               <ActionButton
-                onPress={() => openActionModal('budget')}
+                onPress={() => openActionScreen('budget')}
                 label="Budget"
                 icon="bar-chart-outline"
               />
               <ActionButton
-                onPress={() => openActionModal('budget')}
+                onPress={() => openActionScreen('budget')}
                 label="Budget"
                 icon="bar-chart-outline"
               />
             </View>
           </View>
-
-          <Text style={styles.header}>Pure JS Month/Year Selector</Text>
-          <Text style={{color: colors.buttonText}}>
-            Selected Date: {currentDate.month} / {currentDate.year}
-          </Text>
-
-          <MonthYearPicker
-            date={currentDate}
-            onDateChange={setCurrentDate}
-            style={{
-              backgroundColor: colors.cardBackground,
-              borderRadius: 14,
-            }}
-            textStyle={{
-              color: colors.buttonText,
-              fontSize: 16,
-            }}
-            selectedTextStyle={{
-              color: colors.buttonText,
-              fontSize: 20,
-              fontWeight: 'bold',
-            }}
-            highlightColor={colors.buttonText}
-          />
 
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleContainer}>
@@ -639,49 +553,6 @@ const Home = () => {
             ))}
           </View>
         </View>
-        {actionType && (
-          <Modal
-            bottomSheetRef={bottomSheetModalRef}
-            modalSnapPoints={['30%']}
-            variant="scrollableModal"
-            headerTitle={`Add ${actionType}`}
-            onCrossPress={() => {
-              bottomSheetModalRef.current?.dismiss();
-              setActionType(null);
-            }}
-            isBottomSheetNonDismissible={false}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.keyboardAvoidingView}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
-              <View style={styles.modalContent}>
-                <Input
-                  value={
-                    actionType === 'budget'
-                      ? budget.toString() || ''
-                      : totalIncome.toString() || ''
-                  }
-                  onChangeText={
-                    actionType === 'budget'
-                      ? onBudgetChange
-                      : onTotalIncomeChange
-                  }
-                  variant="modal"
-                  placeholder={actionPlaceHolder}
-                  placeholderTextColor={colors.buttonText}
-                  keyboardType="numeric"
-                  autoFocus
-                />
-                <TouchableOpacity
-                  onPress={handleSubmitAction}
-                  style={[styles.saveBtn, {backgroundColor: colors.primary}]}
-                  activeOpacity={0.8}>
-                  <Text style={styles.saveText}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </KeyboardAvoidingView>
-          </Modal>
-        )}
       </ScrollView>
     </View>
   );

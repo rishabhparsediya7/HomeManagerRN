@@ -63,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({
       justifyContent: 'space-between',
       backgroundColor: colors.background,
       height: 72,
-      paddingHorizontal:16,
+      paddingHorizontal:4,
       marginTop: StatusBar.currentHeight,
       ...Platform.select({
         ios: {

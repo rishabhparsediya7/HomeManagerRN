@@ -9,6 +9,9 @@ import Home from '../screens/home';
 import AddExpense from '../screens/addExpense';
 import ChatScreen from '../screens/chat';
 import FriendChatScreen from '../screens/chat/friendChat';
+import ActionScreen from '../screens/action';
+
+type ActionType = 'income' | 'bills' | 'budget' | null;
 
 export type AuthorizeNavigationStackList = {
   BottomTabNavigator: undefined;
@@ -17,6 +20,7 @@ export type AuthorizeNavigationStackList = {
   AddExpense: undefined;
   Chat: undefined;
   FriendChat: { id: string, firstName: string, lastName: string, image: string, lastMessage: string, lastMessageTime: string };
+  Action: { type: ActionType };
 };
 
 export type AuthorizeNavigationProp<
@@ -56,6 +60,7 @@ const AuthorizeNavigation = () => {
       <AuthorizeNavigationStack.Screen name="Dashboard" component={Dashboard} />
       <AuthorizeNavigationStack.Screen name="Chat" component={ChatScreen} />
       <AuthorizeNavigationStack.Screen name="FriendChat" component={FriendChatScreen} />
+      <AuthorizeNavigationStack.Screen name="Action" component={ActionScreen} />
     </AuthorizeNavigationStack.Navigator>
   );
 };
