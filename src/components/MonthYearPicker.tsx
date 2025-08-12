@@ -125,19 +125,11 @@ export const MonthYearPicker: FC<MonthYearPickerProps> = ({
   useEffect(() => {
     const monthIndex = MONTHS.findIndex(m => m.value === date.month);
     if (monthIndex !== -1) {
-      monthScrollY.value = monthIndex * ITEM_HEIGHT;
-      monthListRef.current?.scrollToOffset({
-        offset: monthScrollY.value,
-        animated: false,
-      });
+      monthListRef.current?.scrollToIndex({index: monthIndex, animated: true});
     }
     const yearIndex = years.indexOf(date.year);
     if (yearIndex !== -1) {
-      yearScrollY.value = yearIndex * ITEM_HEIGHT;
-      yearListRef.current?.scrollToOffset({
-        offset: yearScrollY.value,
-        animated: false,
-      });
+      yearListRef.current?.scrollToIndex({index: yearIndex, animated: true});
     }
   }, []);
 

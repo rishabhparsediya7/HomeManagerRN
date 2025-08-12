@@ -2,6 +2,8 @@ import {StyleSheet, TextInput} from 'react-native';
 import {View} from 'react-native';
 import {memo} from 'react';
 import {BottomSheetTextInput} from '@gorhom/bottom-sheet';
+import { useTheme } from '../../../providers/ThemeContext';
+import { darkTheme, lightTheme } from '../../../providers/Theme';
 interface InputProps {
   placeholder: string;
   placeholderTextColor: string;
@@ -23,22 +25,20 @@ const Input = ({
   onChangeText,
   ...rest
 }: InputProps) => {
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
   const styles = StyleSheet.create({
     container: {
-      borderColor: 'gray',
       paddingBottom: 12,
-      paddingHorizontal: 12,
       width: '100%',
     },
     textContainer: {
       flex: 1,
       width: '100%',
-      color: 'black',
-      borderColor: 'gray',
-      backgroundColor: '#f1f1f1',
+      color: colors.inputText,
+      backgroundColor: colors.inputBackground,
       padding: 16,
       height: 56,
-      // minHeight: 56,
       borderRadius: 10,
       fontSize: 16,
     },
