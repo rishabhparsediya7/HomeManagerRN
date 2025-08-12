@@ -1,31 +1,29 @@
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import Input from '../../components/form/input';
 import Header from '../../components/Header';
-import {Modal} from '../../components/modal';
+import { Modal } from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import {category} from '../../constants';
-import {useAuth} from '../../providers/AuthProvider';
-import {darkTheme, lightTheme} from '../../providers/Theme';
-import {useTheme} from '../../providers/ThemeContext';
+import { category } from '../../constants';
+import { useAuth } from '../../providers/AuthProvider';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
 import api from '../../services/api';
-import {getMonthStartAndEndDates} from '../../utils/dates';
-import {commonStyles} from '../../utils/styles';
-import {useKeyboardStatus} from '../../hooks/useKeyboardStatus';
+import { getMonthStartAndEndDates } from '../../utils/dates';
+import { commonStyles } from '../../utils/styles';
 
 interface ExpenseDataProps {
   amount: string;
@@ -544,25 +542,24 @@ const Home = () => {
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
-          <FlatList
-            data={recentExpenses || []}
-            onRefresh={fetchHomeData}
-            refreshing={loading}
-            ListEmptyComponent={
+          
+          <View style={styles.paddingBottom}>
+            {
               loading ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color={colors.buttonText} />
                 </View>
-              ) : (
+              ) : recentExpenses.length === 0 ? (
                 <View style={styles.loadingContainer}>
                   <Text>No expenses found.</Text>
                 </View>
+              ) : (
+                recentExpenses.map((item, index) => (
+                  <ExpenseCard expense={item} key={index} />
+                ))
               )
             }
-            keyExtractor={item => item.id}
-            renderItem={({item}) => <ExpenseCard expense={item} />}
-            contentContainerStyle={styles.paddingBottom}
-          />
+          </View>
 
           {/* Monthly Overview */}
           <Text style={styles.sectionTitle}>Monthly Overview</Text>
