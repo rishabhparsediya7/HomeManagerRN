@@ -137,30 +137,6 @@ const Home = () => {
     navigation.navigate('Action', {type});
   };
 
-  // const openActionModal = (type: ActionType) => {
-  //   if (!type) return; // Guard against null/undefined
-
-  //   // Set the action type and placeholder first
-  //   setActionType(type);
-
-  //   // Set appropriate placeholder based on action type
-  //   const placeholder =
-  //     {
-  //       income: 'Enter income amount',
-  //       budget: 'Enter budget amount',
-  //       bills: 'Enter bill amount',
-  //     }[type] || 'Enter amount';
-
-  //   setActionPlaceHolder(placeholder);
-
-  //   // Use a small timeout to ensure state updates are processed before showing the modal
-  //   requestAnimationFrame(() => {
-  //     if (bottomSheetModalRef.current) {
-  //       bottomSheetModalRef.current.present();
-  //     }
-  //   });
-  // };
-
   useEffect(() => {
     const getHomeData = async () => {
       fetchHomeData();
@@ -414,7 +390,7 @@ const Home = () => {
               This Month's Budget
             </Text>
             <RupeeIcon
-              amount={monthSummary.totalBudget}
+              amount={user?.budget || monthSummary.totalBudget}
               color={colors.buttonText}
               size={36}
               textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
@@ -422,7 +398,7 @@ const Home = () => {
             <View style={styles.budgetDetails}>
               <View>
                 <RupeeIcon
-                  amount={monthSummary.totalIncome}
+                  amount={user?.income || monthSummary.totalIncome}
                   color={colors.buttonText}
                   textStyle={styles.whiteText}
                 />

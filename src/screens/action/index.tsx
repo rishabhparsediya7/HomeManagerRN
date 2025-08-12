@@ -1,24 +1,31 @@
+import React, { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useMemo, useState} from 'react';
-import Input from '../../components/form/input';
-import {useTheme} from '../../providers/ThemeContext';
-import {darkTheme, lightTheme} from '../../providers/Theme';
-import api from '../../services/api';
-import {MonthYearPicker} from '../../components/MonthYearPicker';
 import Header from '../../components/Header';
+import { MonthYearPicker } from '../../components/MonthYearPicker';
+import { darkTheme, lightTheme } from '../../providers/Theme';
+import { useTheme } from '../../providers/ThemeContext';
+import api from '../../services/api';
+import { useAuth } from '../../providers/AuthProvider';
+
+type ActionType = 'income' | 'budget' | 'bills' | null;
 
 const ActionScreen = ({route, navigation}) => {
-  const actionType = route.params?.type;
+  const actionType: ActionType = route.params?.type;
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [budget, setBudget] = useState('');
   const [totalIncome, setTotalIncome] = useState('');
+  const [loading, setLoading]=useState(false);
+  const {user, setUser}=useAuth()
+  console.log("🚀 ~ ActionScreen ~ user:", user)
+
   const [currentDate, setCurrentDate] = useState({
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
@@ -62,27 +69,66 @@ const ActionScreen = ({route, navigation}) => {
     [theme],
   );
 
+  const handleAddBudget = async () => {
+    if (!actionType) return;
+    try {
+      setLoading(true)
+      await api.post('/api/expense/add-budget', {
+        amount: budget,
+        month: currentDate.month,
+        year: currentDate.year,
+      });
+      setUser({
+        ...user,
+        budget: Number(budget),
+      })
+    } catch (error) {
+      console.error('Error adding finance:', error);
+    }
+    finally{
+      setLoading(false)
+    }
+  };
+
+  const handleIncome = async()=>{
+    if (!actionType) return;
+    try {
+      setLoading(true)
+      await api.post('/api/expense/add-income', {
+        amount: totalIncome,
+        month: currentDate.month,
+        year: currentDate.year,
+      });
+      setUser({
+        ...user,
+        income: Number(totalIncome),
+      })
+
+    } catch (error) {
+      console.error('Error adding finance:', error);
+    }
+    finally{
+      setLoading(false)
+    }
+  }
+
   const handleSubmitAction = async () => {
     try {
-      await handleAddFinance();
+      if(actionType === 'budget'){
+        await handleAddBudget()
+      }
+      else if(actionType==='income'){
+        await handleIncome()
+      }
       setTotalIncome('');
       setBudget('');
+      navigation.canGoBack() && navigation.goBack()
     } catch (error) {
       console.error('Error submitting action:', error);
     }
   };
+
   
-  const handleAddFinance = async () => {
-    if (!actionType) return;
-    try {
-      await api.post('/api/expense/finance', {
-        type: actionType,
-        amount: actionType === 'income' ? totalIncome : budget,
-      });
-    } catch (error) {
-      console.error('Error adding finance:', error);
-    }
-  };
   return (
     <View style={styles.container}>
       <Header
@@ -140,7 +186,9 @@ const ActionScreen = ({route, navigation}) => {
           onPress={handleSubmitAction}
           style={[styles.saveBtn, {backgroundColor: colors.primary}]}
           activeOpacity={0.8}>
-          <Text style={styles.saveText}>Save</Text>
+          <Text style={styles.saveText}>
+            {loading ? <ActivityIndicator color={colors.buttonText} size="small" /> : 'Save'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

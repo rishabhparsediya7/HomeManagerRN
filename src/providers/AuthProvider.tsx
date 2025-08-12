@@ -37,7 +37,9 @@ type AuthContext = {
     last_name: string;
   }) => Promise<any>;
   user: UserProps;
+  setUser: (user: UserProps) => void;
 };
+
 
 type UserProps = {
   name: string;
@@ -46,6 +48,8 @@ type UserProps = {
   loggedIn: boolean;
   token: string;
   email: string;
+  budget: number;
+  income: number;
 };
 
 interface AuthContextProps {
@@ -67,6 +71,7 @@ interface AuthContextProps {
   user: UserProps;
   loading: boolean;
   error: string;
+  setUser: (user: UserProps) => void;
 }
 
 const AuthContext = createContext<AuthContext>({
@@ -85,7 +90,10 @@ const AuthContext = createContext<AuthContext>({
     loggedIn: false,
     token: '',
     email: '',
+    budget: 0,
+    income: 0,
   },
+  setUser: () => null,
 });
 
 export default function AuthProvider({ children }: PropsWithChildren) {
@@ -99,6 +107,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     loggedIn: false,
     token: '',
     email: '',
+    budget: 0,
+    income: 0,
   });
 
   const signupWithPassword = async ({
@@ -140,6 +150,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           photoUrl: result?.photoUrl || '',
           token: result?.token || '',
           loggedIn: true,
+          budget: result?.budget || 0,
+          income: result?.income || 0,
         });
         return result;
       } else {
@@ -184,6 +196,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           token: token || '',
           loggedIn: true,
           email: email || '',
+          budget: result?.budget || 0,
+          income: result?.income || 0,
         });
         return result;
       } else {
@@ -226,6 +240,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           token: token || '',
           loggedIn: true,
           email: result?.email || '',
+          budget: result?.budget || 0,
+          income: result?.income || 0,
         });
         return result;
       } else {
@@ -258,8 +274,14 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     try {
       const response = await api.get('/api/users/me');
       setUser({
-        ...user,
-        photoUrl: response.data.user.profilePicture,
+        name: response.data?.user?.name,
+        photoUrl: response.data?.user?.profilePicture,
+        userId: response.data?.user?.id,
+        loggedIn: true,
+        token: response.data?.user?.token,
+        email: response.data?.user?.email,
+        budget: response.data?.user?.budget,
+        income: response.data?.user?.income,
       });
     } catch (error) {
       console.log(error);
@@ -283,6 +305,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       loggedIn: false,
       token: '',
       email: '',
+      budget: 0,
+      income: 0,
     });
   };
 
@@ -295,6 +319,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         isAuthenticated,
         signInWithPassword,
         signupWithPassword,
+        setUser,
         signInWithGoogle,
       }}>
       {children}
