@@ -1,5 +1,5 @@
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -8,22 +8,23 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import Input from '../../components/form/input';
 import Header from '../../components/Header';
-import { Modal } from '../../components/modal';
+import {Modal} from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import { category } from '../../constants';
-import { useAuth } from '../../providers/AuthProvider';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { useTheme } from '../../providers/ThemeContext';
+import {category} from '../../constants';
+import {useAuth} from '../../providers/AuthProvider';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
-import { getMonthStartAndEndDates } from '../../utils/dates';
-import { commonStyles } from '../../utils/styles';
+import {getMonthStartAndEndDates} from '../../utils/dates';
+import {commonStyles} from '../../utils/styles';
+import {MonthYearPicker} from '../../components/MonthYearPicker';
 
 interface ExpenseDataProps {
   amount: string;
@@ -32,7 +33,7 @@ interface ExpenseDataProps {
   createdAt: string;
   description: string;
   expenseDate: string;
-  id: string;
+  id: string; 
   paymentMethod: string;
   paymentMethodId: number;
   updatedAt: string;
@@ -90,6 +91,8 @@ const Home = () => {
   const [categoryChartData, setCategoryChartData] = useState([]);
   const {theme} = useTheme();
   const {user} = useAuth();
+  const [currentDate, setCurrentDate] = useState({ month: 8, year: 2025 });
+
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const onBudgetChange = (text: string) => {
     setBudget(Number(text));
@@ -148,19 +151,20 @@ const Home = () => {
 
   const openActionModal = (type: ActionType) => {
     if (!type) return; // Guard against null/undefined
-    
+
     // Set the action type and placeholder first
     setActionType(type);
-    
+
     // Set appropriate placeholder based on action type
-    const placeholder = {
-      'income': 'Enter income amount',
-      'budget': 'Enter budget amount',
-      'bills': 'Enter bill amount'
-    }[type] || 'Enter amount';
-    
+    const placeholder =
+      {
+        income: 'Enter income amount',
+        budget: 'Enter budget amount',
+        bills: 'Enter bill amount',
+      }[type] || 'Enter amount';
+
     setActionPlaceHolder(placeholder);
-    
+
     // Use a small timeout to ensure state updates are processed before showing the modal
     requestAnimationFrame(() => {
       if (bottomSheetModalRef.current) {
@@ -531,6 +535,30 @@ const Home = () => {
             </View>
           </View>
 
+          <Text style={styles.header}>Pure JS Month/Year Selector</Text>
+          <Text style={{color: colors.buttonText}}>
+            Selected Date: {currentDate.month} / {currentDate.year}
+          </Text>
+
+          <MonthYearPicker
+            date={currentDate}
+            onDateChange={setCurrentDate}
+            style={{
+              backgroundColor: colors.cardBackground,
+              borderRadius: 14,
+            }}
+            textStyle={{
+              color: colors.buttonText,
+              fontSize: 16,
+            }}
+            selectedTextStyle={{
+              color: colors.buttonText,
+              fontSize: 20,
+              fontWeight: 'bold',
+            }}
+            highlightColor={colors.buttonText}
+          />
+
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleContainer}>
               <Text style={styles.sectionTitle}>Recent Transactions</Text>
@@ -542,23 +570,21 @@ const Home = () => {
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.paddingBottom}>
-            {
-              loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={colors.buttonText} />
-                </View>
-              ) : recentExpenses.length === 0 ? (
-                <View style={styles.loadingContainer}>
-                  <Text>No expenses found.</Text>
-                </View>
-              ) : (
-                recentExpenses.map((item, index) => (
-                  <ExpenseCard expense={item} key={index} />
-                ))
-              )
-            }
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.buttonText} />
+              </View>
+            ) : recentExpenses.length === 0 ? (
+              <View style={styles.loadingContainer}>
+                <Text>No expenses found.</Text>
+              </View>
+            ) : (
+              recentExpenses.map((item, index) => (
+                <ExpenseCard expense={item} key={index} />
+              ))
+            )}
           </View>
 
           {/* Monthly Overview */}
