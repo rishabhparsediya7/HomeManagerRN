@@ -79,7 +79,7 @@ const Profile = ({navigation}: {navigation: any}) => {
     {
       icon: 'shield',
       label: 'Security & Privacy',
-      onPress: () => {},
+      onPress: () => navigation.navigate('UpdatePassword'),
       options: ['Change Password'],
     },
     {

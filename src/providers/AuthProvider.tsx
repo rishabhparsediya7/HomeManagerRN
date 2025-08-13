@@ -51,6 +51,7 @@ type UserProps = {
   budget: number;
   income: number;
   phoneNumber: string;
+  userLoginProvider: string;
 };
 
 interface AuthContextProps {
@@ -94,6 +95,7 @@ const AuthContext = createContext<AuthContext>({
     budget: 0,
     income: 0,
     phoneNumber: '',
+    userLoginProvider: '',
   },
   setUser: () => null,
 });
@@ -112,6 +114,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     budget: 0,
     income: 0,
     phoneNumber: '',
+    userLoginProvider: '',
   });
 
   const signupWithPassword = async ({
@@ -156,6 +159,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           budget: result?.budget || 0,
           income: result?.income || 0,
           phoneNumber: result?.phoneNumber || '',
+          userLoginProvider: result?.userLoginProvider || '',
         });
         return result;
       } else {
@@ -203,6 +207,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           budget: result?.budget || 0,
           income: result?.income || 0,
           phoneNumber: result?.phoneNumber || '',
+          userLoginProvider: result?.userLoginProvider || '',
         });
         return result;
       } else {
@@ -248,6 +253,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           budget: result?.budget || 0,
           income: result?.income || 0,
           phoneNumber: result?.phoneNumber || '',
+          userLoginProvider: result?.userLoginProvider || '',
         });
         return result;
       } else {
@@ -289,6 +295,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         budget: response.data?.user?.budget,
         income: response.data?.user?.income,
         phoneNumber: response.data?.user?.phoneNumber,
+        userLoginProvider: response.data?.user?.userLoginProvider,
       });
     } catch (error) {
       console.log(error);
@@ -315,6 +322,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       budget: 0,
       income: 0,
       phoneNumber: '',
+      userLoginProvider: '',
     });
   };
 

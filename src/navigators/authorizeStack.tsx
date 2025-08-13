@@ -11,6 +11,7 @@ import ChatScreen from '../screens/chat';
 import FriendChatScreen from '../screens/chat/friendChat';
 import ActionScreen from '../screens/action/addFinanceSummary';
 import EditPersonalInformation from '../screens/action/editPersonalInformation';
+import UpdatePassword from '../screens/action/updatePassword';
 
 type ActionType = 'income' | 'bills' | 'budget' | null;
 
@@ -23,6 +24,7 @@ export type AuthorizeNavigationStackList = {
   FriendChat: { id: string, firstName: string, lastName: string, image: string, lastMessage: string, lastMessageTime: string };
   Action: { type: ActionType };
   EditPersonalInformation: undefined;
+  UpdatePassword: undefined;
 };
 
 export type AuthorizeNavigationProp<
@@ -64,6 +66,7 @@ const AuthorizeNavigation = () => {
       <AuthorizeNavigationStack.Screen name="FriendChat" component={FriendChatScreen} />
       <AuthorizeNavigationStack.Screen name="Action" component={ActionScreen} />
       <AuthorizeNavigationStack.Screen name="EditPersonalInformation" component={EditPersonalInformation} />
+      <AuthorizeNavigationStack.Screen name="UpdatePassword" component={UpdatePassword}/>
     </AuthorizeNavigationStack.Navigator>
   );
 };
