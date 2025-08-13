@@ -24,7 +24,6 @@ const ActionScreen = ({route, navigation}) => {
   const [totalIncome, setTotalIncome] = useState('');
   const [loading, setLoading]=useState(false);
   const {user, setUser}=useAuth()
-  console.log("🚀 ~ ActionScreen ~ user:", user)
 
   const [currentDate, setCurrentDate] = useState({
     month: new Date().getMonth() + 1,
@@ -78,10 +77,12 @@ const ActionScreen = ({route, navigation}) => {
         month: currentDate.month,
         year: currentDate.year,
       });
-      setUser({
-        ...user,
-        budget: Number(budget),
-      })
+      if(currentDate.month === new Date().getMonth() + 1 && currentDate.year === new Date().getFullYear()){
+        setUser({
+          ...user,
+          budget: Number(budget),
+        })
+      }
     } catch (error) {
       console.error('Error adding finance:', error);
     }
@@ -99,10 +100,12 @@ const ActionScreen = ({route, navigation}) => {
         month: currentDate.month,
         year: currentDate.year,
       });
-      setUser({
-        ...user,
-        income: Number(totalIncome),
-      })
+      if(currentDate.month === new Date().getMonth() + 1 && currentDate.year === new Date().getFullYear()){
+        setUser({
+          ...user,
+          income: Number(totalIncome),
+        })
+      }
 
     } catch (error) {
       console.error('Error adding finance:', error);

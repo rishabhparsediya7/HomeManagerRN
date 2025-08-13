@@ -1,36 +1,28 @@
-import {StyleSheet, TextInput} from 'react-native';
-import {View} from 'react-native';
-import {memo} from 'react';
-import {BottomSheetTextInput} from '@gorhom/bottom-sheet';
+import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import { memo } from 'react';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTheme } from '../../../providers/ThemeContext';
 import { darkTheme, lightTheme } from '../../../providers/Theme';
-interface InputProps {
-  placeholder: string;
-  placeholderTextColor: string;
-  style?: any;
-  ref?: any;
-  variant?: 'default' | 'modal';
-  value?: string | number;
-  onChangeText?: (text: string) => void;
-  keyboardType?: 'default' | 'number-pad' | 'decimal-pad' | 'numeric' | 'email-address' | 'phone-pad';
-  autoFocus?: boolean;
+import { commonStyles } from '../../../utils/styles';
+
+interface InputProps extends TextInputProps {
+  variant?: 'default' | 'modal' | 'phone';
 }
+
 const Input = ({
-  ref,
-  placeholder,
+  variant = 'default',
   placeholderTextColor = 'gray',
   style,
-  variant = 'default',
-  value,
-  onChangeText,
   ...rest
 }: InputProps) => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
+
   const styles = StyleSheet.create({
     container: {
       paddingBottom: 12,
       width: '100%',
+      flexDirection: 'row',
     },
     textContainer: {
       flex: 1,
@@ -41,6 +33,28 @@ const Input = ({
       height: 56,
       borderRadius: 10,
       fontSize: 16,
+      ...commonStyles.textDefault,
+    },
+    phoneContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      color: colors.buttonText,
+      backgroundColor: colors.inputText,
+      height: 56,
+      width: 52,
+      borderTopLeftRadius: 10,
+      borderBottomLeftRadius: 10,
+      zIndex: 1,
+      ...commonStyles.textDefault,
+    },
+    phoneText: {
+      position: 'absolute',
+      top: 16,
+      left: 10,
+      color: colors.buttonTextSecondary,
+      fontSize: 16,
+      ...commonStyles.textExtraBold,
     },
   });
 
@@ -49,26 +63,35 @@ const Input = ({
       return (
         <View style={styles.container}>
           <BottomSheetTextInput
-            ref={ref}
             placeholderTextColor={placeholderTextColor}
             returnKeyType="done"
-            placeholder={placeholder}
-            onChangeText={onChangeText}
-            value={value?.toString()}
             style={[styles.textContainer, style]}
             {...rest}
           />
         </View>
       );
+
+    case 'phone':
+      return (
+        <View style={styles.container}>
+          <View style={styles.phoneContainer}>
+            <Text style={styles.phoneText}>+91</Text>
+          </View>
+          <TextInput
+            placeholderTextColor={placeholderTextColor}
+            keyboardType="phone-pad"
+            style={[styles.textContainer, style, {paddingLeft:68}]}
+            {...rest}
+          />
+        </View>
+      );
+
     default:
       return (
         <View style={styles.container}>
           <TextInput
-            placeholder={placeholder}
             placeholderTextColor={placeholderTextColor}
             style={[styles.textContainer, style]}
-            value={value?.toString()}
-            onChangeText={onChangeText}
             {...rest}
           />
         </View>

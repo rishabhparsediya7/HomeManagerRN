@@ -50,6 +50,7 @@ type UserProps = {
   email: string;
   budget: number;
   income: number;
+  phoneNumber: string;
 };
 
 interface AuthContextProps {
@@ -92,6 +93,7 @@ const AuthContext = createContext<AuthContext>({
     email: '',
     budget: 0,
     income: 0,
+    phoneNumber: '',
   },
   setUser: () => null,
 });
@@ -109,6 +111,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     email: '',
     budget: 0,
     income: 0,
+    phoneNumber: '',
   });
 
   const signupWithPassword = async ({
@@ -152,6 +155,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           loggedIn: true,
           budget: result?.budget || 0,
           income: result?.income || 0,
+          phoneNumber: result?.phoneNumber || '',
         });
         return result;
       } else {
@@ -198,6 +202,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           email: email || '',
           budget: result?.budget || 0,
           income: result?.income || 0,
+          phoneNumber: result?.phoneNumber || '',
         });
         return result;
       } else {
@@ -242,6 +247,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
           email: result?.email || '',
           budget: result?.budget || 0,
           income: result?.income || 0,
+          phoneNumber: result?.phoneNumber || '',
         });
         return result;
       } else {
@@ -282,6 +288,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         email: response.data?.user?.email,
         budget: response.data?.user?.budget,
         income: response.data?.user?.income,
+        phoneNumber: response.data?.user?.phoneNumber,
       });
     } catch (error) {
       console.log(error);
@@ -307,6 +314,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       email: '',
       budget: 0,
       income: 0,
+      phoneNumber: '',
     });
   };
 

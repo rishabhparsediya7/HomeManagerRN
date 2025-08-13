@@ -24,9 +24,10 @@ import { useTheme } from '../../providers/ThemeContext';
 import api from '../../services/api';
 import { commonStyles } from '../../utils/styles';
 import { DeviceInfo, getDeviceInfo } from '../../utils/deviceInfo';
-
-const Profile = () => {
+import useAuthorizeNavigation from '../../navigators/authorizeStack';
+const Profile = ({navigation}: {navigation: any}) => {
   const {signOut, user} = useAuth();
+  console.log("🚀 ~ Profile ~ user:", user)
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,6 @@ const Profile = () => {
   );
   
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
   const {theme, toggleTheme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
@@ -55,7 +55,7 @@ const Profile = () => {
     {
       icon: 'edit',
       label: 'Personal Information',
-      onPress: () => {},
+      onPress: () => navigation.navigate('EditPersonalInformation'),
       options: ['Edit Personal Information'],
     },
     {
@@ -67,7 +67,7 @@ const Profile = () => {
     {
       icon: 'credit-card',
       label: 'Payment Methods',
-      onPress: () => {},
+      onPress: () => navigation.navigate('EditPaymentMethods'),
       options: ['Add Payment Method'],
     },
     {
@@ -263,6 +263,7 @@ const Profile = () => {
         />
         <Text style={styles.name}>{user?.name || name}</Text>
         <Text style={styles.email}>{user?.email || email}</Text>
+        <Text style={styles.name}>{user?.phoneNumber}</Text>
       </View>
 
       <View style={styles.statsContainer}>
