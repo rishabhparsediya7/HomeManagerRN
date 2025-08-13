@@ -27,7 +27,7 @@ const SignInScreen = ({ navigation }) => {
   const [signInForm, setSignInForm] = useState({
     email:
       process.env.ENV === 'development' ? 'parsediyarishabh@gmail.com' : '',
-    password: process.env.ENV === 'development' ? 'Rishabh@123' : '',
+    password: process.env.ENV === 'development' ? 'Rishabh@' : '',
   });
   const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
