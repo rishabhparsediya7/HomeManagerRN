@@ -18,6 +18,7 @@ const FilterButton = ({ label, selected, onPress, colors }: any) => {
     label: {
       color: colors.text,
       ...commonStyles.textDefault,
+      textTransform: 'capitalize',
     },
     selectedLabel: {
       color: colors.buttonText,
