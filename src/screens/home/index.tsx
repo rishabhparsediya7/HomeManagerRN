@@ -1,25 +1,27 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
+  Button,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import Header from '../../components/Header';
 import RupeeIcon from '../../components/rupeeIcon';
-import { category } from '../../constants';
-import { useAuthorizeNavigation } from '../../navigators/navigators';
-import { useAuth } from '../../providers/AuthProvider';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { useTheme } from '../../providers/ThemeContext';
+import {category} from '../../constants';
+import {useAuthorizeNavigation} from '../../navigators/navigators';
+import {useAuth} from '../../providers/AuthProvider';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
-import { getMonthStartAndEndDates } from '../../utils/dates';
-import { commonStyles } from '../../utils/styles';
+import {getMonthStartAndEndDates} from '../../utils/dates';
+import {commonStyles} from '../../utils/styles';
+import {downloadAndSharePdf} from '../../utils/fileUtil';
 
 interface ExpenseDataProps {
   amount: string;
@@ -135,6 +137,15 @@ const Home = () => {
   const openActionScreen = (type: ActionType) => {
     if (!type) return;
     navigation.navigate('Action', {type});
+  };
+
+  const handleGenerateAndSaveReport = () => {
+    // This URL would come from your backend API call
+    const backendPdfUrl =
+      'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+    const fileName = `Your-Custom-Report-${Date.now()}.pdf`;
+
+    downloadAndSharePdf(backendPdfUrl, fileName);
   };
 
   useEffect(() => {
@@ -421,6 +432,12 @@ const Home = () => {
               </View>
             </View>
           </LinearGradient>
+
+          <Text>Generate your report and save it to your device.</Text>
+          <Button
+            title="Generate & Save Report"
+            onPress={handleGenerateAndSaveReport}
+          />
 
           <View style={styles.actions}>
             <View style={styles.actionButtonContainer}>
