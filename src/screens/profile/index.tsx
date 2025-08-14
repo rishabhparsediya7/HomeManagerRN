@@ -91,7 +91,7 @@ const Profile = ({navigation}: {navigation: any}) => {
     {
       icon: 'download',
       label: 'Export Data',
-      onPress: () => {},
+      onPress: () => navigation.navigate('ExportData'),
       options: ['Export Data'],
     },
     {
