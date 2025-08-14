@@ -18,10 +18,10 @@ import Icons from '../../components/icons';
 import PaymentMethodSelector from '../../components/paymentMethodSelector';
 import {category as expenseCategory} from '../../constants';
 import api from '../../services/api';
-import {formatDMYDate} from '../../utils/formatDate';
 import { useTheme } from '../../providers/ThemeContext';
 import { darkTheme, lightTheme } from '../../providers/Theme';
 import { commonStyles } from '../../utils/styles';
+import { formatDate } from '../../utils/formatDate';
 
 const AddExpenseScreen = () => {
   const [amount, setAmount] = useState('');
@@ -124,7 +124,7 @@ const AddExpenseScreen = () => {
     amountInput: {
       padding: 16,
       borderRadius: 12,
-      color: colors.inputBackground,
+      color: colors.inputText,
       fontSize: 32,
       fontWeight: '600',
     },
@@ -260,7 +260,7 @@ const AddExpenseScreen = () => {
             onPress={() => setIsDatePickerVisible(true)}
             style={styles.dateBox}>
             <Icons.CalendarIcon />
-            <Text style={styles.dateText}>{formatDMYDate(calendarDate)}</Text>
+            <Text style={styles.dateText}>{formatDate(calendarDate.toString())}</Text>
           </TouchableOpacity>
 
           <Text style={styles.sectionTitle}>Payment Method</Text>

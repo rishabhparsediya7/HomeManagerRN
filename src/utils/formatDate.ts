@@ -26,28 +26,3 @@ export function formatDate(dateString: string) {
 
   return `${weekday}, ${day} ${month} ${year}`;
 }
-
-export function formatDMYDate(dateString: Date) {
-  const date = dateString;
-  const day = date.getDate();
-  const year = date.getFullYear();
-
-  // Get month name using an array
-  const monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  const month = monthNames[date.getMonth()]; // May (0-based month)
-
-  return `${day} ${month} ${year}`;
-}

@@ -12,7 +12,6 @@ import ExpenseCard from '../../components/expenseCard';
 import FilterButton from '../../components/filterButton';
 import Header from '../../components/Header';
 import api from '../../services/api';
-import { formatDMYDate } from '../../utils/formatDate';
 import RupeeIcon from '../../components/rupeeIcon';
 import Icon from 'react-native-vector-icons/Octicons';
 import { useTheme } from '../../providers/ThemeContext';
@@ -105,9 +104,6 @@ const ListHeaderComponent = ({
             />
           </View>
         </View>
-        <Text style={styles.summaryMonth}>
-          {formatDMYDate(new Date())}
-        </Text>
       </LinearGradient>
 
       <View style={styles.filters}>
