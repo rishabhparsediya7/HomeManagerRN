@@ -23,7 +23,7 @@ import {getMonthStartAndEndDates} from '../../utils/dates';
 import {commonStyles} from '../../utils/styles';
 import {downloadAndSharePdf} from '../../utils/fileUtil';
 
-interface ExpenseDataProps {
+export interface ExpenseDataProps {
   amount: string;
   category: string;
   categoryId: number;
@@ -37,7 +37,7 @@ interface ExpenseDataProps {
   userId: string;
 }
 
-const mapExpenseDataToChart = rawExpenseData => {
+export const mapExpenseDataToChart = (rawExpenseData: any) => {
   const weekLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   const maxAmount = Math.max(
@@ -59,7 +59,7 @@ const mapExpenseDataToChart = rawExpenseData => {
   });
 };
 
-const mapCategoryExpensePercentageToChartData = (categoryData: any) => {
+export const mapCategoryExpensePercentageToChartData = (categoryData: any) => {
   return categoryData.map(cat => ({
     label: cat.name,
     percentage: cat.percentage,
@@ -102,9 +102,7 @@ const Home = () => {
   const fetchHomeData = useCallback(async () => {
     setLoading(true);
     try {
-      let expenseQuery = api.get(
-        `/api/expense?filter=${filter}&startDate=${startDate}&endDate=${endDate}&limit=${limit}`,
-      );
+      let expenseQuery = api.get(`/api/expense/get-home-summary`);
       let chartQuery = api.get(`/api/expense/getWeekChart`);
       let categoryQuery = api.get(`/api/expense/getExpenseByCategory`);
       const [response, chartResponse, categoryResponse] = await Promise.all([
@@ -112,14 +110,14 @@ const Home = () => {
         chartQuery,
         categoryQuery,
       ]);
-      const data = response.data.lastFourExpenses;
+      const data = response.data?.data?.last5Transactions;
       const chartData = chartResponse.data?.data || [];
       const categoryData = categoryResponse.data?.data || [];
       setRecentExpenses(data);
       setMonthSummary({
-        totalExpenses: Number(response.data?.totalMonthSum || 0),
-        totalIncome: Number(response.data?.totalIncome || 0),
-        totalBudget: Number(response.data?.budget || 0),
+        totalExpenses: Number(response.data?.data?.financeSummary?.amountSpent || 0),
+        totalIncome: Number(response.data?.data?.financeSummary?.totalIncome || 0),
+        totalBudget: Number(response.data?.data?.financeSummary?.budget || 0),
       });
       const updatedChartData = mapExpenseDataToChart(chartData);
       const updatedCategoryData =
@@ -401,7 +399,7 @@ const Home = () => {
               This Month's Budget
             </Text>
             <RupeeIcon
-              amount={user?.budget || monthSummary.totalBudget}
+              amount={Number(user?.budget || monthSummary.totalBudget)}
               color={colors.buttonText}
               size={36}
               textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
@@ -409,7 +407,7 @@ const Home = () => {
             <View style={styles.budgetDetails}>
               <View>
                 <RupeeIcon
-                  amount={user?.income || monthSummary.totalIncome}
+                  amount={Number(user?.income || monthSummary.totalIncome)}
                   color={colors.buttonText}
                   textStyle={styles.whiteText}
                 />
@@ -417,7 +415,7 @@ const Home = () => {
               </View>
               <View>
                 <RupeeIcon
-                  amount={monthSummary.totalExpenses}
+                  amount={Number(monthSummary.totalExpenses)}
                   color={colors.buttonText}
                   textStyle={styles.whiteText}
                 />
