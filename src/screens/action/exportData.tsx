@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,19 +14,13 @@ import Header from '../../components/Header';
 import Tabs from '../../components/tabs';
 import ExpenseScreen from '../../components/tabs/expenseScreen';
 import FinancialSummaryScreen from '../../components/tabs/financialSummary';
-import {downloadAndSharePdf} from '../../utils/fileUtil';
+import {downloadAndSharePdf, generateAndShareExpenseReport} from '../../utils/fileUtil';
 import FilterButton from '../../components/filterButton';
 import Icon from 'react-native-vector-icons/SimpleLineIcons';
+import SlideDropdown from '../../components/dropdown';
+import { categories } from '../../types/categories';
+import { paymentMethods } from '../../screens/addExpense';
 
-const filterOptions = [
-  'Today',
-  'Week',
-  'Month',
-  'Custom',
-  'Year',
-  'Category',
-  'Payment Method',
-];
 type ExportDataProps = {
   navigation: any;
 };
@@ -33,12 +28,19 @@ type ExportDataProps = {
 type selectedTabType = 'expenses' | 'financialSummary';
 
 const ExportData = ({navigation}: ExportDataProps) => {
+  const filterOptions = ['Month', 'Week', 'Today', 'Custom', 'Year', 'Category', 'Payment Method'];
+
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [selectedTab, setSelectedTab] = useState<selectedTabType>('expenses');
-  const [selectedFilter, setSelectedFilter] = useState('Today');
+  const [selectedFilter, setSelectedFilter] = useState('Month');
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
-  const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>(
+    undefined,
+  );
+  const [filterQuery, setFilterQuery] = useState('');
+  
 
   const styles = StyleSheet.create({
     container: {
@@ -103,9 +105,36 @@ const ExportData = ({navigation}: ExportDataProps) => {
     setSelectedTab('financialSummary');
   };
 
-  const handleFilterPress = () => {
-    console.log('Filter Pressed');
+  const handleClearFilters = () => {
+    setSelectedFilter('Month');
+    setCategoryId(undefined);
+    setPaymentMethodId(undefined);
   };
+
+  const setCategory = (categoryId: string) => {
+    setCategoryId(categoryId);
+  };
+
+  const setPaymentMethod = (paymentMethodId: string) => {
+    setPaymentMethodId(paymentMethodId);
+  };
+
+  const handleExportPress = async() => {
+    console.log('Export Pressed');
+    console.log(filterQuery);
+    const query = filterQuery.split('?')[1];
+    console.log(query);
+    try {
+      setLoading(true);
+      await generateAndShareExpenseReport(query);
+    } catch (error) {
+      console.error('Error during report generation:', error);
+      setLoading(false);
+    }
+    finally {
+      setLoading(false);
+    }
+  };  
 
   return (
     <View style={styles.container}>
@@ -127,36 +156,68 @@ const ExportData = ({navigation}: ExportDataProps) => {
             style={styles.filters}
             contentContainerStyle={{
               paddingRight: 40,
-            }}
-          >
-            {filterOptions.map(option => (
-              <FilterButton
-                key={option}
-                label={option}
-                selected={selectedFilter === option}
-                onPress={() => setSelectedFilter(option)}
-                colors={colors}
-              />
-            ))}
+              alignItems: 'center',
+              gap: 8,
+            }}>
+            {filterOptions.map((option, index) => {
+              if(index > 4 && option === 'Category'){
+                return(
+                  <SlideDropdown
+                    title={option}
+                    options={categories}
+                    handleSelectCategory={setCategory}
+                    reset={categoryId === undefined}
+                  />
+                )
+              }
+              else if(index > 4 && option === 'Payment Method'){
+                return(
+                  <SlideDropdown
+                    title={option}
+                    options={paymentMethods}
+                    handleSelectPaymentMethod={setPaymentMethod}
+                    reset={paymentMethodId === undefined}
+                  />
+                )
+              }
+              return (
+                <FilterButton
+                  key={option}
+                  label={option}
+                  selected={selectedFilter === option}
+                  onPress={() => setSelectedFilter(option)}
+                  colors={colors}
+                />
+              );
+            })}
           </ScrollView>
           <TouchableOpacity style={styles.filterButton}>
-            <Icon name="equalizer" style={styles.filterIcon} size={22} color={colors.inputText} />
+            <Icon
+              name="equalizer"
+              style={styles.filterIcon}
+              size={22}
+              color={colors.inputText}
+            />
           </TouchableOpacity>
         </View>
         <View style={styles.dataContainer}>
-          {selectedTab === 'expenses' && <ExpenseScreen filter={selectedFilter} categoryId={categoryId} paymentMethodId={paymentMethodId} />}
+          {selectedTab === 'expenses' && (
+            <ExpenseScreen
+              filter={selectedFilter}
+              categoryId={categoryId}
+              paymentMethodId={paymentMethodId}
+              handleClearFilters={handleClearFilters}
+              setFilterQuery={setFilterQuery}
+            />
+          )}
           {selectedTab === 'financialSummary' && <FinancialSummaryScreen />}
         </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() =>
-              downloadAndSharePdf(
-                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-                'dummy.pdf',
-              )
-            }>
-            <Text style={styles.buttonText}>Export or Share</Text>
+            onPress={handleExportPress}
+            disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? <ActivityIndicator size="small" color={colors.inputText} /> : 'Export or Share'}</Text>
           </TouchableOpacity>
         </View>
       </View>

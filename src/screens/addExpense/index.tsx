@@ -18,10 +18,28 @@ import Icons from '../../components/icons';
 import PaymentMethodSelector from '../../components/paymentMethodSelector';
 import {category as expenseCategory} from '../../constants';
 import api from '../../services/api';
-import { useTheme } from '../../providers/ThemeContext';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { commonStyles } from '../../utils/styles';
-import { formatDate } from '../../utils/formatDate';
+import {useTheme} from '../../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {commonStyles} from '../../utils/styles';
+import {formatDate} from '../../utils/formatDate';
+
+export const paymentMethods = [
+  {
+    id: '1',
+    name: 'Cash',
+    icon: <Icons.CashIcon />,
+  },
+  {
+    id: '2',
+    name: 'Credit Card',
+    icon: <Icons.CreditCardIcon />,
+  },
+  {
+    id: '3',
+    name: 'Debit Card',
+    icon: <Icons.DebitCardIcon />,
+  },
+];
 
 const AddExpenseScreen = () => {
   const [amount, setAmount] = useState('');
@@ -33,32 +51,10 @@ const AddExpenseScreen = () => {
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
-  
   const categories = useMemo(() => expenseCategory, []);
-
-  const paymentMethods = useMemo(
-    () => [
-      {
-        id: 1,
-        name: 'Cash',
-        icon: <Icons.CashIcon />,
-      },
-      {
-        id: 2,
-        name: 'Credit Card',
-        icon: <Icons.CreditCardIcon />,
-      },
-      {
-        id: 3,
-        name: 'Debit Card',
-        icon: <Icons.DebitCardIcon />,
-      },
-    ],
-    [],
-  );
 
   const handleAmountChange = (text: string) => {
     const numericText = text.replace(/[^0-9.]/g, '');
@@ -73,8 +69,6 @@ const AddExpenseScreen = () => {
     setInputWidth(Math.min(calculatedWidth, maxWidth));
     setAmount(sanitized);
   };
-
-  
 
   const handleConfirm = (date: Date) => {
     // const formattedDate = getDateTimeWithTimezone(date);
@@ -116,110 +110,114 @@ const AddExpenseScreen = () => {
     }
   };
 
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-    },
-    amountInput: {
-      padding: 16,
-      borderRadius: 12,
-      color: colors.inputText,
-      fontSize: 32,
-      fontWeight: '600',
-    },
-    headerRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 20,
-    },
-    cancel: {
-      color: colors.buttonText,
-      fontSize: 16,
-    },
-    header: {
-      fontSize: 18,
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-    },
-    amountRow: {
-      flex: 1,
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'center',
-      backgroundColor: colors.inputBackground,
-      borderRadius: 12,
-    },
-    rupee: {
-      fontSize: 36,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
-    amount: {
-      fontSize: 36,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      ...commonStyles.textDefault,
-      marginBottom: 12,
-      marginTop: 24,
-      color: colors.buttonText,
-    },
-    grid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-    },
-    categoryItem: {
-      width: '30%',
-      backgroundColor: colors.inputBackground,
-      paddingVertical: 16,
-      borderRadius: 12,
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    categoryLabel: {
-      marginTop: 8,
-      textAlign: 'center',
-      fontSize: 12,
-    },
-    dateBox: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.inputBackground,
-      padding: 16,
-      borderRadius: 12,
-      color: colors.buttonText,
-    },
-    dateText: {
-      marginLeft: 8,
-      fontSize: 14,
-      color: colors.buttonText,
-    },
-    notesInput: {
-      backgroundColor: colors.inputBackground,
-      padding: 16,
-      borderRadius: 12,
-      minHeight: 80,
-      textAlignVertical: 'top',
-      color: colors.buttonText,
-    },
-    saveBtn: {
-      backgroundColor: colors.buttonBackground,
-      borderRadius: 12,
-      paddingVertical: 16,
-      alignItems: 'center',
-      marginTop: 24,
-    },
-    saveText: {
-      color: colors.buttonText,
-      fontSize: 16,
-      ...commonStyles.textDefault,
-    },
-  }), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          paddingVertical: 12,
+          paddingHorizontal: 20,
+        },
+        amountInput: {
+          padding: 16,
+          borderRadius: 12,
+          color: colors.inputText,
+          fontSize: 32,
+          fontWeight: '600',
+        },
+        headerRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 20,
+        },
+        cancel: {
+          color: colors.buttonText,
+          fontSize: 16,
+        },
+        header: {
+          fontSize: 18,
+          color: colors.buttonText,
+          ...commonStyles.textDefault,
+        },
+        amountRow: {
+          flex: 1,
+          alignItems: 'center',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+        },
+        rupee: {
+          fontSize: 36,
+          ...commonStyles.textDefault,
+          color: colors.buttonText,
+        },
+        amount: {
+          fontSize: 36,
+          ...commonStyles.textDefault,
+          color: colors.buttonText,
+        },
+        sectionTitle: {
+          fontSize: 16,
+          ...commonStyles.textDefault,
+          marginBottom: 12,
+          marginTop: 24,
+          color: colors.buttonText,
+        },
+        grid: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+        },
+        categoryItem: {
+          width: '30%',
+          backgroundColor: colors.inputBackground,
+          paddingVertical: 16,
+          borderRadius: 12,
+          alignItems: 'center',
+          marginBottom: 12,
+        },
+        categoryLabel: {
+          marginTop: 8,
+          textAlign: 'center',
+          fontSize: 12,
+        },
+        dateBox: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.inputBackground,
+          padding: 16,
+          borderRadius: 12,
+          color: colors.buttonText,
+        },
+        dateText: {
+          marginLeft: 8,
+          fontSize: 14,
+          color: colors.buttonText,
+        },
+        notesInput: {
+          backgroundColor: colors.inputBackground,
+          padding: 16,
+          borderRadius: 12,
+          minHeight: 80,
+          textAlignVertical: 'top',
+          color: colors.buttonText,
+        },
+        saveBtn: {
+          backgroundColor: colors.buttonBackground,
+          borderRadius: 12,
+          paddingVertical: 16,
+          alignItems: 'center',
+          marginTop: 24,
+        },
+        saveText: {
+          color: colors.buttonText,
+          fontSize: 16,
+          ...commonStyles.textDefault,
+        },
+      }),
+    [theme],
+  );
 
   return (
     <KeyboardAvoidingView
@@ -260,7 +258,9 @@ const AddExpenseScreen = () => {
             onPress={() => setIsDatePickerVisible(true)}
             style={styles.dateBox}>
             <Icons.CalendarIcon />
-            <Text style={styles.dateText}>{formatDate(calendarDate.toString())}</Text>
+            <Text style={styles.dateText}>
+              {formatDate(calendarDate.toString())}
+            </Text>
           </TouchableOpacity>
 
           <Text style={styles.sectionTitle}>Payment Method</Text>
@@ -301,5 +301,3 @@ const AddExpenseScreen = () => {
 };
 
 export default AddExpenseScreen;
-
-

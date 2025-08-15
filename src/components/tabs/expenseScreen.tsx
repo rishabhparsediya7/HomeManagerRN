@@ -4,6 +4,7 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import RupeeIcon from '../../components/rupeeIcon';
@@ -13,6 +14,7 @@ import {ExpenseDataProps} from '../../screens/home';
 import api from '../../services/api';
 import {getMonthStartAndEndDates} from '../../utils/dates';
 import {commonStyles} from '../../utils/styles';
+import {Icon} from 'react-native-vector-icons/Icon';
 
 export type filterType =
   | 'Custom'
@@ -68,10 +70,14 @@ const ExpenseScreen = ({
   filter,
   paymentMethodId,
   categoryId,
+  handleClearFilters,
+  setFilterQuery,
 }: {
   filter: string;
   paymentMethodId?: string;
   categoryId?: string;
+  handleClearFilters: () => void;
+  setFilterQuery: (query: string) => void;
 }) => {
   const {startDate, endDate} = getMonthStartAndEndDates();
   const [recentExpenses, setRecentExpenses] = useState<ExpenseDataProps[]>([]);
@@ -91,13 +97,17 @@ const ExpenseScreen = ({
       query = `/api/expense?filter=${filter.toLowerCase()}&limit=${limit}&endDate=${Date.now()}`;
     } else if (filter === 'Month') {
       query = `/api/expense?filter=${filter.toLowerCase()}&limit=${limit}&endDate=${Date.now()}`;
-    } else if (filter === 'Category') {
-      query = `/api/expense?filter=${filter.toLowerCase()}&limit=${limit}&categoryId=${categoryId}&endDate=${Date.now()}`;
     } else if (filter === 'Year') {
       query = `/api/expense?filter=${filter.toLowerCase()}&limit=${limit}&endDate=${Date.now()}`;
-    } else if (filter === 'Payment Method') {
-      query = `/api/expense?filter=${filter.toLowerCase()}&limit=${limit}&paymentMethod=${paymentMethodId}&endDate=${Date.now()}`;
     }
+
+    if (categoryId) {
+      query += `&categoryId=${categoryId}`;
+    }
+    if (paymentMethodId) {
+      query += `&paymentMethodId=${paymentMethodId}`;
+    }
+    setFilterQuery(query);
     return query;
   }, [filter, startDate, endDate, limit, paymentMethodId, categoryId]);
 
@@ -172,7 +182,19 @@ const ExpenseScreen = ({
       alignItems: 'center',
       paddingHorizontal: 20,
     },
+    clearButton: {
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      marginBottom: 12,
+    },
+    clearButtonText: {
+      fontSize: 16,
+      color: colors.primary,
+      ...commonStyles.textDefault,
+    },
   });
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -183,6 +205,9 @@ const ExpenseScreen = ({
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={handleClearFilters} style={styles.clearButton}>
+        <Text style={styles.clearButtonText}>Clear Filters</Text>
+      </TouchableOpacity>
       <View style={styles.header}>
         <View style={[styles.columns, {justifyContent: 'center'}]}>
           <Text numberOfLines={2} style={styles.text}>
@@ -191,7 +216,7 @@ const ExpenseScreen = ({
         </View>
         <View style={[styles.columns, {justifyContent: 'center'}]}>
           <Text numberOfLines={2} style={styles.text}>
-            {'Payment Method'}
+            {'Payment'}
           </Text>
         </View>
         <View style={[styles.columns, {justifyContent: 'center'}]}>
@@ -199,7 +224,7 @@ const ExpenseScreen = ({
             {'Date'}
           </Text>
         </View>
-        <View style={[styles.columns, {justifyContent: 'center'}]}>
+        <View style={[styles.columns, {justifyContent: 'flex-end'}]}>
           <Text numberOfLines={2} style={styles.text}>
             {'Amount'}
           </Text>
@@ -214,7 +239,9 @@ const ExpenseScreen = ({
         ListEmptyComponent={() => <View style={styles.emptyContainer} />}
       />
       <View style={styles.totalContainer}>
-        <Text style={styles.totalText}>Total Expenses: {recentExpenses.length}</Text>
+        <Text style={styles.totalText}>
+          Total Expenses: {recentExpenses.length}
+        </Text>
         <Text style={styles.totalText}>Total Amount: {totalExpense}</Text>
       </View>
     </View>
