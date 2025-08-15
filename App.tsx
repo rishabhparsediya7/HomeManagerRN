@@ -15,7 +15,7 @@ import AuthProvider, { useAuth } from './src/providers/AuthProvider';
 import { ThemeProvider } from './src/providers/ThemeContext';
 import UserProvider from './src/providers/UserContext';
 import socket from './src/utils/socket';
-import Toaster from './src/components/Toaster';
+import Toast from 'react-native-toast-message';
 
 GoogleSignin.configure({
   webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
@@ -70,7 +70,7 @@ const App = () => {
                 <UserProvider>
                   <NavigationContainer>
                     <RootNavigator />
-                    <Toaster/>
+                    <Toast/>
                   </NavigationContainer>
                 </UserProvider>
               </AuthProvider>

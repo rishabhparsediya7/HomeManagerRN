@@ -20,14 +20,14 @@ import { commonStyles } from '../../utils/styles'
 import { useTheme } from '../../providers/ThemeContext';
 import { darkTheme, lightTheme } from '../../providers/Theme';
 import LinearGradient from 'react-native-linear-gradient';
-
+import Toast from 'react-native-toast-message';
 
 const SignInScreen = ({ navigation }) => {
   const { signInWithGoogle } = useAuth();
   const [signInForm, setSignInForm] = useState({
     email:
       process.env.ENV === 'development' ? 'parsediyarishabh@gmail.com' : '',
-    password: process.env.ENV === 'development' ? 'Rishabh@' : '',
+    password: process.env.ENV === 'development' ? 'Rishabh@12' : '',
   });
   const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
@@ -48,11 +48,18 @@ const SignInScreen = ({ navigation }) => {
     }
     setLoading(true);
     try {
-      const user = await signInWithPassword({
+      const response = await signInWithPassword({
         email: signInForm.email,
         password: signInForm.password,
       });
-      console.log(user);
+      if(!response.success){
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: response.message,
+        });
+        return;
+      }
     } catch (error) {
       console.log(error);
     } finally {
