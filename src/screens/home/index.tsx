@@ -431,11 +431,11 @@ const Home = () => {
             </View>
           </LinearGradient>
 
-          <Text>Generate your report and save it to your device.</Text>
+          {/* <Text>Generate your report and save it to your device.</Text>
           <Button
             title="Generate & Save Report"
             onPress={handleGenerateAndSaveReport}
-          />
+          /> */}
 
           <View style={styles.actions}>
             <View style={styles.actionButtonContainer}>
