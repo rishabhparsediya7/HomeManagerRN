@@ -11,6 +11,14 @@ module.exports = function (api) {
     presets: ['module:@react-native/babel-preset'],
     plugins: [
       ['inline-dotenv', {path: envPath}],
+      [
+        'module:react-native-dotenv',
+        {
+          envName: 'APP_ENV',
+          moduleName: '@env',
+          path: envPath,
+        },
+      ],
       'react-native-reanimated/plugin',
     ],
   };
