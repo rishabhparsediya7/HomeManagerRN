@@ -122,7 +122,6 @@ const Profile = ({navigation}: {navigation: any}) => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log('🚀 ~ Profile ~ user:', user);
       if (!user) {
         getUser();
       }

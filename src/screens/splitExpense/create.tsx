@@ -1,4 +1,6 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -11,24 +13,24 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
-import {useTheme} from '../../providers/ThemeContext';
-import {darkTheme, lightTheme} from '../../providers/Theme';
-import {commonStyles} from '../../utils/styles';
-import splitExpenseApi from '../../services/splitExpenseApi';
-import {useAuth} from '../../providers/AuthProvider';
-import api from '../../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import RupeeIcon from '../../components/rupeeIcon';
 import {category} from '../../constants';
+import {useAuth} from '../../providers/AuthProvider';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {useTheme} from '../../providers/ThemeContext';
+import api from '../../services/api';
+import splitExpenseApi from '../../services/splitExpenseApi';
+import {commonStyles} from '../../utils/styles';
 
 interface Friend {
   id: string;
   firstName: string;
   lastName: string;
+  email?: string;
+  phoneNumber?: string;
   profilePicture?: string;
 }
 
@@ -56,6 +58,10 @@ const CreateSplitExpense = () => {
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showFriendSelector, setShowFriendSelector] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Friend[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [requestingSplink, setRequestingSplink] = useState<string | null>(null);
 
   // Fetch friends list
   const fetchFriends = async () => {
@@ -75,6 +81,50 @@ const CreateSplitExpense = () => {
   useEffect(() => {
     fetchFriends();
   }, []);
+
+  // Debounced search for users
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.length > 2) {
+        searchUsers();
+      } else {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const searchUsers = async () => {
+    setSearching(true);
+    try {
+      const resp = await api.get(`/api/users/search?q=${searchQuery}`);
+      // Filter out those who are already friends or selected
+      setSearchResults(resp.data?.users || []);
+    } catch (error) {
+      console.error('Error searching users:', error);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const sendSplinkRequest = async (friend: Friend) => {
+    setRequestingSplink(friend.id);
+    try {
+      await api.post('/api/chat/splink/request', {friendId: friend.id});
+      Alert.alert(
+        'Splink Sent!',
+        `A connection request has been sent to ${friend.firstName}. You can add them once they accept.`,
+      );
+    } catch (error: any) {
+      Alert.alert(
+        'Error',
+        error.response?.data?.error || 'Failed to send Splink request',
+      );
+    } finally {
+      setRequestingSplink(null);
+    }
+  };
 
   // Update amounts when total or split type changes
   useEffect(() => {
@@ -331,7 +381,41 @@ const CreateSplitExpense = () => {
       backgroundColor: colors.cardBackground,
       borderRadius: 12,
       marginTop: 8,
-      maxHeight: 200,
+      maxHeight: 400,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      gap: 10,
+    },
+    searchInputField: {
+      flex: 1,
+      height: 40,
+      color: colors.text,
+      ...commonStyles.textDefault,
+    },
+    sectionTitle: {
+      fontSize: 12,
+      color: colors.mutedText,
+      padding: 12,
+      backgroundColor: colors.background,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    splinkButton: {
+      backgroundColor: colors.primary + '20',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      marginLeft: 'auto',
+    },
+    splinkText: {
+      color: colors.primary,
+      fontSize: 12,
+      fontWeight: '600',
     },
     friendOption: {
       flexDirection: 'row',
@@ -597,56 +681,162 @@ const CreateSplitExpense = () => {
 
             {/* Friend selector dropdown */}
             {showFriendSelector && (
-              <ScrollView style={styles.friendSelector} nestedScrollEnabled>
-                {loadingFriends ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.primary}
-                    style={{padding: 20}}
+              <View style={styles.friendSelector}>
+                <View style={styles.searchContainer}>
+                  <Icon name="magnify" size={20} color={colors.mutedText} />
+                  <TextInput
+                    style={styles.searchInputField}
+                    placeholder="Search by email or phone..."
+                    placeholderTextColor={colors.mutedText}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
                   />
-                ) : friends.length === 0 ? (
-                  <Text
-                    style={{
-                      padding: 16,
-                      color: colors.mutedText,
-                      textAlign: 'center',
-                    }}>
-                    No friends found. Add friends in Chat first.
-                  </Text>
-                ) : (
-                  friends.map(friend => {
-                    const isSelected = selectedFriends.some(
-                      f => f.id === friend.id,
-                    );
-                    return (
-                      <TouchableOpacity
-                        key={friend.id}
-                        style={[
-                          styles.friendOption,
-                          isSelected && styles.friendOptionSelected,
-                        ]}
-                        onPress={() => toggleFriend(friend)}>
-                        <Icon
-                          name="account-circle"
-                          size={36}
-                          color={colors.mutedText}
+                  {searching && (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  )}
+                </View>
+
+                <ScrollView nestedScrollEnabled style={{maxHeight: 340}}>
+                  {searchQuery.length > 0 ? (
+                    <>
+                      <Text style={styles.sectionTitle}>Global Search</Text>
+                      {searching ? (
+                        <ActivityIndicator
+                          style={{margin: 20}}
+                          color={colors.primary}
                         />
-                        <Text style={[styles.friendName, {marginLeft: 12}]}>
-                          {friend.firstName} {friend.lastName}
+                      ) : searchResults.length === 0 ? (
+                        <Text
+                          style={{
+                            padding: 16,
+                            color: colors.mutedText,
+                            textAlign: 'center',
+                          }}>
+                          No users found
                         </Text>
-                        {isSelected && (
-                          <Icon
-                            name="check-circle"
-                            size={24}
-                            color={colors.primary}
-                            style={{marginLeft: 'auto'}}
-                          />
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
-              </ScrollView>
+                      ) : (
+                        searchResults.map(friend => {
+                          const isAlreadyFriend = friends.some(
+                            f => f.id === friend.id,
+                          );
+                          const isSelected = selectedFriends.some(
+                            f => f.id === friend.id,
+                          );
+                          return (
+                            <View key={friend.id} style={styles.friendOption}>
+                              <Icon
+                                name="account-circle"
+                                size={36}
+                                color={colors.mutedText}
+                              />
+                              <View style={{marginLeft: 12}}>
+                                <Text style={styles.friendName}>
+                                  {friend.firstName} {friend.lastName}
+                                </Text>
+                                <Text
+                                  style={{
+                                    fontSize: 12,
+                                    color: colors.mutedText,
+                                  }}>
+                                  {friend.email}
+                                </Text>
+                              </View>
+                              {isAlreadyFriend ? (
+                                <TouchableOpacity
+                                  style={{marginLeft: 'auto', padding: 8}}
+                                  onPress={() => toggleFriend(friend)}>
+                                  <Icon
+                                    name={
+                                      isSelected
+                                        ? 'check-circle'
+                                        : 'plus-circle-outline'
+                                    }
+                                    size={24}
+                                    color={
+                                      isSelected
+                                        ? colors.primary
+                                        : colors.mutedText
+                                    }
+                                  />
+                                </TouchableOpacity>
+                              ) : (
+                                <TouchableOpacity
+                                  style={styles.splinkButton}
+                                  onPress={() => sendSplinkRequest(friend)}
+                                  disabled={requestingSplink === friend.id}>
+                                  {requestingSplink === friend.id ? (
+                                    <ActivityIndicator
+                                      size="small"
+                                      color={colors.primary}
+                                    />
+                                  ) : (
+                                    <Text style={styles.splinkText}>
+                                      Splink
+                                    </Text>
+                                  )}
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                          );
+                        })
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.sectionTitle}>Current Friends</Text>
+                      {loadingFriends ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={colors.primary}
+                          style={{padding: 20}}
+                        />
+                      ) : friends.length === 0 ? (
+                        <Text
+                          style={{
+                            padding: 16,
+                            color: colors.mutedText,
+                            textAlign: 'center',
+                          }}>
+                          No friends found. Try searching for them!
+                        </Text>
+                      ) : (
+                        friends.map(friend => {
+                          const isSelected = selectedFriends.some(
+                            f => f.id === friend.id,
+                          );
+                          return (
+                            <TouchableOpacity
+                              key={friend.id}
+                              style={[
+                                styles.friendOption,
+                                isSelected && styles.friendOptionSelected,
+                              ]}
+                              onPress={() => toggleFriend(friend)}>
+                              <Icon
+                                name="account-circle"
+                                size={36}
+                                color={colors.mutedText}
+                              />
+                              <Text
+                                style={[styles.friendName, {marginLeft: 12}]}>
+                                {friend.firstName} {friend.lastName}
+                              </Text>
+                              {isSelected && (
+                                <Icon
+                                  name="check-circle"
+                                  size={24}
+                                  color={colors.primary}
+                                  style={{marginLeft: 'auto'}}
+                                />
+                              )}
+                            </TouchableOpacity>
+                          );
+                        })
+                      )}
+                    </>
+                  )}
+                </ScrollView>
+              </View>
             )}
           </View>
 

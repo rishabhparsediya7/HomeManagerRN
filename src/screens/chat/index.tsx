@@ -149,7 +149,11 @@ const ChatScreen = () => {
   return (
     <View style={styles.container}>
       <Header title="Chat" />
-      <FriendsScreen friends={friends} loading={loading} />
+      <FriendsScreen
+        friends={friends}
+        loading={loading}
+        refreshFriends={fetchFriends}
+      />
     </View>
   );
 };
