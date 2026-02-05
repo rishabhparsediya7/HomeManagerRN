@@ -1,4 +1,4 @@
-import { BASE_URL } from '@env';
+import {BASE_URL} from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   PropsWithChildren,
@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import api from '../services/api';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 
 GoogleSignin.configure({
   webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
@@ -27,9 +27,7 @@ type AuthContext = {
     email: string;
     password: string;
   }) => Promise<any>;
-  signInWithGoogle: (params: {
-    idToken: string;
-  }) => Promise<any>;
+  signInWithGoogle: (params: {idToken: string}) => Promise<any>;
   signupWithPassword: (params: {
     email: string;
     password: string;
@@ -39,7 +37,6 @@ type AuthContext = {
   user: UserProps;
   setUser: (user: UserProps) => void;
 };
-
 
 type UserProps = {
   name: string;
@@ -61,9 +58,7 @@ interface AuthContextProps {
     email: string;
     password: string;
   }) => Promise<any>;
-  signInWithGoogle: (params: {
-    idToken: string;
-  }) => Promise<any>;
+  signInWithGoogle: (params: {idToken: string}) => Promise<any>;
   signupWithPassword: (params: {
     email: string;
     password: string;
@@ -100,7 +95,7 @@ const AuthContext = createContext<AuthContext>({
   setUser: () => null,
 });
 
-export default function AuthProvider({ children }: PropsWithChildren) {
+export default function AuthProvider({children}: PropsWithChildren) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -181,16 +176,15 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   }) => {
     setLoading(true);
     try {
-      const BASE_URL = process.env.BASE_URL;
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({email, password}),
         headers: {
           'content-type': 'application/json',
         },
       });
       const result = await response.json();
-      const { userId, token, name } = result;
+      const {userId, token, name} = result;
       if (result.success && result.token) {
         setIsAuthenticated(true);
         await Promise.all([
@@ -221,13 +215,12 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     }
   };
 
-  const signInWithGoogle = async ({ idToken }: { idToken: string }) => {
+  const signInWithGoogle = async ({idToken}: {idToken: string}) => {
     setLoading(true);
     try {
       if (!idToken) {
         throw new Error('ID token is required');
       }
-      const BASE_URL = process.env.BASE_URL;
       const response = await fetch(`${BASE_URL}/api/auth/signin-with-google`, {
         method: 'POST',
         headers: {
@@ -236,7 +229,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         },
       });
       const result = await response.json();
-      const { userId, token, name } = result;
+      const {userId, token, name} = result;
       if (result.success && result.token) {
         setIsAuthenticated(true);
         await Promise.all([
@@ -262,11 +255,15 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       }
     } catch (error) {
       console.log(error);
-      setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to sign in with Google',
+      );
       throw error;
     } finally {
       setLoading(false);
-      console.log("🚀 ~ signInWithGoogle ~ loading:", loading)
+      console.log('🚀 ~ signInWithGoogle ~ loading:', loading);
     }
   };
 
@@ -304,11 +301,10 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     }
   }, [isAuthenticated]);
 
-  
   const signIn = async () => setIsAuthenticated(true);
   const signOut = async () => {
     await AsyncStorage.clear();
-    if(GoogleSignin){
+    if (GoogleSignin) {
       GoogleSignin.signOut();
     }
     setIsAuthenticated(false);

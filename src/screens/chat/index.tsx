@@ -1,143 +1,172 @@
 import 'react-native-get-random-values';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import { decryptPassphrase, decryptPrivateKey, encryptPassphrase, encryptPrivateKey, generateAndStoreKeyPair, generatePassphrase, getStoredKeyPair, resetKeyPair } from '../../utils/cryptoUtils';
+import React, {useEffect, useState} from 'react';
+import {
+  decryptPassphrase,
+  decryptPrivateKey,
+  encryptPassphrase,
+  encryptPrivateKey,
+  generateAndStoreKeyPair,
+  generatePassphrase,
+} from '../../utils/cryptoUtils';
 import FriendsScreen from './friends';
-import { savePassphraseToAsyncStorage, savePrivateKeyToAsyncStorage, savePublicKeyToAsyncStorage } from '../../utils/users';
-import { View } from 'react-native';
-import { useTheme } from '../../providers/ThemeContext';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { StyleSheet } from 'react-native';
+import {
+  savePassphraseToAsyncStorage,
+  savePrivateKeyToAsyncStorage,
+  savePublicKeyToAsyncStorage,
+} from '../../utils/users';
+import {View} from 'react-native';
+import {useTheme} from '../../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {StyleSheet} from 'react-native';
 import Header from '../../components/Header';
-const uploadEncryptedPassphrase = async (userId: string) => {
-    try {
-        const passphrase = await generatePassphrase();
-        const { cipherText, iv } = await encryptPassphrase(passphrase, userId);
-        await savePassphraseToAsyncStorage(passphrase);
+import api from '../../services/api';
 
-        await axios.post(`${process.env.BASE_URL}/api/chat/upload-passphrase`, {
-            headers: { 'Content-Type': 'application/json' },
-            userId,
-            cipherText,
-            iv,
-        });
-        return passphrase
-    }
-    catch (error) {
-        console.error('Failed to upload passphrase:', error);
-        throw error;
-    }
+const uploadEncryptedPassphrase = async (userId: string) => {
+  try {
+    const passphrase = await generatePassphrase();
+    const {cipherText, iv} = await encryptPassphrase(passphrase, userId);
+    await savePassphraseToAsyncStorage(passphrase);
+
+    await api.post('/api/chat/upload-passphrase', {
+      userId,
+      cipherText,
+      iv,
+    });
+    return passphrase;
+  } catch (error) {
+    console.error('Failed to upload passphrase:', error);
+    throw error;
+  }
 };
 
 async function initKeys() {
-    try {
-        const userId = await AsyncStorage.getItem('userId');
-        if (!userId) {
-            console.log("🚀 ~ initKeys ~ userId:", userId)
-            return;
-        }
-        const storedPublicKey = await AsyncStorage.getItem('publicKey');
-        const storedPrivateKey = await AsyncStorage.getItem('privateKey');
-
-        if (storedPublicKey && storedPrivateKey) {
-            console.log("🚀 ~ initKeys ~ storedPublicKey, storedPrivateKey:", storedPublicKey, storedPrivateKey)
-            return;
-        }
-
-        const response = await axios.get(`${process.env.BASE_URL}/api/chat/get-user-keys/${userId}`, { validateStatus: () => true });
-        if (response.status === 200) {
-            console.log("🚀 ~ initKeys ~ response.data:", response.data)
-            const encryptedPrivateKey = JSON.parse(response?.data?.encryptedPrivateKey);
-            console.log("🚀 ~ initKeys ~ encryptedPrivateKey:", encryptedPrivateKey)
-
-            const { iv: ivHex, cipherText: encryptedPrivateKeyHex } = encryptedPrivateKey;
-            const { iv: passphraseIvHex, cipherText: passphraseCipherTextHex } = response?.data;
-            const passphraseFromServer = await decryptPassphrase(passphraseCipherTextHex, passphraseIvHex, userId);
-            console.log("🚀 ~ initKeys ~ passphraseFromServer:", passphraseFromServer)
-            await savePassphraseToAsyncStorage(passphraseFromServer);
-
-            const decryptedPrivateKey = await decryptPrivateKey(encryptedPrivateKeyHex, ivHex, passphraseFromServer);
-            console.log("🚀 ~ initKeys ~ decryptedPrivateKey:", decryptedPrivateKey)
-            await savePublicKeyToAsyncStorage(response?.data?.publicKey);
-            await savePrivateKeyToAsyncStorage(decryptedPrivateKey);
-            return;
-        }
-        else {
-            console.warn(`No keys found on server. Status: ${response.status}`);
-        }
-
-
-        const { publicKeyB64, privateKeyB64 } = await generateAndStoreKeyPair();
-        const passphrase = await uploadEncryptedPassphrase(userId!);
-        const encryptedPrivateKey = await encryptPrivateKey(privateKeyB64, passphrase);
-
-        console.log("🚀 ~ initKeys ~ userId:", userId)
-        const uploadKeyResponse = await axios.post(`${process.env.BASE_URL}/api/chat/upload-key`, {
-            userId,
-            publicKey: publicKeyB64,
-            privateKey: JSON.stringify(encryptedPrivateKey),
-        }, {
-            headers: { 'Content-Type': 'application/json' },
-        });
-        console.log("🚀 ~ initKeys ~ uploadKeyResponse:", uploadKeyResponse)
-        if (uploadKeyResponse.status === 200) {
-            await savePublicKeyToAsyncStorage(publicKeyB64);
-            await savePrivateKeyToAsyncStorage(privateKeyB64);
-            await savePassphraseToAsyncStorage(passphrase);
-        }
-        else {
-            console.warn(`Failed to upload keys. Status: ${uploadKeyResponse.status}`);
-        }
+  try {
+    const userId = await AsyncStorage.getItem('userId');
+    if (!userId) {
+      console.log('🚀 ~ initKeys ~ userId:', userId);
+      return;
     }
-    catch (error) {
-        console.log("🚀 ~ initKeys ~ error:", error)
+    const storedPublicKey = await AsyncStorage.getItem('publicKey');
+    const storedPrivateKey = await AsyncStorage.getItem('privateKey');
+
+    if (storedPublicKey && storedPrivateKey) {
+      console.log(
+        '🚀 ~ initKeys ~ storedPublicKey, storedPrivateKey:',
+        storedPublicKey,
+        storedPrivateKey,
+      );
+      return;
     }
+
+    const response = await api.get(`/api/chat/get-user-keys/${userId}`, {
+      validateStatus: () => true,
+    });
+    if (response.status === 200) {
+      console.log('🚀 ~ initKeys ~ response.data:', response.data);
+      const encryptedPrivateKey = JSON.parse(
+        response?.data?.encryptedPrivateKey,
+      );
+      console.log('🚀 ~ initKeys ~ encryptedPrivateKey:', encryptedPrivateKey);
+
+      const {iv: ivHex, cipherText: encryptedPrivateKeyHex} =
+        encryptedPrivateKey;
+      const {iv: passphraseIvHex, cipherText: passphraseCipherTextHex} =
+        response?.data;
+      const passphraseFromServer = await decryptPassphrase(
+        passphraseCipherTextHex,
+        passphraseIvHex,
+        userId,
+      );
+      console.log(
+        '🚀 ~ initKeys ~ passphraseFromServer:',
+        passphraseFromServer,
+      );
+      await savePassphraseToAsyncStorage(passphraseFromServer);
+
+      const decryptedPrivateKey = await decryptPrivateKey(
+        encryptedPrivateKeyHex,
+        ivHex,
+        passphraseFromServer,
+      );
+      console.log('🚀 ~ initKeys ~ decryptedPrivateKey:', decryptedPrivateKey);
+      await savePublicKeyToAsyncStorage(response?.data?.publicKey);
+      await savePrivateKeyToAsyncStorage(decryptedPrivateKey);
+      return;
+    } else {
+      console.warn(`No keys found on server. Status: ${response.status}`);
+    }
+
+    const {publicKeyB64, privateKeyB64} = await generateAndStoreKeyPair();
+    const passphrase = await uploadEncryptedPassphrase(userId!);
+    const encryptedPrivateKey = await encryptPrivateKey(
+      privateKeyB64,
+      passphrase,
+    );
+
+    console.log('🚀 ~ initKeys ~ userId:', userId);
+    const uploadKeyResponse = await api.post('/api/chat/upload-key', {
+      userId,
+      publicKey: publicKeyB64,
+      privateKey: JSON.stringify(encryptedPrivateKey),
+    });
+    console.log('🚀 ~ initKeys ~ uploadKeyResponse:', uploadKeyResponse);
+    if (uploadKeyResponse.status === 200) {
+      await savePublicKeyToAsyncStorage(publicKeyB64);
+      await savePrivateKeyToAsyncStorage(privateKeyB64);
+      await savePassphraseToAsyncStorage(passphrase);
+    } else {
+      console.warn(
+        `Failed to upload keys. Status: ${uploadKeyResponse.status}`,
+      );
+    }
+  } catch (error) {
+    console.log('🚀 ~ initKeys ~ error:', error);
+  }
 }
 
 const ChatScreen = () => {
-    const [loading, setLoading] = useState(false);
-    const [friends, setFriends] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [friends, setFriends] = useState([]);
 
-    const fetchFriends = async () => {
-        const userId = await AsyncStorage.getItem('userId');
-        if (!userId) return;
-        setLoading(true);
-        try {
-            const resp = await axios.get(`${process.env.BASE_URL}/api/chat/getFriends/${userId}`);
-            setFriends(resp.data);
-        } catch (error) {
-            console.error('Failed to fetch friends:', error);
-        }
-        finally {
-            setLoading(false);
-        }
+  const fetchFriends = async () => {
+    const userId = await AsyncStorage.getItem('userId');
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const resp = await api.get(`/api/chat/getFriends/${userId}`);
+      setFriends(resp.data);
+    } catch (error) {
+      console.error('Failed to fetch friends:', error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    useEffect(() => {
-        fetchFriends();
-    }, []);
+  useEffect(() => {
+    fetchFriends();
+  }, []);
 
-    useEffect(() => {
-        initKeys();
-    }, []);
-    const { theme } = useTheme();
-    const colors = theme === 'dark' ? darkTheme : lightTheme;
+  useEffect(() => {
+    initKeys();
+  }, []);
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
-    const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: colors.background,
-        },
-    });
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+  });
 
-    return (
-        <View style={styles.container}>
-            <Header title="Chat" />
-            <FriendsScreen friends={friends} loading={loading} />
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      <Header title="Chat" />
+      <FriendsScreen friends={friends} loading={loading} />
+    </View>
+  );
 };
 
 export default ChatScreen;

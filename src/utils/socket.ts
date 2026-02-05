@@ -1,7 +1,8 @@
 // socket.ts
-import { io } from 'socket.io-client';
+import {io} from 'socket.io-client';
+import {BASE_URL} from '@env';
 
-const socket = io(process.env.BASE_URL, {
+const socket = io(BASE_URL, {
   transports: ['websocket'],
   autoConnect: false,
 });

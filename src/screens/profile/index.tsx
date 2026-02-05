@@ -1,7 +1,7 @@
 // screens/Profile.js
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ColorSchemeName,
   FlatList,
@@ -11,23 +11,23 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Asset } from 'react-native-image-picker';
+import {Asset} from 'react-native-image-picker';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AccountOption from '../../components/accountOptions';
 import ImageUploader from '../../components/imageUploader';
-import { Modal } from '../../components/modal';
+import {Modal} from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import { useAuth } from '../../providers/AuthProvider';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { useTheme } from '../../providers/ThemeContext';
+import {useAuth} from '../../providers/AuthProvider';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
-import { commonStyles } from '../../utils/styles';
-import { DeviceInfo, getDeviceInfo } from '../../utils/deviceInfo';
+import {commonStyles} from '../../utils/styles';
+import {DeviceInfo, getDeviceInfo} from '../../utils/deviceInfo';
 import useAuthorizeNavigation from '../../navigators/authorizeStack';
 const Profile = ({navigation}: {navigation: any}) => {
   const {signOut, user} = useAuth();
-  console.log("🚀 ~ Profile ~ user:", user)
+  console.log('🚀 ~ Profile ~ user:', user);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,16 +36,16 @@ const Profile = ({navigation}: {navigation: any}) => {
   const [selectedImage, setSelectedImage] = useState<Asset | undefined>(
     undefined,
   );
-  
+
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const {theme, toggleTheme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const handleToggleTheme = (theme: ColorSchemeName) => {
-    if(theme){
+    if (theme) {
       toggleTheme(theme.toLowerCase() as ColorSchemeName);
     }
-  }
+  };
 
   const handleLogout = () => {
     bottomSheetModalRef.current?.present();
@@ -69,6 +69,12 @@ const Profile = ({navigation}: {navigation: any}) => {
       label: 'Payment Methods',
       onPress: () => navigation.navigate('EditPaymentMethods'),
       options: ['Add Payment Method'],
+    },
+    {
+      icon: 'users',
+      label: 'Split Expenses',
+      onPress: () => navigation.navigate('SplitExpenseList'),
+      options: ['Split with Friends'],
     },
     {
       icon: 'bell',
@@ -100,7 +106,7 @@ const Profile = ({navigation}: {navigation: any}) => {
       onPress: handleLogout,
       options: ['Logout'],
     },
-  ]
+  ];
   const getUser = async () => {
     setLoading(true);
     try {
@@ -118,8 +124,8 @@ const Profile = ({navigation}: {navigation: any}) => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log("🚀 ~ Profile ~ user:", user)
-      if(!user){
+      console.log('🚀 ~ Profile ~ user:', user);
+      if (!user) {
         getUser();
       }
     }, []),
@@ -127,126 +133,129 @@ const Profile = ({navigation}: {navigation: any}) => {
 
   useEffect(() => {
     getDeviceInfo().then(info => {
-      if(info){
+      if (info) {
         setDeviceInfo(info);
       }
     });
   }, []);
-  
 
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    header: {
-      alignItems: 'center',
-      paddingVertical: 20,
-      backgroundColor: colors.background,
-    },
-    name: {
-      fontSize: 22,
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-      marginTop: 12,
-    },
-    email: {
-      fontSize: 14,
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-    },
-    statsContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginVertical: 20,
-      paddingHorizontal: 16,
-      gap: 8,
-    },
-    statBox: {
-      flex: 1,
-      backgroundColor: colors.inputBackground,
-      borderColor: colors.inputBorder,
-      borderWidth: 1,
-      borderRadius: 12,
-      padding: 20,
-      alignItems: 'center',
-    },
-    statLabel: {
-      fontSize: 14,
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-      marginTop: 6,
-    },
-    statValue: {
-      fontSize: 18,
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-      marginTop: 4,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-      marginHorizontal: 20,
-      marginTop: 10,
-      marginBottom: 10,
-    },
-    button: {
-      backgroundColor: colors.buttonBackground,
-      padding: 12,
-      borderRadius: 8,
-      marginVertical: 8,
-      flex: 1,
-      alignItems: 'center',
-    },
-    modalContainer: {
-      flex: 1,
-      flexDirection: 'column',
-      padding: 20,
-      gap: 12,
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      gap: 8,
-      width: '100%',
-      justifyContent: 'center',
-    },
-    buttonText: {
-      color: colors.buttonText,
-      fontSize: 16,
-      ...commonStyles.textDefault,
-    },
-    modalText: {
-      fontSize: 16,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-      // textAlign: 'center',
-    },
-    sectionTitleText: {
-      fontSize: 16,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
-    versionSection: {
-      marginHorizontal: 20,
-      marginTop: 10,   
-      alignItems: 'center',
-    },
-    versionText: {
-      fontSize: 16,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
-    madeBySection: {
-      marginTop: 12,   
-      alignItems: 'center',
-    },
-    madeByText: {
-      fontSize: 12,
-      ...commonStyles.textDefault,
-      color: colors.mutedText,
-    },
-  }), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        header: {
+          alignItems: 'center',
+          paddingVertical: 20,
+          backgroundColor: colors.background,
+        },
+        name: {
+          fontSize: 22,
+          color: colors.buttonText,
+          ...commonStyles.textDefault,
+          marginTop: 12,
+        },
+        email: {
+          fontSize: 14,
+          color: colors.buttonText,
+          ...commonStyles.textDefault,
+        },
+        statsContainer: {
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          marginVertical: 20,
+          paddingHorizontal: 16,
+          gap: 8,
+        },
+        statBox: {
+          flex: 1,
+          backgroundColor: colors.inputBackground,
+          borderColor: colors.inputBorder,
+          borderWidth: 1,
+          borderRadius: 12,
+          padding: 20,
+          alignItems: 'center',
+        },
+        statLabel: {
+          fontSize: 14,
+          color: colors.buttonText,
+          ...commonStyles.textDefault,
+          marginTop: 6,
+        },
+        statValue: {
+          fontSize: 18,
+          color: colors.buttonText,
+          ...commonStyles.textDefault,
+          marginTop: 4,
+        },
+        sectionTitle: {
+          fontSize: 16,
+          color: colors.buttonText,
+          ...commonStyles.textDefault,
+          marginHorizontal: 20,
+          marginTop: 10,
+          marginBottom: 10,
+        },
+        button: {
+          backgroundColor: colors.buttonBackground,
+          padding: 12,
+          borderRadius: 8,
+          marginVertical: 8,
+          flex: 1,
+          alignItems: 'center',
+        },
+        modalContainer: {
+          flex: 1,
+          flexDirection: 'column',
+          padding: 20,
+          gap: 12,
+        },
+        buttonContainer: {
+          flexDirection: 'row',
+          gap: 8,
+          width: '100%',
+          justifyContent: 'center',
+        },
+        buttonText: {
+          color: colors.buttonText,
+          fontSize: 16,
+          ...commonStyles.textDefault,
+        },
+        modalText: {
+          fontSize: 16,
+          ...commonStyles.textDefault,
+          color: colors.buttonText,
+          // textAlign: 'center',
+        },
+        sectionTitleText: {
+          fontSize: 16,
+          ...commonStyles.textDefault,
+          color: colors.buttonText,
+        },
+        versionSection: {
+          marginHorizontal: 20,
+          marginTop: 10,
+          alignItems: 'center',
+        },
+        versionText: {
+          fontSize: 16,
+          ...commonStyles.textDefault,
+          color: colors.buttonText,
+        },
+        madeBySection: {
+          marginTop: 12,
+          alignItems: 'center',
+        },
+        madeByText: {
+          fontSize: 12,
+          ...commonStyles.textDefault,
+          color: colors.mutedText,
+        },
+      }),
+    [theme],
+  );
 
   return (
     <ScrollView
@@ -294,14 +303,14 @@ const Profile = ({navigation}: {navigation: any}) => {
 
       <View style={styles.versionSection}>
         <Text style={styles.versionText}>
-          {`v${deviceInfo?.versionName || ""} (${deviceInfo?.versionCode || ""})`}
+          {`v${deviceInfo?.versionName || ''} (${
+            deviceInfo?.versionCode || ''
+          })`}
         </Text>
       </View>
 
       <View style={styles.madeBySection}>
-        <Text style={styles.madeByText}>
-          Made with ❤️ by Rishabh Parsediya
-        </Text>
+        <Text style={styles.madeByText}>Made with ❤️ by Rishabh Parsediya</Text>
       </View>
 
       <Modal
@@ -322,12 +331,10 @@ const Profile = ({navigation}: {navigation: any}) => {
               <Text style={styles.buttonText}>Logout</Text>
             </TouchableOpacity>
           </View>
-        </View> 
+        </View>
       </Modal>
     </ScrollView>
   );
 };
-
-
 
 export default Profile;
