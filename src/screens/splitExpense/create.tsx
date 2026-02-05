@@ -24,6 +24,7 @@ import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
 import splitExpenseApi from '../../services/splitExpenseApi';
 import {commonStyles} from '../../utils/styles';
+import socket from '../../utils/socket';
 
 interface Friend {
   id: string;
@@ -60,6 +61,9 @@ const CreateSplitExpense = () => {
   const [showFriendSelector, setShowFriendSelector] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Friend[]>([]);
+  const [filteredLocalFriends, setFilteredLocalFriends] = useState<Friend[]>(
+    [],
+  );
   const [searching, setSearching] = useState(false);
   const [requestingSplink, setRequestingSplink] = useState<string | null>(null);
 
@@ -70,7 +74,12 @@ const CreateSplitExpense = () => {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) return;
       const response = await api.get(`/api/chat/getFriends/${userId}`);
-      setFriends(response.data || []);
+      // Map friendId to id as expected by the rest of the component
+      const mappedFriends = (response.data || []).map((f: any) => ({
+        ...f,
+        id: f.friendId,
+      }));
+      setFriends(mappedFriends);
     } catch (error) {
       console.error('Error fetching friends:', error);
     } finally {
@@ -82,25 +91,53 @@ const CreateSplitExpense = () => {
     fetchFriends();
   }, []);
 
-  // Debounced search for users
+  // Handle search query changes (Local Mentions vs Global Search)
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (searchQuery.length > 2) {
-        searchUsers();
-      } else {
-        setSearchResults([]);
-      }
-    }, 500);
+    if (searchQuery.startsWith('@')) {
+      const term = searchQuery.slice(1).toLowerCase();
+      const filtered = friends.filter(
+        f =>
+          (f.firstName + ' ' + f.lastName).toLowerCase().includes(term) ||
+          f.email?.toLowerCase().includes(term),
+      );
+      setFilteredLocalFriends(filtered);
+      setSearchResults([]);
+    } else {
+      setFilteredLocalFriends([]);
+      const delayDebounceFn = setTimeout(() => {
+        if (searchQuery.length > 2) {
+          searchUsers();
+        } else {
+          setSearchResults([]);
+        }
+      }, 500);
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [searchQuery, friends]);
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
+  useEffect(() => {
+    const handleSplinkResponse = (payload: any) => {
+      console.log('📨 Splink response received (CreateSplit):', payload);
+      if (payload.action === 'accept') {
+        fetchFriends();
+      }
+    };
+
+    socket.on('splink_response', handleSplinkResponse);
+    return () => {
+      socket.off('splink_response', handleSplinkResponse);
+    };
+  }, []);
 
   const searchUsers = async () => {
     setSearching(true);
     try {
       const resp = await api.get(`/api/users/search?q=${searchQuery}`);
-      // Filter out those who are already friends or selected
-      setSearchResults(resp.data?.users || []);
+      // Filter out those who are already locally known to avoid duplicates
+      const results = (resp.data?.users || []).filter(
+        (u: Friend) => !friends.some(f => f.id === u.id),
+      );
+      setSearchResults(results);
     } catch (error) {
       console.error('Error searching users:', error);
     } finally {
@@ -158,6 +195,8 @@ const CreateSplitExpense = () => {
         ...selectedFriends,
         {...friend, amountOwed: Math.round(amount * 100) / 100},
       ]);
+      // UX: Clear search after adding
+      setSearchQuery('');
     }
   };
 
@@ -211,7 +250,9 @@ const CreateSplitExpense = () => {
       if (paidByMe) {
         participants.push({
           userId: user.userId,
-          amountOwed: 0, // I don't owe myself
+          amountOwed:
+            parseFloat(totalAmount) -
+            selectedFriends.reduce((sum, f) => sum + f.amountOwed, 0),
         });
       }
 
@@ -670,36 +711,102 @@ const CreateSplitExpense = () => {
                 </View>
               ))}
 
-              {/* Add friend button */}
-              <TouchableOpacity
-                style={styles.addFriendButton}
-                onPress={() => setShowFriendSelector(!showFriendSelector)}>
-                <Icon name="plus-circle" size={24} color={colors.primary} />
-                <Text style={styles.addFriendText}>Add friends</Text>
-              </TouchableOpacity>
+              {/* Persistent Search/Mention Input */}
+              <View
+                style={[
+                  styles.searchContainer,
+                  {borderBottomWidth: showFriendSelector ? 1 : 0},
+                ]}>
+                <Icon name="at" size={20} color={colors.primary} />
+                <TextInput
+                  style={styles.searchInputField}
+                  placeholder="Type @ to search friends or type others..."
+                  placeholderTextColor={colors.mutedText}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  onFocus={() => setShowFriendSelector(true)}
+                />
+                {searching && (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                )}
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <Icon
+                      name="close-circle"
+                      size={20}
+                      color={colors.mutedText}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             {/* Friend selector dropdown */}
             {showFriendSelector && (
               <View style={styles.friendSelector}>
-                <View style={styles.searchContainer}>
-                  <Icon name="magnify" size={20} color={colors.mutedText} />
-                  <TextInput
-                    style={styles.searchInputField}
-                    placeholder="Search by email or phone..."
-                    placeholderTextColor={colors.mutedText}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                  />
-                  {searching && (
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  )}
-                </View>
-
                 <ScrollView nestedScrollEnabled style={{maxHeight: 340}}>
-                  {searchQuery.length > 0 ? (
+                  {searchQuery.startsWith('@') ? (
                     <>
-                      <Text style={styles.sectionTitle}>Global Search</Text>
+                      <Text style={styles.sectionTitle}>
+                        Mentioning Friends
+                      </Text>
+                      {filteredLocalFriends.length === 0 ? (
+                        <Text
+                          style={{
+                            padding: 16,
+                            color: colors.mutedText,
+                            textAlign: 'center',
+                          }}>
+                          No friends match "@{searchQuery.slice(1)}"
+                        </Text>
+                      ) : (
+                        filteredLocalFriends.map(friend => {
+                          const isSelected = selectedFriends.some(
+                            f => f.id === friend.id,
+                          );
+                          return (
+                            <TouchableOpacity
+                              key={friend.id}
+                              style={[
+                                styles.friendOption,
+                                isSelected && styles.friendOptionSelected,
+                              ]}
+                              onPress={() => toggleFriend(friend)}>
+                              <Icon
+                                name="account-circle"
+                                size={36}
+                                color={colors.mutedText}
+                              />
+                              <View style={{marginLeft: 12}}>
+                                <Text style={styles.friendName}>
+                                  {friend.firstName} {friend.lastName}
+                                </Text>
+                                <Text
+                                  style={{
+                                    fontSize: 12,
+                                    color: colors.mutedText,
+                                  }}>
+                                  {friend.email}
+                                </Text>
+                              </View>
+                              {isSelected && (
+                                <Icon
+                                  name="check-circle"
+                                  size={24}
+                                  color={colors.primary}
+                                  style={{marginLeft: 'auto'}}
+                                />
+                              )}
+                            </TouchableOpacity>
+                          );
+                        })
+                      )}
+                    </>
+                  ) : searchQuery.length > 0 ? (
+                    <>
+                      <Text style={styles.sectionTitle}>
+                        Global Search Results
+                      </Text>
                       {searching ? (
                         <ActivityIndicator
                           style={{margin: 20}}
@@ -719,9 +826,53 @@ const CreateSplitExpense = () => {
                           const isAlreadyFriend = friends.some(
                             f => f.id === friend.id,
                           );
-                          const isSelected = selectedFriends.some(
-                            f => f.id === friend.id,
-                          );
+                          if (isAlreadyFriend) {
+                            const isSelected = selectedFriends.some(
+                              f => f.id === friend.id,
+                            );
+                            return (
+                              <TouchableOpacity
+                                key={friend.id}
+                                style={[
+                                  styles.friendOption,
+                                  isSelected && styles.friendOptionSelected,
+                                ]}
+                                onPress={() => toggleFriend(friend)}>
+                                <Icon
+                                  name="account-circle"
+                                  size={36}
+                                  color={colors.mutedText}
+                                />
+                                <View style={{marginLeft: 12}}>
+                                  <Text style={styles.friendName}>
+                                    {friend.firstName} {friend.lastName}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontSize: 12,
+                                      color: colors.mutedText,
+                                    }}>
+                                    {friend.email}
+                                  </Text>
+                                </View>
+                                <Icon
+                                  name={
+                                    isSelected
+                                      ? 'check-circle'
+                                      : 'plus-circle-outline'
+                                  }
+                                  size={24}
+                                  color={
+                                    isSelected
+                                      ? colors.primary
+                                      : colors.mutedText
+                                  }
+                                  style={{marginLeft: 'auto'}}
+                                />
+                              </TouchableOpacity>
+                            );
+                          }
+
                           return (
                             <View key={friend.id} style={styles.friendOption}>
                               <Icon
@@ -741,41 +892,19 @@ const CreateSplitExpense = () => {
                                   {friend.email}
                                 </Text>
                               </View>
-                              {isAlreadyFriend ? (
-                                <TouchableOpacity
-                                  style={{marginLeft: 'auto', padding: 8}}
-                                  onPress={() => toggleFriend(friend)}>
-                                  <Icon
-                                    name={
-                                      isSelected
-                                        ? 'check-circle'
-                                        : 'plus-circle-outline'
-                                    }
-                                    size={24}
-                                    color={
-                                      isSelected
-                                        ? colors.primary
-                                        : colors.mutedText
-                                    }
+                              <TouchableOpacity
+                                style={styles.splinkButton}
+                                onPress={() => sendSplinkRequest(friend)}
+                                disabled={requestingSplink === friend.id}>
+                                {requestingSplink === friend.id ? (
+                                  <ActivityIndicator
+                                    size="small"
+                                    color={colors.primary}
                                   />
-                                </TouchableOpacity>
-                              ) : (
-                                <TouchableOpacity
-                                  style={styles.splinkButton}
-                                  onPress={() => sendSplinkRequest(friend)}
-                                  disabled={requestingSplink === friend.id}>
-                                  {requestingSplink === friend.id ? (
-                                    <ActivityIndicator
-                                      size="small"
-                                      color={colors.primary}
-                                    />
-                                  ) : (
-                                    <Text style={styles.splinkText}>
-                                      Splink
-                                    </Text>
-                                  )}
-                                </TouchableOpacity>
-                              )}
+                                ) : (
+                                  <Text style={styles.splinkText}>Splink</Text>
+                                )}
+                              </TouchableOpacity>
                             </View>
                           );
                         })
@@ -783,7 +912,22 @@ const CreateSplitExpense = () => {
                     </>
                   ) : (
                     <>
-                      <Text style={styles.sectionTitle}>Current Friends</Text>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          paddingRight: 12,
+                          backgroundColor: colors.background,
+                        }}>
+                        <Text style={styles.sectionTitle}>Recent Friends</Text>
+                        <TouchableOpacity
+                          onPress={() => setShowFriendSelector(false)}>
+                          <Text style={{fontSize: 12, color: colors.primary}}>
+                            Hide List
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                       {loadingFriends ? (
                         <ActivityIndicator
                           size="small"
@@ -797,7 +941,7 @@ const CreateSplitExpense = () => {
                             color: colors.mutedText,
                             textAlign: 'center',
                           }}>
-                          No friends found. Try searching for them!
+                          No friends yet. Search for them!
                         </Text>
                       ) : (
                         friends.map(friend => {

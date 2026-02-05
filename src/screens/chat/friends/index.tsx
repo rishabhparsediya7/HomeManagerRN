@@ -22,6 +22,7 @@ import {useTheme} from '../../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../../providers/Theme';
 import {commonStyles} from '../../../utils/styles';
 import Input from '../../../components/form/input';
+import socket from '../../../utils/socket';
 const handleReceiveMessage = async (payload: {
   senderId: string;
   message: string;
@@ -205,6 +206,25 @@ const FriendsScreen = ({
 
   useEffect(() => {
     fetchPendingSplinks();
+
+    const handleSplinkRequest = (payload: any) => {
+      console.log('📨 New Splink request received:', payload);
+      fetchPendingSplinks();
+    };
+
+    const handleSplinkResponse = (payload: any) => {
+      console.log('📨 Splink response received:', payload);
+      fetchPendingSplinks();
+      refreshFriends();
+    };
+
+    socket.on('splink_request', handleSplinkRequest);
+    socket.on('splink_response', handleSplinkResponse);
+
+    return () => {
+      socket.off('splink_request', handleSplinkRequest);
+      socket.off('splink_response', handleSplinkResponse);
+    };
   }, []);
 
   const styles = StyleSheet.create({
