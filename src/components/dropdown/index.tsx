@@ -68,7 +68,6 @@ export default function SlideDropdown({
   const openDropdown = () => {
     buttonRef.current?.measureInWindow((x, y, width, height) => {
       const newCoords = {x, y: y + 8, width, height};
-      console.log(newCoords);
       setCoords(newCoords);
       setVisible(true);
 
@@ -103,7 +102,7 @@ export default function SlideDropdown({
   };
 
   useEffect(() => {
-    if(reset){
+    if (reset) {
       setSelected(title);
       setIsAnyOptionSelected(false);
       closeDropdown();

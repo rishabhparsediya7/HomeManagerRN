@@ -14,12 +14,15 @@ import Header from '../../components/Header';
 import Tabs from '../../components/tabs';
 import ExpenseScreen from '../../components/tabs/expenseScreen';
 import FinancialSummaryScreen from '../../components/tabs/financialSummary';
-import {downloadAndSharePdf, generateAndShareExpenseReport} from '../../utils/fileUtil';
+import {
+  downloadAndSharePdf,
+  generateAndShareExpenseReport,
+} from '../../utils/fileUtil';
 import FilterButton from '../../components/filterButton';
 import Icon from 'react-native-vector-icons/SimpleLineIcons';
 import SlideDropdown from '../../components/dropdown';
-import { categories } from '../../types/categories';
-import { paymentMethods } from '../../screens/addExpense';
+import {categories} from '../../types/categories';
+import {paymentMethods} from '../../screens/addExpense';
 
 type ExportDataProps = {
   navigation: any;
@@ -28,7 +31,15 @@ type ExportDataProps = {
 type selectedTabType = 'expenses' | 'financialSummary';
 
 const ExportData = ({navigation}: ExportDataProps) => {
-  const filterOptions = ['Month', 'Week', 'Today', 'Custom', 'Year', 'Category', 'Payment Method'];
+  const filterOptions = [
+    'Month',
+    'Week',
+    'Today',
+    'Custom',
+    'Year',
+    'Category',
+    'Payment Method',
+  ];
 
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
@@ -40,7 +51,6 @@ const ExportData = ({navigation}: ExportDataProps) => {
     undefined,
   );
   const [filterQuery, setFilterQuery] = useState('');
-  
 
   const styles = StyleSheet.create({
     container: {
@@ -96,12 +106,10 @@ const ExportData = ({navigation}: ExportDataProps) => {
   });
 
   const handleExpensesPress = () => {
-    console.log('Expenses Pressed');
     setSelectedTab('expenses');
   };
 
   const handleFinancialSummaryPress = () => {
-    console.log('Financial Summary Pressed');
     setSelectedTab('financialSummary');
   };
 
@@ -119,22 +127,18 @@ const ExportData = ({navigation}: ExportDataProps) => {
     setPaymentMethodId(paymentMethodId);
   };
 
-  const handleExportPress = async() => {
-    console.log('Export Pressed');
-    console.log(filterQuery);
+  const handleExportPress = async () => {
     const query = filterQuery.split('?')[1];
-    console.log(query);
     try {
       setLoading(true);
       await generateAndShareExpenseReport(query);
     } catch (error) {
       console.error('Error during report generation:', error);
       setLoading(false);
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
-  };  
+  };
 
   return (
     <View style={styles.container}>
@@ -160,25 +164,24 @@ const ExportData = ({navigation}: ExportDataProps) => {
               gap: 8,
             }}>
             {filterOptions.map((option, index) => {
-              if(index > 4 && option === 'Category'){
-                return(
+              if (index > 4 && option === 'Category') {
+                return (
                   <SlideDropdown
                     title={option}
                     options={categories}
                     handleSelectCategory={setCategory}
                     reset={categoryId === undefined}
                   />
-                )
-              }
-              else if(index > 4 && option === 'Payment Method'){
-                return(
+                );
+              } else if (index > 4 && option === 'Payment Method') {
+                return (
                   <SlideDropdown
                     title={option}
                     options={paymentMethods}
                     handleSelectPaymentMethod={setPaymentMethod}
                     reset={paymentMethodId === undefined}
                   />
-                )
+                );
               }
               return (
                 <FilterButton
@@ -217,7 +220,13 @@ const ExportData = ({navigation}: ExportDataProps) => {
             style={styles.button}
             onPress={handleExportPress}
             disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? <ActivityIndicator size="small" color={colors.inputText} /> : 'Export or Share'}</Text>
+            <Text style={styles.buttonText}>
+              {loading ? (
+                <ActivityIndicator size="small" color={colors.inputText} />
+              ) : (
+                'Export or Share'
+              )}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -1,4 +1,4 @@
-import { PropsWithChildren, createContext, useContext, useState } from 'react';
+import {PropsWithChildren, createContext, useContext, useState} from 'react';
 
 type UserContextType = {
   name: string | null;
@@ -18,17 +18,20 @@ const UserContext = createContext<UserContextType>({
   clearUser: () => {},
 });
 
-export default function UserProvider({ children }: PropsWithChildren) {
-  const [user, setUser] = useState<Omit<UserContextType, 'updateUser' | 'clearUser'>>({
+export default function UserProvider({children}: PropsWithChildren) {
+  const [user, setUser] = useState<
+    Omit<UserContextType, 'updateUser' | 'clearUser'>
+  >({
     name: null,
     email: null,
     phoneNumber: null,
     isVerified: false,
   });
 
-  const updateUser = (userData: Partial<Omit<UserContextType, 'updateUser'>>) => {
-    console.log('🚀 ~ updateUser ~ userData:', userData);
-    setUser((prevUser) => ({
+  const updateUser = (
+    userData: Partial<Omit<UserContextType, 'updateUser'>>,
+  ) => {
+    setUser(prevUser => ({
       ...prevUser,
       ...userData,
     }));
@@ -44,7 +47,7 @@ export default function UserProvider({ children }: PropsWithChildren) {
   };
 
   return (
-    <UserContext.Provider value={{ ...user, updateUser, clearUser }}>
+    <UserContext.Provider value={{...user, updateUser, clearUser}}>
       {children}
     </UserContext.Provider>
   );

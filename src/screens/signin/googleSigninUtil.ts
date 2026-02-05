@@ -1,14 +1,15 @@
 // googleSignInUtil.js
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 
 export const googleSignIn = async () => {
   try {
-    console.log("🚀 ~ googleSignIn ~ GoogleSignin:", GoogleSignin)
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
     const userInfo = await GoogleSignin.signIn();
-    return { success: true, userInfo };
-  } catch (error:any) {
-    console.log("🚀 ~ signInWithGoogle ~ error:", error)
+    return {success: true, userInfo};
+  } catch (error: any) {
     let message = 'Something went wrong';
     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
       message = 'User cancelled the login process';
@@ -19,15 +20,15 @@ export const googleSignIn = async () => {
     } else {
       message = error.message;
     }
-    return { success: false, error: message };
+    return {success: false, error: message};
   }
 };
 
 export const signOutGoogle = async () => {
   try {
     await GoogleSignin.signOut();
-    return { success: true };
-  } catch (error:any) {
-    return { success: false, error: error.message };
+    return {success: true};
+  } catch (error: any) {
+    return {success: false, error: error.message};
   }
 };

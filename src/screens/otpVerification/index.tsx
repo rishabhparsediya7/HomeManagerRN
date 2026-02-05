@@ -89,7 +89,6 @@ const OtpVerificationScreen = ({navigation, route}) => {
       setLoading(false);
     }
     useEffect(() => {
-      console.log('🚀 ~ useEffect ~ isAuthenticated:', isAuthenticated);
       if (isAuthenticated) {
         authNavigation.navigate('Home');
       }

@@ -42,12 +42,8 @@ interface Message {
 async function fetchAndDecryptChat(withUser: string) {
   try {
     const userId = await AsyncStorage.getItem('userId');
-    console.log('🚀 ~ fetchAndDecryptChat ~ userId:', userId);
-
     const privateKey = await AsyncStorage.getItem('privateKey');
-    console.log('🚀 ~ fetchAndDecryptChat ~ privateKey:', privateKey);
     const publicKey = await AsyncStorage.getItem('publicKey');
-    console.log('🚀 ~ fetchAndDecryptChat ~ publicKey:', publicKey);
 
     if (!privateKey || !publicKey) {
       throw new Error('Keypair not found');
@@ -58,7 +54,6 @@ async function fetchAndDecryptChat(withUser: string) {
     ).data;
 
     const resp = await api.get(`/api/chat/get-user-keys/${withUser}`);
-    console.log('🚀 ~ fetchAndDecryptChat ~ resp:', resp);
     const {publicKey: theirPubB64} = await resp.data;
     const theirPub = naclUtil.decodeBase64(theirPubB64);
 
@@ -152,8 +147,6 @@ const FriendChatScreen = ({route}) => {
       message: string;
       nonce: string;
     }) => {
-      console.log('📥 Received message:', payload);
-
       const pair = await getStoredKeyPair();
       if (!pair) throw new Error('Keypair not found');
       let mySK = pair?.secretKey;
@@ -259,7 +252,6 @@ const FriendChatScreen = ({route}) => {
       setLoading(true);
       try {
         const chat = await fetchAndDecryptChat(id);
-        console.log('🚀 ~ fetchChat ~ chat:', chat);
         setMessages(id, chat);
       } catch (error) {
         console.error('Failed to fetch chat:', error);

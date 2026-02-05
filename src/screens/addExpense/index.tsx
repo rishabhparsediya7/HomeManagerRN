@@ -95,8 +95,6 @@ const AddExpenseScreen = () => {
         category,
         paymentDate,
       });
-
-      console.log(response.data);
     } catch (error) {
       console.error(error);
     } finally {

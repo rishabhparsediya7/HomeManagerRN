@@ -43,7 +43,6 @@ const handleReceiveMessage = async (payload: {
 
   if (decrypted) {
     const plaintext = naclUtil.encodeUTF8(decrypted);
-    console.log('Decrypted message:', plaintext);
     return plaintext;
   } else {
     console.warn('❌ Could not decrypt message');

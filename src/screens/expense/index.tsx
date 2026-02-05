@@ -1,6 +1,6 @@
 // screens/ExpensesScreen.js
-import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -14,9 +14,9 @@ import Header from '../../components/Header';
 import api from '../../services/api';
 import RupeeIcon from '../../components/rupeeIcon';
 import Icon from 'react-native-vector-icons/Octicons';
-import { useTheme } from '../../providers/ThemeContext';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { commonStyles } from '../../utils/styles';
+import {useTheme} from '../../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {commonStyles} from '../../utils/styles';
 import LinearGradient from 'react-native-linear-gradient';
 
 const filterOptions = ['All', 'Today', 'Week', 'Month'];
@@ -55,52 +55,43 @@ const ListHeaderComponent = ({
   setSelectedFilter: (filter: string) => void;
   styles: any;
   colors: any;
-
 }) => {
   return (
     <>
       <LinearGradient
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 0}}
         colors={[colors.tabBarBackground, colors.primary]}
-        style={styles.summaryCard}
-      >
-
+        style={styles.summaryCard}>
         <View>
           <Text style={styles.totalAmount}>
             <RupeeIcon
               amount={totalExpense}
               size={28}
-              textStyle={{ color: 'white', fontSize: 28 }}
+              textStyle={{color: 'white', fontSize: 28}}
               color="white"
             />
           </Text>
           <Text
             style={[
               styles.summaryMonth,
-              { fontSize: 18, marginTop: 8, fontWeight: '600' },
+              {fontSize: 18, marginTop: 8, fontWeight: '600'},
             ]}>
             {selectedFilter === 'All'
               ? 'All '
               : selectedFilter === 'Today'
-                ? "Today's "
-                : selectedFilter === 'Week'
-                  ? "Week's "
-                  : "Month's "}
+              ? "Today's "
+              : selectedFilter === 'Week'
+              ? "Week's "
+              : "Month's "}
             Expenses
           </Text>
           <View style={styles.summaryNote}>
-            <Text style={{ color: 'white' }}>{expenseChange}</Text>
+            <Text style={{color: 'white'}}>{expenseChange}</Text>
             <Icon
-              name={
-                expenseChange.includes('less')
-                  ? 'arrow-down'
-                  : 'arrow-up'
-              }
+              name={expenseChange.includes('less') ? 'arrow-down' : 'arrow-up'}
               size={18}
-              color={
-                expenseChange.includes('less') ? 'orange' : 'green'
-              }
+              color={expenseChange.includes('less') ? 'orange' : 'green'}
             />
           </View>
         </View>
@@ -122,7 +113,11 @@ const ListHeaderComponent = ({
 };
 
 // renderItem
-const renderItem = ({ item }: { item: any }) => <View style={{ paddingHorizontal: 16 }}><ExpenseCard expense={item} /></View>;
+const renderItem = ({item}: {item: any}) => (
+  <View style={{paddingHorizontal: 16}}>
+    <ExpenseCard expense={item} />
+  </View>
+);
 
 // Expense
 const Expense = () => {
@@ -131,7 +126,7 @@ const Expense = () => {
   const [loading, setLoading] = useState(false);
   const [totalExpense, setTotalExpense] = useState(0);
   const [expenseChange, setExpenseChange] = useState('');
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const getExpenses = async () => {
@@ -142,15 +137,13 @@ const Expense = () => {
           filter: selectedFilter.toLowerCase(),
           t: Date.now(), // cache buster
         },
-        headers: { 'Cache-Control': 'no-cache' },
+        headers: {'Cache-Control': 'no-cache'},
       });
       setExpenses(response.data?.data);
-      console.log(response.data?.data);
       const change = getExpenseChangeLabel(
         response.data?.totalMonthSum,
         response?.data?.previousMonthSum,
       );
-      console.log(`Expense change: ${change}`);
 
       setTotalExpense(response.data?.totalSum);
       setExpenseChange(change);
@@ -265,11 +258,11 @@ const Expense = () => {
           }
           ListEmptyComponent={
             loading ? (
-              <View style={{ padding: 20, alignItems: 'center' }}>
+              <View style={{padding: 20, alignItems: 'center'}}>
                 <ActivityIndicator size="large" color="#3B82F6" />
               </View>
             ) : (
-              <View style={{ padding: 20, alignItems: 'center' }}>
+              <View style={{padding: 20, alignItems: 'center'}}>
                 <Text>No expenses found.</Text>
               </View>
             )

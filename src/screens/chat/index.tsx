@@ -45,18 +45,12 @@ async function initKeys() {
   try {
     const userId = await AsyncStorage.getItem('userId');
     if (!userId) {
-      console.log('🚀 ~ initKeys ~ userId:', userId);
       return;
     }
     const storedPublicKey = await AsyncStorage.getItem('publicKey');
     const storedPrivateKey = await AsyncStorage.getItem('privateKey');
 
     if (storedPublicKey && storedPrivateKey) {
-      console.log(
-        '🚀 ~ initKeys ~ storedPublicKey, storedPrivateKey:',
-        storedPublicKey,
-        storedPrivateKey,
-      );
       return;
     }
 
@@ -64,11 +58,9 @@ async function initKeys() {
       validateStatus: () => true,
     });
     if (response.status === 200) {
-      console.log('🚀 ~ initKeys ~ response.data:', response.data);
       const encryptedPrivateKey = JSON.parse(
         response?.data?.encryptedPrivateKey,
       );
-      console.log('🚀 ~ initKeys ~ encryptedPrivateKey:', encryptedPrivateKey);
 
       const {iv: ivHex, cipherText: encryptedPrivateKeyHex} =
         encryptedPrivateKey;
@@ -79,10 +71,6 @@ async function initKeys() {
         passphraseIvHex,
         userId,
       );
-      console.log(
-        '🚀 ~ initKeys ~ passphraseFromServer:',
-        passphraseFromServer,
-      );
       await savePassphraseToAsyncStorage(passphraseFromServer);
 
       const decryptedPrivateKey = await decryptPrivateKey(
@@ -90,7 +78,6 @@ async function initKeys() {
         ivHex,
         passphraseFromServer,
       );
-      console.log('🚀 ~ initKeys ~ decryptedPrivateKey:', decryptedPrivateKey);
       await savePublicKeyToAsyncStorage(response?.data?.publicKey);
       await savePrivateKeyToAsyncStorage(decryptedPrivateKey);
       return;
@@ -105,13 +92,11 @@ async function initKeys() {
       passphrase,
     );
 
-    console.log('🚀 ~ initKeys ~ userId:', userId);
     const uploadKeyResponse = await api.post('/api/chat/upload-key', {
       userId,
       publicKey: publicKeyB64,
       privateKey: JSON.stringify(encryptedPrivateKey),
     });
-    console.log('🚀 ~ initKeys ~ uploadKeyResponse:', uploadKeyResponse);
     if (uploadKeyResponse.status === 200) {
       await savePublicKeyToAsyncStorage(publicKeyB64);
       await savePrivateKeyToAsyncStorage(privateKeyB64);

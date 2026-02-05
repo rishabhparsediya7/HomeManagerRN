@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, {useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -12,22 +12,22 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useAuth } from '../../providers/AuthProvider';
+import {useAuth} from '../../providers/AuthProvider';
 import Icons from '../../components/icons';
-import { googleSignIn } from '../../screens/signin/googleSigninUtil';
-import { useTheme } from '../../providers/ThemeContext';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { commonStyles } from '../../utils/styles';
+import {googleSignIn} from '../../screens/signin/googleSigninUtil';
+import {useTheme} from '../../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {commonStyles} from '../../utils/styles';
 import LinearGradient from 'react-native-linear-gradient';
 
-const SignUpScreen = ({ navigation }) => {
-  const { signupWithPassword, signInWithGoogle } = useAuth();
+const SignUpScreen = ({navigation}) => {
+  const {signupWithPassword, signInWithGoogle} = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [secureText, setSecureText] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const [signUpForm, setSignUpForm] = useState({
@@ -52,7 +52,7 @@ const SignUpScreen = ({ navigation }) => {
       passwordError: '',
       confirmPasswordError: '',
     });
-    const { firstName, lastName, email, password, confirmPassword } = signUpForm;
+    const {firstName, lastName, email, password, confirmPassword} = signUpForm;
     if (!firstName) {
       setSignUpForm({
         ...signUpForm,
@@ -139,9 +139,8 @@ const SignUpScreen = ({ navigation }) => {
         first_name: firstName,
         last_name: lastName,
       });
-      console.log(result);
       if (result.success) {
-        navigation.navigate('OTPVerification', { email });
+        navigation.navigate('OTPVerification', {email});
       } else {
         setError(result.message);
       }
@@ -155,157 +154,167 @@ const SignUpScreen = ({ navigation }) => {
   const handleGoogleSignup = async () => {
     try {
       setGoogleLoading(true);
-      const { success, userInfo } = await googleSignIn();
+      const {success, userInfo} = await googleSignIn();
       if (success) {
-        console.log("🚀 ~ handleGoogleSignup ~ success:", success)
-        await signInWithGoogle({ idToken: userInfo?.data?.idToken || '' });
-        console.log('User signed in successfully:', userInfo);
+        await signInWithGoogle({idToken: userInfo?.data?.idToken || ''});
       } else {
         console.log('Failed to sign in:', userInfo);
       }
     } catch (error) {
       console.log('Error signing in:', error);
-      setError(error instanceof Error ? error.message : 'Failed to sign in with Google');
-    }
-    finally {
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to sign in with Google',
+      );
+    } finally {
       setGoogleLoading(false);
     }
   };
 
-  const styles = useMemo(() => StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },  
-    scrollContainer: {
-      padding: 24,
-      flexGrow: 1,
-      justifyContent: 'center',
-      paddingTop: Platform.OS === 'ios' ? 20 : 24,
-    },
-    title: {
-      ...commonStyles.textExtraBold,
-      color: colors.text,
-      marginBottom: 8,
-      fontSize: 32,
-    },
-    subtitle: {
-      ...commonStyles.textMedium,
-      color: colors.text,
-      marginBottom: 24,
-    },
-    label: {
-      marginBottom: 6,
-      color: colors.text,
-      ...commonStyles.textMedium,
-      fontSize: 16,
-    },
-    input: {
-      backgroundColor: colors.inputBackground,
-      padding: 14,
-      borderRadius: 10,
-      marginBottom: 18,
-      fontSize: 14,
-      ...commonStyles.textMedium,
-      color: colors.inputText,
-    },
-    passwordContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.inputBackground,
-      paddingHorizontal: 14,
-      borderRadius: 10,
-      marginBottom: 18,
-      fontSize: 14,
-      ...commonStyles.textMedium,
-      color: colors.inputText,
-    },
-    inputInner: {
-      flex: 1,
-      paddingVertical: 14,
-      fontSize: 14,
-      ...commonStyles.textMedium,
-    },
-    signUpButton: {
-      backgroundColor: colors.buttonBackground,
-      paddingVertical: 16,
-      borderRadius: 12,
-      alignItems: 'center',
-      marginTop: 8,
-      marginBottom: 20,
-    },
-    signUpText: {
-      color: colors.buttonText,
-      ...commonStyles.textMedium,
-      fontSize: 16,
-    },
-    orContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    line: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.mutedText,
-    },
-    orText: {
-      marginHorizontal: 10,
-      color: colors.mutedText,
-    },
-    dividerContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    divider: { flex: 1, height: 1 },
-    or: { marginHorizontal: 12, color: colors.mutedText, ...commonStyles.textMedium, fontSize: 16 },
-    socialContainer: {
-      flexDirection: 'row',
-      marginBottom: 32,
-      gap: 16,
-    },
-    socialButton: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 8,
-      backgroundColor: colors.inputBackground,
-      borderColor: colors.border,
-      borderWidth: 1,
-      padding: 16,
-      borderRadius: 10,
-      width: '30%',
-      flex: 1,
-    },
-    socialButtonText: {
-      color: colors.text,
-      ...commonStyles.textMedium,
-      fontSize: 16,
-    },
-    signInText: {
-      textAlign: 'center',
-      color: colors.mutedText,
-      ...commonStyles.textMedium,
-      fontSize: 16,
-    },
-    error: {
-      color: colors.error,
-      marginBottom: 16,
-      ...commonStyles.textMedium,
-      fontSize: 16,
-    },
-    signInLink: {
-      color: colors.buttonText,
-      ...commonStyles.textMedium,
-      fontSize: 16,
-    },
-  }), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safeArea: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        scrollContainer: {
+          padding: 24,
+          flexGrow: 1,
+          justifyContent: 'center',
+          paddingTop: Platform.OS === 'ios' ? 20 : 24,
+        },
+        title: {
+          ...commonStyles.textExtraBold,
+          color: colors.text,
+          marginBottom: 8,
+          fontSize: 32,
+        },
+        subtitle: {
+          ...commonStyles.textMedium,
+          color: colors.text,
+          marginBottom: 24,
+        },
+        label: {
+          marginBottom: 6,
+          color: colors.text,
+          ...commonStyles.textMedium,
+          fontSize: 16,
+        },
+        input: {
+          backgroundColor: colors.inputBackground,
+          padding: 14,
+          borderRadius: 10,
+          marginBottom: 18,
+          fontSize: 14,
+          ...commonStyles.textMedium,
+          color: colors.inputText,
+        },
+        passwordContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.inputBackground,
+          paddingHorizontal: 14,
+          borderRadius: 10,
+          marginBottom: 18,
+          fontSize: 14,
+          ...commonStyles.textMedium,
+          color: colors.inputText,
+        },
+        inputInner: {
+          flex: 1,
+          paddingVertical: 14,
+          fontSize: 14,
+          ...commonStyles.textMedium,
+        },
+        signUpButton: {
+          backgroundColor: colors.buttonBackground,
+          paddingVertical: 16,
+          borderRadius: 12,
+          alignItems: 'center',
+          marginTop: 8,
+          marginBottom: 20,
+        },
+        signUpText: {
+          color: colors.buttonText,
+          ...commonStyles.textMedium,
+          fontSize: 16,
+        },
+        orContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: 16,
+        },
+        line: {
+          flex: 1,
+          height: 1,
+          backgroundColor: colors.mutedText,
+        },
+        orText: {
+          marginHorizontal: 10,
+          color: colors.mutedText,
+        },
+        dividerContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: 16,
+        },
+        divider: {flex: 1, height: 1},
+        or: {
+          marginHorizontal: 12,
+          color: colors.mutedText,
+          ...commonStyles.textMedium,
+          fontSize: 16,
+        },
+        socialContainer: {
+          flexDirection: 'row',
+          marginBottom: 32,
+          gap: 16,
+        },
+        socialButton: {
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 8,
+          backgroundColor: colors.inputBackground,
+          borderColor: colors.border,
+          borderWidth: 1,
+          padding: 16,
+          borderRadius: 10,
+          width: '30%',
+          flex: 1,
+        },
+        socialButtonText: {
+          color: colors.text,
+          ...commonStyles.textMedium,
+          fontSize: 16,
+        },
+        signInText: {
+          textAlign: 'center',
+          color: colors.mutedText,
+          ...commonStyles.textMedium,
+          fontSize: 16,
+        },
+        error: {
+          color: colors.error,
+          marginBottom: 16,
+          ...commonStyles.textMedium,
+          fontSize: 16,
+        },
+        signInLink: {
+          color: colors.buttonText,
+          ...commonStyles.textMedium,
+          fontSize: 16,
+        },
+      }),
+    [theme],
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
         <ScrollView
@@ -324,7 +333,7 @@ const SignUpScreen = ({ navigation }) => {
             value={signUpForm.firstName}
             placeholderTextColor={colors.inputText}
             onChangeText={text =>
-              setSignUpForm({ ...signUpForm, firstName: text })
+              setSignUpForm({...signUpForm, firstName: text})
             }
           />
           {signUpForm.firstNameError && (
@@ -338,7 +347,7 @@ const SignUpScreen = ({ navigation }) => {
             value={signUpForm.lastName}
             placeholderTextColor={colors.inputText}
             onChangeText={text =>
-              setSignUpForm({ ...signUpForm, lastName: text })
+              setSignUpForm({...signUpForm, lastName: text})
             }
           />
           {signUpForm.lastNameError && (
@@ -351,7 +360,7 @@ const SignUpScreen = ({ navigation }) => {
             placeholder="Enter your email"
             value={signUpForm.email}
             placeholderTextColor={colors.inputText}
-            onChangeText={text => setSignUpForm({ ...signUpForm, email: text })}
+            onChangeText={text => setSignUpForm({...signUpForm, email: text})}
             keyboardType="email-address"
           />
           {signUpForm.emailError && (
@@ -367,7 +376,7 @@ const SignUpScreen = ({ navigation }) => {
               secureTextEntry={secureText}
               value={signUpForm.password}
               onChangeText={text =>
-                setSignUpForm({ ...signUpForm, password: text })
+                setSignUpForm({...signUpForm, password: text})
               }
             />
             <TouchableOpacity onPress={() => setSecureText(!secureText)}>
@@ -391,7 +400,7 @@ const SignUpScreen = ({ navigation }) => {
               secureTextEntry={secureText}
               value={signUpForm.confirmPassword}
               onChangeText={text =>
-                setSignUpForm({ ...signUpForm, confirmPassword: text })
+                setSignUpForm({...signUpForm, confirmPassword: text})
               }
             />
             <TouchableOpacity onPress={() => setSecureText(!secureText)}>
@@ -418,8 +427,8 @@ const SignUpScreen = ({ navigation }) => {
 
           <View style={styles.dividerContainer}>
             <LinearGradient
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
               colors={['transparent', colors.borderLight]}
               style={styles.divider}
             />
@@ -427,15 +436,17 @@ const SignUpScreen = ({ navigation }) => {
             <Text style={styles.or}>or</Text>
 
             <LinearGradient
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 0}}
               colors={[colors.borderLight, 'transparent']}
               style={styles.divider}
             />
           </View>
 
           <View style={styles.socialContainer}>
-            <TouchableOpacity onPress={handleGoogleSignup} style={styles.socialButton}>
+            <TouchableOpacity
+              onPress={handleGoogleSignup}
+              style={styles.socialButton}>
               <Icons.GoogleIcon width={24} height={24} color="black" />
               <Text style={styles.socialButtonText}>Continue with Google</Text>
             </TouchableOpacity>
@@ -452,7 +463,5 @@ const SignUpScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-
 
 export default SignUpScreen;

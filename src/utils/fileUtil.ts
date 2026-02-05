@@ -9,13 +9,10 @@ export const downloadAndSharePdf = async (
 ) => {
   try {
     // 1. Fetch the file and save it to a temporary cache directory
-    console.log('Starting fetch...');
     const resp = await ReactNativeBlobUtil.config({
       fileCache: true, // important for getting the file path
       path: `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${suggestedFileName}`,
     }).fetch('GET', fileUrl);
-
-    console.log('File saved temporarily to:', resp.path());
 
     const filePath = resp.path();
     const shareableFilePath =
@@ -49,7 +46,7 @@ export const generateAndShareExpenseReport = async (filterQuery: string) => {
     const tempFilePath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${suggestedFileName}`;
     const token = await AsyncStorage.getItem('token');
 
-    if(!token){
+    if (!token) {
       throw new Error('Token not found');
     }
     const resp: FetchBlobResponse = await ReactNativeBlobUtil.config({
@@ -70,12 +67,10 @@ export const generateAndShareExpenseReport = async (filterQuery: string) => {
 
     console.log('[PDF] Triggering Share dialog with URI:', shareableFilePath);
 
-
     await Share.share({
       title: 'Export Expense Report',
       url: shareableFilePath,
     });
-
   } catch (error) {
     console.error('Error during report generation:', error);
     Alert.alert(

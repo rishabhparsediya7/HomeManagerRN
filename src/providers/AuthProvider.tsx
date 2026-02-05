@@ -138,7 +138,6 @@ export default function AuthProvider({children}: PropsWithChildren) {
         },
       });
       const result = await response.json();
-      console.log('🚀 ~ AuthProvider ~ result:', result);
       if (result.success) {
         await Promise.all([
           AsyncStorage.setItem('userId', result.userId),
@@ -263,7 +262,6 @@ export default function AuthProvider({children}: PropsWithChildren) {
       throw error;
     } finally {
       setLoading(false);
-      console.log('🚀 ~ signInWithGoogle ~ loading:', loading);
     }
   };
 

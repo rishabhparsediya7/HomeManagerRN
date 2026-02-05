@@ -27,7 +27,6 @@ import {DeviceInfo, getDeviceInfo} from '../../utils/deviceInfo';
 import useAuthorizeNavigation from '../../navigators/authorizeStack';
 const Profile = ({navigation}: {navigation: any}) => {
   const {signOut, user} = useAuth();
-  console.log('🚀 ~ Profile ~ user:', user);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -111,7 +110,6 @@ const Profile = ({navigation}: {navigation: any}) => {
     setLoading(true);
     try {
       const response = await api.get('/api/users/me');
-      console.log(response.data);
       setEmail(response.data.user.email);
       setName(response.data.user.name);
       setProfilePicture(response.data.user.profilePicture);

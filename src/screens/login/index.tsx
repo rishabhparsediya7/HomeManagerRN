@@ -57,7 +57,6 @@ const Login = () => {
         first_name: firstName,
         last_name: lastName,
       });
-      console.log('🚀 ~ handleSignUp ~ result:', result);
       if (result.success) {
         await AsyncStorage.setItem('token', result.token);
         signIn();
@@ -81,7 +80,6 @@ const Login = () => {
         },
       );
       const result = await response.json();
-      console.log('OTP sent result:', result);
       setOtpSent(true);
     } catch (error) {
       console.log('OTP send error:', error);
@@ -97,7 +95,6 @@ const Login = () => {
     }
     try {
       const result = await signInWithPassword({email, password});
-      console.log('🚀 ~ handleSignIn ~ result:', result);
       // if (result.success) {
       //   await AsyncStorage.setItem('token', result.token);
       signIn();
