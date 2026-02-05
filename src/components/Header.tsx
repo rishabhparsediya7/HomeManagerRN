@@ -15,8 +15,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../providers/AuthProvider';
 import {useTheme} from '../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../providers/Theme';
-import { useMemo } from 'react';
-import { commonStyles } from '../utils/styles';
+import {useMemo} from 'react';
+import {commonStyles} from '../utils/styles';
 
 interface HeaderProps {
   title?: string;
@@ -30,6 +30,8 @@ interface HeaderProps {
   onCrossPress?: () => void;
   headerStyle?: StyleProp<ViewStyle>;
   headerTitleStyle?: StyleProp<TextStyle>;
+  showBack?: boolean;
+  rightComponent?: React.ReactNode;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -44,64 +46,70 @@ const Header: React.FC<HeaderProps> = ({
   onCrossPress,
   headerStyle,
   headerTitleStyle,
+  showBack,
+  rightComponent,
 }) => {
   const {user} = useAuth();
   const {photoUrl} = user;
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
-  const styles = useMemo(() => StyleSheet.create({
-    titleBackButtonContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 8,
-      flexDirection: 'row',
-    },
-    container: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: colors.background,
-      height: 72,
-      paddingHorizontal:4,
-      marginTop: StatusBar.currentHeight,
-      ...Platform.select({
-        ios: {
-          shadowColor: colors.shadowColor,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 1,
-          shadowRadius: 2,
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        titleBackButtonContainer: {
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 8,
+          flexDirection: 'row',
         },
-        android: {
-          elevation: 2,
+        container: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: colors.background,
+          height: 72,
+          paddingHorizontal: 4,
+          marginTop: StatusBar.currentHeight,
+          ...Platform.select({
+            ios: {
+              shadowColor: colors.shadowColor,
+              shadowOffset: {width: 0, height: 2},
+              shadowOpacity: 1,
+              shadowRadius: 2,
+            },
+            android: {
+              elevation: 2,
+            },
+          }),
+        },
+        backButton: {
+          padding: 8,
+        },
+        titleContainer: {
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        title: {
+          fontSize: 32,
+          ...commonStyles.textExtraBold,
+          color: colors.buttonText,
+        },
+        iconContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          paddingHorizontal: 12,
+        },
+        image: {
+          width: 32,
+          height: 32,
+          borderRadius: 16,
         },
       }),
-    },
-    backButton: {
-      padding: 8,
-    },
-    titleContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    title: {
-      fontSize: 32,
-      ...commonStyles.textExtraBold,
-      color: colors.buttonText,
-    },
-    iconContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      paddingHorizontal: 12,
-    },
-    image: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-    },
-  }), [theme]);
-  
+    [theme],
+  );
+
   return (
     <View style={[styles.container, headerStyle]}>
       <View style={styles.titleBackButtonContainer}>
@@ -112,11 +120,14 @@ const Header: React.FC<HeaderProps> = ({
         )}
 
         <View style={styles.titleContainer}>
-          {title && <Text style={[styles.title, headerTitleStyle]}>{title}</Text>}
+          {title && (
+            <Text style={[styles.title, headerTitleStyle]}>{title}</Text>
+          )}
         </View>
       </View>
 
       <View style={styles.iconContainer}>
+        {rightComponent}
         {showNotification && (
           <TouchableOpacity onPress={onNotificationPress}>
             <Icon name="notifications" size={24} color={colors.buttonText} />
@@ -134,6 +145,5 @@ const Header: React.FC<HeaderProps> = ({
     </View>
   );
 };
-
 
 export default Header;
