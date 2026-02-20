@@ -55,16 +55,24 @@
 	<false/>
 	<key>UIAppFonts</key>
 	<array>
-		<string>NataSans.ttf</string>
-		<string>NataSans-Black.ttf</string>
-		<string>NataSans-Bold.ttf</string>
-		<string>NataSans-ExtraBold.ttf</string>
-		<string>NataSans-ExtraLight.ttf</string>
-		<string>NataSans-Light.ttf</string>
-		<string>NataSans-Medium.ttf</string>
-		<string>NataSans-Regular.ttf</string>
-		<string>NataSans-SemiBold.ttf</string>
-		<string>NataSans-Thin.ttf</string>
+		<string>Inter_18pt-ExtraBoldItalic.ttf</string>
+		<string>Inter_18pt-LightItalic.ttf</string>
+		<string>Inter_18pt-ExtraLight.ttf</string>
+		<string>Inter_18pt-ThinItalic.ttf</string>
+		<string>Inter_18pt-ExtraBold.ttf</string>
+		<string>Inter_18pt-BoldItalic.ttf</string>
+		<string>Inter_18pt-Thin.ttf</string>
+		<string>Inter_18pt-BlackItalic.ttf</string>
+		<string>Inter_18pt-Bold.ttf</string>
+		<string>Inter_18pt-ExtraLightItalic.ttf</string>
+		<string>Inter_18pt-Medium.ttf</string>
+		<string>Inter_18pt-Black.ttf</string>
+		<string>Inter_18pt-MediumItalic.ttf</string>
+		<string>Inter_18pt-Light.ttf</string>
+		<string>Inter_18pt-Italic.ttf</string>
+		<string>Inter_18pt-SemiBoldItalic.ttf</string>
+		<string>Inter_18pt-SemiBold.ttf</string>
+		<string>Inter_18pt-Regular.ttf</string>
 	</array>
 </dict>
 </plist>
