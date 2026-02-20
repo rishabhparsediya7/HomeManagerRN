@@ -1,22 +1,21 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
 } from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
-import {useTheme} from '../../providers/ThemeContext';
-import {lightTheme} from '../../providers/Theme';
-import {commonStyles} from '../../utils/styles';
-import splitExpenseApi, {SplitExpense} from '../../services/splitExpenseApi';
 import RupeeIcon from '../../components/rupeeIcon';
 import {useAuth} from '../../providers/AuthProvider';
+import {lightTheme} from '../../providers/Theme';
+import splitExpenseApi, {SplitExpense} from '../../services/splitExpenseApi';
+import {commonStyles} from '../../utils/styles';
 
 type FilterType = 'all' | 'youOwe' | 'owedToYou' | 'settled';
 

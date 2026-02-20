@@ -8,16 +8,15 @@ import {
   Text,
   View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Octicons';
 import ExpenseCard from '../../components/expenseCard';
 import FilterButton from '../../components/filterButton';
 import Header from '../../components/Header';
-import api from '../../services/api';
 import RupeeIcon from '../../components/rupeeIcon';
-import Icon from 'react-native-vector-icons/Octicons';
-import {useTheme} from '../../providers/ThemeContext';
 import {lightTheme} from '../../providers/Theme';
+import api from '../../services/api';
 import {commonStyles} from '../../utils/styles';
-import LinearGradient from 'react-native-linear-gradient';
 
 const filterOptions = ['All', 'Today', 'Week', 'Month'];
 
