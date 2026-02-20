@@ -1,26 +1,25 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  StyleSheet,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {useAuthorizeNavigation} from '../../navigators/navigators';
-import {useAuth} from '../../providers/AuthProvider';
-import {signInWithGitHub} from './githubSigninUtil';
-import {googleSignIn} from './googleSigninUtil';
-import Icons from '../../components/icons';
-import {commonStyles} from '../../utils/styles';
-import {useTheme} from '../../providers/ThemeContext';
-import {darkTheme, lightTheme} from '../../providers/Theme';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
+import Icon from 'react-native-vector-icons/Ionicons';
+import Icons from '../../components/icons';
+import Button from '../../components/Button';
+import {useAuthorizeNavigation} from '../../navigators/navigators';
+import {useAuth} from '../../providers/AuthProvider';
+import {lightTheme} from '../../providers/Theme';
+import {commonStyles} from '../../utils/styles';
+import {signInWithGitHub} from './githubSigninUtil';
+import {googleSignIn} from './googleSigninUtil';
 
 const SignInScreen = ({navigation}) => {
   const {signInWithGoogle} = useAuth();
@@ -37,8 +36,7 @@ const SignInScreen = ({navigation}) => {
   const {signInWithPassword} = useAuth();
   const authNavigation = useAuthorizeNavigation();
 
-  const {theme} = useTheme();
-  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const colors = lightTheme;
 
   const handleSignIn = async () => {
     if (!signInForm.email || !signInForm.password) {
@@ -139,46 +137,13 @@ const SignInScreen = ({navigation}) => {
           ...commonStyles.textMedium,
         },
         scrollContainer: {padding: 24, justifyContent: 'center', flexGrow: 1},
-        googleButton: {
-          flexDirection: 'row',
-          borderWidth: 1,
-          borderColor: colors.border,
-          backgroundColor: colors.inputBackground,
-          padding: 14,
-          borderRadius: 10,
-          alignItems: 'center',
-          marginBottom: 20,
-          justifyContent: 'center',
-        },
-        githubButton: {
-          flexDirection: 'row',
-          borderWidth: 1,
-          borderColor: colors.border,
-          backgroundColor: colors.inputBackground,
-          borderRadius: 10,
-          alignItems: 'center',
-          marginBottom: 20,
-          justifyContent: 'center',
-        },
-        googleText: {
-          fontSize: 16,
-          color: colors.buttonText,
-          ...commonStyles.textMedium,
-        },
         googleIcon: {
           marginRight: 10,
-          ...commonStyles.textMedium,
           color: colors.buttonText,
-        },
-        githubText: {
-          fontSize: 16,
-          color: colors.buttonText,
-          ...commonStyles.textMedium,
         },
         githubIcon: {
           marginRight: 10,
-          ...commonStyles.textMedium,
-          color: colors.buttonText,
+          color: colors.text,
         },
         dividerContainer: {
           flexDirection: 'row',
@@ -205,24 +170,11 @@ const SignInScreen = ({navigation}) => {
           paddingHorizontal: 14,
           borderRadius: 10,
           marginBottom: 20,
-          color: colors.inputText,
         },
         inputInner: {
           flex: 1,
           paddingVertical: 14,
           color: colors.inputText,
-        },
-        continueBtn: {
-          backgroundColor: colors.buttonBackground,
-          padding: 14,
-          borderRadius: 10,
-          alignItems: 'center',
-          marginBottom: 20,
-        },
-        continueText: {
-          color: colors.buttonText,
-          ...commonStyles.textMedium,
-          fontSize: 16,
         },
         terms: {
           fontSize: 14,
@@ -232,7 +184,8 @@ const SignInScreen = ({navigation}) => {
           ...commonStyles.textMedium,
         },
         link: {
-          color: colors.buttonText,
+          color: colors.mutedText,
+          fontWeight: 'bold',
           ...commonStyles.textMedium,
           fontSize: 14,
         },
@@ -243,8 +196,18 @@ const SignInScreen = ({navigation}) => {
           fontSize: 14,
         },
         error: {color: 'red', marginBottom: 10},
+        forgotPasswordBtn: {
+          alignSelf: 'flex-end',
+          marginBottom: 16,
+          marginTop: -6,
+        },
+        forgotPasswordText: {
+          color: colors.primary,
+          ...commonStyles.textMedium,
+          fontSize: 14,
+        },
       }),
-    [theme],
+    [],
   );
 
   return (
@@ -258,39 +221,36 @@ const SignInScreen = ({navigation}) => {
         <Text style={importedStyles.header}>Welcome Back</Text>
         <Text style={importedStyles.subHeader}>Sign in to continue</Text>
 
-        <TouchableOpacity
+        <Button
+          title="Continue with GitHub"
           onPress={handleGitHubSignIn}
-          style={importedStyles.googleButton}>
-          <Icons.GithubIcon
-            style={importedStyles.githubIcon}
-            width={28}
-            height={28}
-          />
-          <Text style={importedStyles.githubText}>
-            {githubLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              'Continue with GitHub'
-            )}
-          </Text>
-        </TouchableOpacity>
+          loading={githubLoading}
+          variant="outline"
+          icon={
+            <Icons.GithubIcon
+              style={importedStyles.githubIcon}
+              width={28}
+              height={28}
+              color={colors.text}
+            />
+          }
+          style={{marginBottom: 20}}
+        />
 
-        <TouchableOpacity
+        <Button
+          title="Continue with Google"
           onPress={handleGoogleSignIn}
-          style={importedStyles.googleButton}>
-          <Icons.GoogleIcon
-            style={importedStyles.googleIcon}
-            width={24}
-            height={24}
-          />
-          <Text style={importedStyles.googleText}>
-            {googleLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              'Continue with Google'
-            )}
-          </Text>
-        </TouchableOpacity>
+          loading={googleLoading}
+          icon={
+            <Icons.GoogleIcon
+              style={importedStyles.googleIcon}
+              width={24}
+              height={24}
+            />
+          }
+          variant="outline"
+          style={{marginBottom: 20}}
+        />
 
         <View style={importedStyles.dividerContainer}>
           <LinearGradient
@@ -317,7 +277,7 @@ const SignInScreen = ({navigation}) => {
           style={importedStyles.input}
           keyboardType="email-address"
           autoCapitalize="none"
-          placeholderTextColor={colors.inputText}
+          placeholderTextColor={colors.placeholder}
         />
 
         <View style={importedStyles.passwordContainer}>
@@ -329,32 +289,32 @@ const SignInScreen = ({navigation}) => {
             }
             secureTextEntry={secureText}
             style={importedStyles.inputInner}
-            placeholderTextColor={colors.inputText}
+            placeholderTextColor={colors.placeholder}
           />
           <TouchableOpacity onPress={() => setSecureText(!secureText)}>
             <Icon
               name={secureText ? 'eye-off' : 'eye'}
               size={20}
-              color="#999"
+              color={colors.placeholder}
             />
           </TouchableOpacity>
         </View>
-        {error && <Text style={importedStyles.error}>{error}</Text>}
 
         <TouchableOpacity
-          style={importedStyles.continueBtn}
-          onPress={handleSignIn}>
-          <Text style={importedStyles.continueText}>
-            {loading ? (
-              <ActivityIndicator
-                size="small"
-                color={colors.buttonTextSecondary}
-              />
-            ) : (
-              'Sign In'
-            )}
+          onPress={() => (authNavigation as any).navigate('ForgotPassword')}
+          style={importedStyles.forgotPasswordBtn}>
+          <Text style={importedStyles.forgotPasswordText}>
+            Forgot Password?
           </Text>
         </TouchableOpacity>
+        {error && <Text style={importedStyles.error}>{error}</Text>}
+
+        <Button
+          title="Sign In"
+          onPress={handleSignIn}
+          loading={loading}
+          style={{marginBottom: 20}}
+        />
 
         <Text style={importedStyles.terms}>
           By continuing, you agree to our{' '}

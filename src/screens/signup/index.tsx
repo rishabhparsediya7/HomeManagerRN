@@ -1,24 +1,24 @@
 import React, {useMemo, useState} from 'react';
 import {
-  View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-  ActivityIndicator,
+  View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {useAuth} from '../../providers/AuthProvider';
-import Icons from '../../components/icons';
-import {googleSignIn} from '../../screens/signin/googleSigninUtil';
-import {useTheme} from '../../providers/ThemeContext';
-import {darkTheme, lightTheme} from '../../providers/Theme';
-import {commonStyles} from '../../utils/styles';
 import LinearGradient from 'react-native-linear-gradient';
+import Icons from '../../components/icons';
+import Icon from 'react-native-vector-icons/Ionicons';
+import Button from '../../components/Button';
+import {useAuth} from '../../providers/AuthProvider';
+import {lightTheme} from '../../providers/Theme';
+import {googleSignIn} from '../../screens/signin/googleSigninUtil';
+import {commonStyles} from '../../utils/styles';
 
 const SignUpScreen = ({navigation}) => {
   const {signupWithPassword, signInWithGoogle} = useAuth();
@@ -27,8 +27,7 @@ const SignUpScreen = ({navigation}) => {
   const [secureText, setSecureText] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const {theme} = useTheme();
-  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const colors = lightTheme;
 
   const [signUpForm, setSignUpForm] = useState({
     firstName: '',
@@ -308,7 +307,7 @@ const SignUpScreen = ({navigation}) => {
           fontSize: 16,
         },
       }),
-    [theme],
+    [],
   );
 
   return (
@@ -415,15 +414,12 @@ const SignUpScreen = ({navigation}) => {
             <Text style={styles.error}>{signUpForm.confirmPasswordError}</Text>
           )}
 
-          <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-            <Text style={styles.signUpText}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                'Sign Up'
-              )}
-            </Text>
-          </TouchableOpacity>
+          <Button
+            title="Sign Up"
+            onPress={handleSignUp}
+            loading={loading}
+            style={{marginTop: 8, marginBottom: 20}}
+          />
 
           <View style={styles.dividerContainer}>
             <LinearGradient
@@ -444,12 +440,14 @@ const SignUpScreen = ({navigation}) => {
           </View>
 
           <View style={styles.socialContainer}>
-            <TouchableOpacity
+            <Button
+              title="Continue with Google"
               onPress={handleGoogleSignup}
-              style={styles.socialButton}>
-              <Icons.GoogleIcon width={24} height={24} color="black" />
-              <Text style={styles.socialButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
+              loading={googleLoading}
+              variant="outline"
+              icon={<Icons.GoogleIcon width={24} height={24} color="black" />}
+              style={{flex: 1}}
+            />
           </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>

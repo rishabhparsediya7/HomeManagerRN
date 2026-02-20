@@ -1,11 +1,13 @@
-import React, { useEffect } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { StatusBar, Platform } from 'react-native';
-import Login from '../screens/login';
+import React, {useEffect} from 'react';
+import {createStackNavigator} from '@react-navigation/stack';
+import {StatusBar, Platform} from 'react-native';
 import Onboarding from '../screens/onboarding';
 import SignInScreen from '../screens/signin';
 import SignUpScreen from '../screens/signup';
 import OtpVerificationScreen from '../screens/otpVerification';
+import ForgotPassword from '../screens/forgotPassword';
+import ForgotPasswordOTPVerificationScreen from '../screens/forgotPassword/otpVerification';
+import ForgotPasswordResetScreen from '../screens/forgotPassword/resetPassword';
 
 export type UnauthorizeNavigationStackList = {
   Onboarding: undefined;
@@ -15,6 +17,9 @@ export type UnauthorizeNavigationStackList = {
   SignIn: undefined;
   SignUp: undefined;
   OtpVerification: undefined;
+  ForgotPassword: undefined;
+  ForgotPasswordOTPVerification: {email: string};
+  ForgotPasswordReset: {email: string; otp: string};
 };
 
 const UnauthorizeNavigationStack =
@@ -42,9 +47,9 @@ const UnauthorizeNavigation = () => {
     <UnauthorizeNavigationStack.Navigator
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: 'transparent' },
+        cardStyle: {backgroundColor: 'transparent'},
         cardOverlayEnabled: true,
-        cardStyleInterpolator: ({ current: { progress } }) => ({
+        cardStyleInterpolator: ({current: {progress}}) => ({
           cardStyle: {
             opacity: progress.interpolate({
               inputRange: [0, 1],
@@ -76,7 +81,18 @@ const UnauthorizeNavigation = () => {
         name="OTPVerification"
         component={OtpVerificationScreen}
       />
-      <UnauthorizeNavigationStack.Screen name="Login" component={Login} />
+      <UnauthorizeNavigationStack.Screen
+        name="ForgotPassword"
+        component={ForgotPassword}
+      />
+      <UnauthorizeNavigationStack.Screen
+        name="ForgotPasswordOTPVerification"
+        component={ForgotPasswordOTPVerificationScreen}
+      />
+      <UnauthorizeNavigationStack.Screen
+        name="ForgotPasswordReset"
+        component={ForgotPasswordResetScreen}
+      />
     </UnauthorizeNavigationStack.Navigator>
   );
 };
