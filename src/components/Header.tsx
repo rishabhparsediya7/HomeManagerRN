@@ -14,7 +14,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../providers/AuthProvider';
 import {useTheme} from '../providers/ThemeContext';
-import {darkTheme, lightTheme} from '../providers/Theme';
+import {lightTheme} from '../providers/Theme';
 import {useMemo} from 'react';
 import {commonStyles} from '../utils/styles';
 
@@ -51,8 +51,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const {user} = useAuth();
   const {photoUrl} = user;
-  const {theme} = useTheme();
-  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const colors = lightTheme;
 
   const styles = useMemo(
     () =>
@@ -107,7 +106,7 @@ const Header: React.FC<HeaderProps> = ({
           borderRadius: 16,
         },
       }),
-    [theme],
+    [],
   );
 
   return (

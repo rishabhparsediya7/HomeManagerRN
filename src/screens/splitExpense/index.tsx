@@ -12,7 +12,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
 import {useTheme} from '../../providers/ThemeContext';
-import {darkTheme, lightTheme} from '../../providers/Theme';
+import {lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
 import splitExpenseApi, {SplitExpense} from '../../services/splitExpenseApi';
 import RupeeIcon from '../../components/rupeeIcon';
@@ -29,9 +29,8 @@ const filterOptions: {key: FilterType; label: string}[] = [
 
 const SplitExpenseList = () => {
   const navigation = useNavigation<any>();
-  const {theme} = useTheme();
   const {user} = useAuth();
-  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const colors = lightTheme;
 
   const [expenses, setExpenses] = useState<SplitExpense[]>([]);
   const [loading, setLoading] = useState(false);
@@ -109,7 +108,7 @@ const SplitExpenseList = () => {
   };
 
   const renderExpenseCard = ({item}: {item: SplitExpense}) => {
-    const themeColors = theme === 'dark' ? darkTheme : lightTheme;
+    const themeColors = lightTheme;
     const {amount, type} = getAmountDisplay(item);
     const amountColor =
       type === 'positive'
@@ -237,6 +236,7 @@ const SplitExpenseList = () => {
       <Header
         title="Split Expenses"
         showBackButton
+        onBackPress={() => navigation.canGoBack() && navigation.goBack()}
         rightComponent={
           <TouchableOpacity
             style={[localStyles.balanceButton, dynamicStyles.balanceButton]}

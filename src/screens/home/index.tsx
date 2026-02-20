@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
-  Button,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,12 +15,12 @@ import RupeeIcon from '../../components/rupeeIcon';
 import {category} from '../../constants';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
 import {useAuth} from '../../providers/AuthProvider';
-import {darkTheme, lightTheme} from '../../providers/Theme';
+import {lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
 import {getMonthStartAndEndDates} from '../../utils/dates';
-import {commonStyles} from '../../utils/styles';
 import {downloadAndSharePdf} from '../../utils/fileUtil';
+import {commonStyles} from '../../utils/styles';
 
 export interface ExpenseDataProps {
   amount: string;
@@ -85,7 +84,7 @@ const Home = () => {
   const {user} = useAuth();
   const navigation = useAuthorizeNavigation();
 
-  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const colors = lightTheme;
 
   const [monthSummary, setMonthSummary] = useState<{
     totalExpenses: number;
@@ -115,8 +114,12 @@ const Home = () => {
       const categoryData = categoryResponse.data?.data || [];
       setRecentExpenses(data);
       setMonthSummary({
-        totalExpenses: Number(response.data?.data?.financeSummary?.amountSpent || 0),
-        totalIncome: Number(response.data?.data?.financeSummary?.totalIncome || 0),
+        totalExpenses: Number(
+          response.data?.data?.financeSummary?.amountSpent || 0,
+        ),
+        totalIncome: Number(
+          response.data?.data?.financeSummary?.totalIncome || 0,
+        ),
         totalBudget: Number(response.data?.data?.financeSummary?.budget || 0),
       });
       const updatedChartData = mapExpenseDataToChart(chartData);
@@ -152,14 +155,6 @@ const Home = () => {
     };
     getHomeData();
   }, [fetchHomeData]);
-
-  const bannerGradient = useMemo(
-    () =>
-      theme === 'dark'
-        ? [colors.tabBarBackground, colors.primary]
-        : [colors.primary, colors.buttonTextSecondary],
-    [theme],
-  );
 
   const styles = StyleSheet.create({
     container: {
@@ -323,7 +318,7 @@ const Home = () => {
       alignItems: 'flex-start',
       paddingLeft: 20,
       paddingRight: 20,
-      borderRadius: 14,
+      borderRadius: 24, // Updated rounded corners
       padding: 16,
       marginVertical: 20,
       gap: 10,
@@ -338,7 +333,7 @@ const Home = () => {
     },
     whiteText: {
       ...commonStyles.textDefault,
-      color: colors.buttonText,
+      color: '#FFFFFF', // Fixing to white because of dark gradient
     },
     shadow: {
       shadowColor: colors.shadowColor,
@@ -393,14 +388,14 @@ const Home = () => {
           <LinearGradient
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
-            colors={bannerGradient}
+            colors={['#34D399', '#10B981', '#06B6D4', '#22C55E']}
             style={styles.linearGradient}>
             <Text style={[styles.budgetLabel, styles.whiteText]}>
               This Month's Budget
             </Text>
             <RupeeIcon
               amount={Number(user?.budget || monthSummary.totalBudget)}
-              color={colors.buttonText}
+              color={colors.buttonTextPrimary}
               size={36}
               textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
             />
@@ -408,7 +403,7 @@ const Home = () => {
               <View>
                 <RupeeIcon
                   amount={Number(user?.income || monthSummary.totalIncome)}
-                  color={colors.buttonText}
+                  color={colors.buttonTextPrimary}
                   textStyle={styles.whiteText}
                 />
                 <Text style={[styles.caption, styles.whiteText]}>Income</Text>
@@ -416,7 +411,7 @@ const Home = () => {
               <View>
                 <RupeeIcon
                   amount={Number(monthSummary.totalExpenses)}
-                  color={colors.buttonText}
+                  color={colors.buttonTextPrimary}
                   textStyle={styles.whiteText}
                 />
                 <Text
@@ -558,8 +553,7 @@ const ActionButton = ({
   icon: string;
   onPress: () => void;
 }) => {
-  const {theme} = useTheme();
-  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const colors = lightTheme;
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -577,7 +571,7 @@ const ActionButton = ({
           color: colors.buttonText,
         },
       }),
-    [theme],
+    [],
   );
   return (
     <TouchableOpacity style={styles.actionButton} onPress={onPress}>

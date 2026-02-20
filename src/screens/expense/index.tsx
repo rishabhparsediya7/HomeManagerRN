@@ -15,7 +15,7 @@ import api from '../../services/api';
 import RupeeIcon from '../../components/rupeeIcon';
 import Icon from 'react-native-vector-icons/Octicons';
 import {useTheme} from '../../providers/ThemeContext';
-import {darkTheme, lightTheme} from '../../providers/Theme';
+import {lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -61,7 +61,7 @@ const ListHeaderComponent = ({
       <LinearGradient
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
-        colors={[colors.tabBarBackground, colors.primary]}
+        colors={['#34D399', '#10B981', '#06B6D4', '#22C55E']}
         style={styles.summaryCard}>
         <View>
           <Text style={styles.totalAmount}>
@@ -126,8 +126,7 @@ const Expense = () => {
   const [loading, setLoading] = useState(false);
   const [totalExpense, setTotalExpense] = useState(0);
   const [expenseChange, setExpenseChange] = useState('');
-  const {theme} = useTheme();
-  const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const colors = lightTheme;
 
   const getExpenses = async () => {
     setLoading(true);

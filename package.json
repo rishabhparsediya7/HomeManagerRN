@@ -9,8 +9,8 @@
     "android-prod": "ENVIRONMENT=production react-native run-android --port 8081",
     "ios-prod": "ENVIRONMENT=production react-native run-ios",
     "lint": "eslint .",
-    "start": "ENVIRONMENT=development react-native start",
-    "start:prod": "ENVIRONMENT=production react-native start",
+    "start": "ENVIRONMENT=development react-native start --reset-cache",
+    "start:prod": "ENVIRONMENT=production react-native start --reset-cache",
     "test": "jest"
   },
   "dependencies": {

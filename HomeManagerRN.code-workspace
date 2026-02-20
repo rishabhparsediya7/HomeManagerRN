@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../expensemanager_psql"
+		},
+		{
+			"path": "../../../../Downloads/Inter"
 		}
 	],
 	"settings": {}
