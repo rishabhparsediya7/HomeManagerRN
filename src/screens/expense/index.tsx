@@ -1,14 +1,9 @@
 // screens/ExpensesScreen.js
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {ActivityIndicator, FlatList, StyleSheet, View} from 'react-native';
+import AppGradient from '../../components/common/AppGradient';
+import AppText from '../../components/common/AppText';
 import Icon from 'react-native-vector-icons/Octicons';
 import ExpenseCard from '../../components/expenseCard';
 import FilterButton from '../../components/filterButton';
@@ -57,25 +52,24 @@ const ListHeaderComponent = ({
 }) => {
   return (
     <>
-      <LinearGradient
+      <AppGradient
         start={{x: 0, y: 0}}
         end={{x: 1, y: 0}}
-        colors={['#34D399', '#10B981', '#06B6D4', '#22C55E']}
         style={styles.summaryCard}>
-        <View>
-          <Text style={styles.totalAmount}>
+        <View style={styles.summaryContent}>
+          <View style={styles.totalAmount}>
             <RupeeIcon
               amount={totalExpense}
               size={28}
               textStyle={{color: 'white', fontSize: 28}}
               color="white"
             />
-          </Text>
-          <Text
-            style={[
-              styles.summaryMonth,
-              {fontSize: 18, marginTop: 8, fontWeight: '600'},
-            ]}>
+          </View>
+          <AppText
+            variant="h5"
+            weight="semiBold"
+            color="white"
+            style={{marginTop: 8}}>
             {selectedFilter === 'All'
               ? 'All '
               : selectedFilter === 'Today'
@@ -84,9 +78,9 @@ const ListHeaderComponent = ({
               ? "Week's "
               : "Month's "}
             Expenses
-          </Text>
+          </AppText>
           <View style={styles.summaryNote}>
-            <Text style={{color: 'white'}}>{expenseChange}</Text>
+            <AppText color="white">{expenseChange}</AppText>
             <Icon
               name={expenseChange.includes('less') ? 'arrow-down' : 'arrow-up'}
               size={18}
@@ -94,7 +88,7 @@ const ListHeaderComponent = ({
             />
           </View>
         </View>
-      </LinearGradient>
+      </AppGradient>
 
       <View style={styles.filters}>
         {filterOptions.map(option => (
@@ -163,73 +157,81 @@ const Expense = () => {
     getExpenses();
   }, [selectedFilter]);
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    header: {
-      fontSize: 22,
-      color: colors.text,
-      ...commonStyles.textDefault,
-      marginLeft: 20,
-      marginBottom: 10,
-    },
-    summaryCard: {
-      backgroundColor: colors.primary,
-      marginHorizontal: 20,
-      borderRadius: 12,
-      padding: 20,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    totalAmount: {
-      color: colors.text,
-      fontSize: 24,
-      fontWeight: 'bold',
-    },
-    summaryNote: {
-      color: colors.text,
-      marginTop: 4,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-    },
-    summaryMonth: {
-      color: colors.text,
-      fontSize: 14,
-      ...commonStyles.textDefault,
-      alignSelf: 'flex-start',
-    },
-    filters: {
-      flexDirection: 'row',
-      gap: 8,
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-    },
-    addButton: {
-      position: 'absolute',
-      backgroundColor: colors.primary,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 16,
-      borderRadius: 12,
-      bottom: 80,
-      left: 20,
-      right: 20,
-    },
-    addButtonText: {
-      color: colors.text,
-      marginLeft: 8,
-      ...commonStyles.textDefault,
-      fontSize: 16,
-    },
-    contentContainerStyle: {
-      paddingBottom: 20,
-      paddingTop: 20,
-    },
-  });
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        header: {
+          marginLeft: 20,
+          marginBottom: 10,
+        },
+        summaryCard: {
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginHorizontal: 12,
+        },
+        totalAmount: {
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: colors.text,
+          fontSize: 24,
+          fontWeight: 'bold',
+        },
+        summaryNote: {
+          color: colors.text,
+          marginTop: 4,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 6,
+        },
+        summaryContent: {
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: 20,
+        },
+        summaryMonth: {
+          color: colors.text,
+          fontSize: 14,
+          ...commonStyles.textDefault,
+          alignSelf: 'flex-start',
+        },
+        filters: {
+          flexDirection: 'row',
+          gap: 8,
+          paddingHorizontal: 20,
+          paddingVertical: 16,
+        },
+        addButton: {
+          position: 'absolute',
+          backgroundColor: colors.primary,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16,
+          borderRadius: 12,
+          bottom: 80,
+          left: 20,
+          right: 20,
+        },
+        addButtonText: {
+          color: colors.text,
+          marginLeft: 8,
+          fontSize: 16,
+        },
+        contentContainerStyle: {
+          paddingBottom: 20,
+          paddingTop: 20,
+        },
+      }),
+    [colors],
+  );
 
   return (
     <View style={styles.container}>
@@ -261,7 +263,7 @@ const Expense = () => {
               </View>
             ) : (
               <View style={{padding: 20, alignItems: 'center'}}>
-                <Text>No expenses found.</Text>
+                <AppText>No expenses found.</AppText>
               </View>
             )
           }

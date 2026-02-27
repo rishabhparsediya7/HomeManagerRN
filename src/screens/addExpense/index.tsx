@@ -22,6 +22,9 @@ import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
 import {formatDate} from '../../utils/formatDate';
+import Button from '../../components/Button';
+import AppText from '../../components/common/AppText';
+import AppInput from '../../components/common/AppInput';
 
 export const paymentMethods = [
   {
@@ -156,11 +159,9 @@ const AddExpenseScreen = () => {
           color: colors.buttonText,
         },
         sectionTitle: {
-          fontSize: 16,
           ...commonStyles.textDefault,
           marginBottom: 12,
           marginTop: 24,
-          color: colors.buttonText,
         },
         grid: {
           flexDirection: 'row',
@@ -194,9 +195,6 @@ const AddExpenseScreen = () => {
           color: colors.buttonText,
         },
         notesInput: {
-          backgroundColor: colors.inputBackground,
-          padding: 16,
-          borderRadius: 12,
           minHeight: 80,
           textAlignVertical: 'top',
           color: colors.buttonText,
@@ -222,10 +220,10 @@ const AddExpenseScreen = () => {
       style={{flex: 1, backgroundColor: colors.background}}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
+      <Header title="Create" onBackPress={() => {}} />
       <ScrollView
         contentContainerStyle={{paddingBottom: 12}}
         showsVerticalScrollIndicator={false}>
-        <Header title="Add Expense" onBackPress={() => {}} />
         <View style={styles.container}>
           <View style={styles.amountRow}>
             <Text style={styles.rupee}>
@@ -233,7 +231,7 @@ const AddExpenseScreen = () => {
             </Text>
             <TextInput
               placeholder="0.00"
-              placeholderTextColor={colors.inputText}
+              placeholderTextColor={colors.inputText + '80'}
               value={amount}
               keyboardType="numeric"
               onChangeText={handleAmountChange}
@@ -241,7 +239,9 @@ const AddExpenseScreen = () => {
             />
           </View>
 
-          <Text style={styles.sectionTitle}>Category</Text>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Category
+          </AppText>
           <View style={styles.grid}>
             <CategorySelector
               categories={categories}
@@ -251,17 +251,21 @@ const AddExpenseScreen = () => {
             />
           </View>
 
-          <Text style={styles.sectionTitle}>Date</Text>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Date
+          </AppText>
           <TouchableOpacity
             onPress={() => setIsDatePickerVisible(true)}
             style={styles.dateBox}>
             <Icons.CalendarIcon />
-            <Text style={styles.dateText}>
+            <AppText variant="md" style={styles.dateText}>
               {formatDate(calendarDate.toString())}
-            </Text>
+            </AppText>
           </TouchableOpacity>
 
-          <Text style={styles.sectionTitle}>Payment Method</Text>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Payment Method
+          </AppText>
           <View style={styles.grid}>
             <PaymentMethodSelector
               paymentMethods={paymentMethods}
@@ -271,20 +275,25 @@ const AddExpenseScreen = () => {
             />
           </View>
 
-          <Text style={styles.sectionTitle}>Description</Text>
-          <TextInput
-            style={styles.notesInput}
+          <AppInput
+            label="Description"
             placeholder="Add a note..."
-            placeholderTextColor="#999"
             value={note}
             onChangeText={setNote}
+            multiline
+            labelProps={{
+              variant: 'h6',
+              weight: 'medium',
+            }}
+            inputStyle={{minHeight: 80, textAlignVertical: 'top'}}
           />
 
-          <TouchableOpacity onPress={handleAddExpense} style={styles.saveBtn}>
-            <Text style={styles.saveText}>
-              {loading ? <ActivityIndicator /> : 'Save Expense'}
-            </Text>
-          </TouchableOpacity>
+          <Button
+            onPress={handleAddExpense}
+            title="Save Expense"
+            loading={loading}
+            style={styles.saveBtn}
+          />
         </View>
         <DateTimePickerModal
           isVisible={isDatePickerVisible}

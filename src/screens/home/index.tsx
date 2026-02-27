@@ -3,11 +3,11 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import AppGradient from '../../components/common/AppGradient';
+import AppText from '../../components/common/AppText';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import Header from '../../components/Header';
@@ -166,7 +166,7 @@ const Home = () => {
       alignItems: 'center',
     },
     homeContainer: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 12,
     },
     header: {
       flexDirection: 'row',
@@ -224,8 +224,8 @@ const Home = () => {
     actions: {
       width: '100%',
       justifyContent: 'space-between',
-      gap: 12,
-      marginBottom: 12,
+      gap: 10,
+      marginBottom: 10,
     },
     actionButtonContainer: {
       flexDirection: 'row',
@@ -238,18 +238,12 @@ const Home = () => {
       alignItems: 'center',
       paddingVertical: 12,
     },
-    sectionTitle: {
-      fontSize: 16,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
     seeAll: {
       color: colors.buttonText,
       fontSize: 16,
       ...commonStyles.textDefault,
     },
     chartContainer: {
-      marginTop: 10,
       padding: 14,
       borderRadius: 14,
     },
@@ -312,16 +306,23 @@ const Home = () => {
       textAlign: 'right',
       marginTop: 2,
     },
-
+    innerGradient: {
+      flex: 1,
+      alignItems: 'flex-start',
+      borderRadius: 24,
+      marginVertical: 6,
+      padding: 16,
+      gap: 8,
+      overflow: 'hidden',
+    },
     linearGradient: {
       flex: 1,
       alignItems: 'flex-start',
-      paddingLeft: 20,
-      paddingRight: 20,
-      borderRadius: 24, // Updated rounded corners
-      padding: 16,
-      marginVertical: 20,
-      gap: 10,
+      borderRadius: 24,
+      marginVertical: 6,
+      marginBottom: 12,
+      gap: 4,
+      overflow: 'hidden',
     },
     buttonText: {
       fontSize: 18,
@@ -385,46 +386,52 @@ const Home = () => {
         showsVerticalScrollIndicator={false}
         style={styles.container}>
         <View style={styles.homeContainer}>
-          <LinearGradient
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
-            colors={['#34D399', '#10B981', '#06B6D4', '#22C55E']}
-            style={styles.linearGradient}>
-            <Text style={[styles.budgetLabel, styles.whiteText]}>
-              This Month's Budget
-            </Text>
-            <RupeeIcon
-              amount={Number(user?.budget || monthSummary.totalBudget)}
-              color={colors.buttonTextPrimary}
-              size={36}
-              textStyle={[styles.whiteText, {fontSize: 36, fontWeight: 'bold'}]}
-            />
-            <View style={styles.budgetDetails}>
-              <View>
-                <RupeeIcon
-                  amount={Number(user?.income || monthSummary.totalIncome)}
-                  color={colors.buttonTextPrimary}
-                  textStyle={styles.whiteText}
-                />
-                <Text style={[styles.caption, styles.whiteText]}>Income</Text>
-              </View>
-              <View>
-                <RupeeIcon
-                  amount={Number(monthSummary.totalExpenses)}
-                  color={colors.buttonTextPrimary}
-                  textStyle={styles.whiteText}
-                />
-                <Text
-                  style={[
-                    styles.caption,
-                    styles.whiteText,
-                    {textAlign: 'right'},
-                  ]}>
-                  Expenses
-                </Text>
+          <AppGradient style={styles.linearGradient}>
+            <View style={styles.innerGradient}>
+              <AppText
+                variant="h4"
+                weight="semiBold"
+                color={colors.buttonTextPrimary}>
+                {"This Month's Budget"}
+              </AppText>
+              <RupeeIcon
+                amount={Number(user?.budget || monthSummary.totalBudget)}
+                color={colors.buttonTextPrimary}
+                size={36}
+                textStyle={{fontSize: 36, fontWeight: 'bold'}}
+              />
+              <View style={styles.budgetDetails}>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                  }}>
+                  <RupeeIcon
+                    amount={Number(user?.income || monthSummary.totalIncome)}
+                    color={colors.buttonTextPrimary}
+                  />
+                  <AppText variant="lg" color={colors.buttonTextPrimary}>
+                    Income
+                  </AppText>
+                </View>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                  }}>
+                  <RupeeIcon
+                    amount={Number(monthSummary.totalExpenses)}
+                    color={colors.buttonTextPrimary}
+                  />
+                  <AppText variant="lg" color={colors.buttonTextPrimary}>
+                    Expenses
+                  </AppText>
+                </View>
               </View>
             </View>
-          </LinearGradient>
+          </AppGradient>
 
           {/* <Text>Generate your report and save it to your device.</Text>
           <Button
@@ -461,13 +468,20 @@ const Home = () => {
 
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleContainer}>
-              <Text style={styles.sectionTitle}>Recent Transactions</Text>
+              <AppText variant="h5" weight="bold">
+                Recent Transactions
+              </AppText>
               <TouchableOpacity onPress={fetchHomeData}>
                 <Icon name="refresh" size={20} color={colors.buttonText} />
               </TouchableOpacity>
             </View>
             <TouchableOpacity>
-              <Text style={styles.seeAll}>See All</Text>
+              <AppText
+                variant="lg"
+                color={colors.buttonText}
+                style={styles.seeAll}>
+                See All
+              </AppText>
             </TouchableOpacity>
           </View>
 
@@ -478,7 +492,7 @@ const Home = () => {
               </View>
             ) : recentExpenses.length === 0 ? (
               <View style={styles.loadingContainer}>
-                <Text>No expenses found.</Text>
+                <AppText>No expenses found.</AppText>
               </View>
             ) : (
               recentExpenses.map((item, index) => (
@@ -488,35 +502,40 @@ const Home = () => {
           </View>
 
           {/* Monthly Overview */}
-          <Text style={styles.sectionTitle}>Monthly Overview</Text>
+          {/* <Text style={styles.sectionTitle}>Monthly Overview</Text> */}
           <View style={styles.chartContainer}>
-            <View style={styles.chartBars}>
+            {/* <View style={styles.chartBars}>
               {weekChartData.map((day: any, i: number) => (
                 <View key={i} style={styles.chartBarContainer}>
                   <View style={styles.chartBarItem}>
-                    <LinearGradient
+                    <AppGradient
                       start={{x: 0, y: 1}}
                       end={{x: 0, y: 0}}
                       colors={[colors.primary, colors.primaryLight]}
                       style={[styles.bar, {height: day.height}]}
                     />
                   </View>
-                  <Text style={styles.dayLabel}>{day.label}</Text>
+                <AppText variant="caption" style={styles.dayLabel}>{day.label}</AppText>
                 </View>
               ))}
-            </View>
+            </View> */}
 
-            <Text style={[styles.sectionTitle, {marginVertical: 12}]}>
+            <AppText
+              variant="h5"
+              weight="semiBold"
+              style={{marginVertical: 12}}>
               Category Overview
-            </Text>
+            </AppText>
             {categoryChartData.map((item: any, i) => (
               <View key={i} style={styles.progressItem}>
                 <View style={styles.progressLabel}>
                   {item.icon}
-                  <Text style={styles.progressText}>{item.label}</Text>
+                  <AppText variant="md" style={styles.progressText}>
+                    {item.label}
+                  </AppText>
                 </View>
                 <View style={styles.progressBarBackground}>
-                  <LinearGradient
+                  <AppGradient
                     start={{x: 0, y: 1}}
                     end={{x: 0, y: 0}}
                     colors={[colors.primary, colors.primaryLight]}
@@ -533,7 +552,9 @@ const Home = () => {
                     size={14}
                     textStyle={styles.progressText}
                   />
-                  <Text style={styles.progressPercent}>{item.percentage}%</Text>
+                  <AppText variant="caption" style={styles.progressPercent}>
+                    {item.percentage}%
+                  </AppText>
                 </View>
               </View>
             ))}
@@ -576,7 +597,9 @@ const ActionButton = ({
   return (
     <TouchableOpacity style={styles.actionButton} onPress={onPress}>
       <Icon name={icon} size={32} color={colors.buttonText} />
-      <Text style={styles.actionLabel}>{label}</Text>
+      <AppText variant="lg" style={styles.actionLabel}>
+        {label}
+      </AppText>
     </TouchableOpacity>
   );
 };

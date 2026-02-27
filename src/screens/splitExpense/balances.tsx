@@ -223,7 +223,11 @@ const BalancesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="Balances" showBack />
+      <Header
+        title="Balances"
+        showBack={true}
+        onBackPress={() => navigation.canGoBack() && navigation.goBack()}
+      />
 
       {/* Summary Card */}
       <View style={styles.summaryContainer}>

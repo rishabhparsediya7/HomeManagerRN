@@ -169,7 +169,7 @@ const Profile = ({navigation}: {navigation: any}) => {
         statBox: {
           flex: 1,
           backgroundColor: colors.inputBackground,
-          borderColor: colors.inputBorder,
+          borderColor: 'transparent',
           borderWidth: 1,
           borderRadius: 12,
           padding: 20,
