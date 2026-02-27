@@ -10,6 +10,11 @@ import {
   useState,
 } from 'react';
 import api from '../services/api';
+import {
+  registerForNotifications,
+  unregisterNotifications,
+  setupForegroundHandler,
+} from '../services/notificationService';
 import socket from '../utils/socket';
 
 GoogleSignin.configure({
@@ -278,7 +283,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
     }
   }, [isAuthenticated]);
 
-  // Connect socket and register user when authenticated
+  // Connect socket, register user, and set up notifications when authenticated
   useEffect(() => {
     if (isAuthenticated && user.userId) {
       if (!socket.connected) {
@@ -286,6 +291,19 @@ export default function AuthProvider({children}: PropsWithChildren) {
       }
       socket.emit('register', user.userId);
       console.log('🔌 Socket connected and registered for user:', user.userId);
+
+      // Register for push notifications
+      registerForNotifications(user.userId);
+
+      // Set up foreground notification handler
+      const unsubscribeForeground = setupForegroundHandler();
+
+      return () => {
+        unsubscribeForeground();
+        if (!isAuthenticated && socket.connected) {
+          socket.disconnect();
+        }
+      };
     }
 
     return () => {
@@ -320,6 +338,10 @@ export default function AuthProvider({children}: PropsWithChildren) {
 
   const signIn = async () => setIsAuthenticated(true);
   const signOut = async () => {
+    // Unregister notifications before clearing state
+    if (user.userId) {
+      await unregisterNotifications(user.userId);
+    }
     // Disconnect socket before clearing state
     if (socket.connected) {
       socket.disconnect();
