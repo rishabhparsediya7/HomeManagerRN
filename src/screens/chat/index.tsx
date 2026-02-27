@@ -22,6 +22,7 @@ import {darkTheme, lightTheme} from '../../providers/Theme';
 import {StyleSheet} from 'react-native';
 import Header from '../../components/Header';
 import api from '../../services/api';
+import {useFriendsStore} from '../../store';
 
 const uploadEncryptedPassphrase = async (userId: string) => {
   try {
@@ -113,15 +114,21 @@ async function initKeys() {
 
 const ChatScreen = () => {
   const [loading, setLoading] = useState(false);
-  const [friends, setFriends] = useState([]);
+  const {friends: cachedFriends, setFriends: setCachedFriends} =
+    useFriendsStore();
+  const [friends, setFriends] = useState(cachedFriends);
 
   const fetchFriends = async () => {
     const userId = await AsyncStorage.getItem('userId');
     if (!userId) return;
-    setLoading(true);
+    // Only show loading spinner if we have no cached data
+    if (friends.length === 0) {
+      setLoading(true);
+    }
     try {
       const resp = await api.get(`/api/chat/getFriends/${userId}`);
       setFriends(resp.data);
+      setCachedFriends(resp.data); // Persist to local storage
     } catch (error) {
       console.error('Failed to fetch friends:', error);
     } finally {

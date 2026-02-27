@@ -118,9 +118,11 @@ const FriendItem = ({
           </AppText>
         </View>
       )}
-      <View style={{flex: 1}}>
+      <View style={{flex: 1, gap: 6}}>
         <View style={styles.nameContainer}>
-          <AppText variant="h6">{`${firstName} ${lastName}`}</AppText>
+          <AppText
+            variant="h6"
+            weight="semiBold">{`${firstName} ${lastName}`}</AppText>
           {lastMessageTime && (
             <AppText variant="sm" style={styles.time}>
               {new Date(lastMessageTime)
@@ -138,7 +140,7 @@ const FriendItem = ({
           )}
         </View>
         {lastMessageToDisplay && (
-          <AppText variant="sm" numberOfLines={1} style={styles.lastMessage}>
+          <AppText variant="md" numberOfLines={1}>
             {lastMessageToDisplay}
           </AppText>
         )}
@@ -289,13 +291,10 @@ const FriendsScreen = ({
       ...commonStyles.textDefault,
       color: colors.text,
     },
-    lastMessage: {
-      ...commonStyles.textDefault,
-      color: colors.text,
-    },
     subContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       gap: 10,
     },
     image: {
@@ -370,7 +369,7 @@ const FriendsScreen = ({
   return (
     <FlatList
       ListHeaderComponent={
-        <View>
+        <View style={{marginBottom: 40}}>
           <AppInput
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -416,12 +415,6 @@ const FriendsScreen = ({
                 </View>
               ))}
             </View>
-          )}
-
-          {friends.length > 0 && (
-            <AppText weight="bold" style={[{marginTop: 20}]}>
-              Your Friends
-            </AppText>
           )}
         </View>
       }

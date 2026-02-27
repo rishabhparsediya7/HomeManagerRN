@@ -1,5 +1,6 @@
 import {BASE_URL} from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {
   PropsWithChildren,
   createContext,
@@ -8,9 +9,8 @@ import {
   useEffect,
   useState,
 } from 'react';
-import {Platform} from 'react-native';
 import api from '../services/api';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import socket from '../utils/socket';
 
 GoogleSignin.configure({
   webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
@@ -278,6 +278,23 @@ export default function AuthProvider({children}: PropsWithChildren) {
     }
   }, [isAuthenticated]);
 
+  // Connect socket and register user when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user.userId) {
+      if (!socket.connected) {
+        socket.connect();
+      }
+      socket.emit('register', user.userId);
+      console.log('🔌 Socket connected and registered for user:', user.userId);
+    }
+
+    return () => {
+      if (!isAuthenticated && socket.connected) {
+        socket.disconnect();
+      }
+    };
+  }, [isAuthenticated, user.userId]);
+
   const getUser = useCallback(async () => {
     setLoading(true);
     try {
@@ -303,6 +320,10 @@ export default function AuthProvider({children}: PropsWithChildren) {
 
   const signIn = async () => setIsAuthenticated(true);
   const signOut = async () => {
+    // Disconnect socket before clearing state
+    if (socket.connected) {
+      socket.disconnect();
+    }
     await AsyncStorage.clear();
     if (GoogleSignin) {
       GoogleSignin.signOut();

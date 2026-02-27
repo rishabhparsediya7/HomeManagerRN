@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -8,16 +8,17 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
+  TextInput,
+  Text,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Header from '../../components/Header';
 import RupeeIcon from '../../components/rupeeIcon';
-import {category} from '../../constants';
+import {category as expenseCategories} from '../../constants';
 import {useAuth} from '../../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
@@ -25,6 +26,12 @@ import api from '../../services/api';
 import splitExpenseApi from '../../services/splitExpenseApi';
 import {commonStyles} from '../../utils/styles';
 import socket from '../../utils/socket';
+import {formatDate} from '../../utils/formatDate';
+import AppText from '../../components/common/AppText';
+import AppInput from '../../components/common/AppInput';
+import Button from '../../components/Button';
+import CategorySelector from '../../components/categorySelector';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface Friend {
   id: string;
@@ -43,16 +50,17 @@ const CreateSplitExpense = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {theme} = useTheme();
-  const {user} = useAuth();
+  const {user: authUser} = useAuth();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const [description, setDescription] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [expenseDate, setExpenseDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [splitEqually, setSplitEqually] = useState(true);
   const [paidByMe, setPaidByMe] = useState(true);
+  const [inputWidth, setInputWidth] = useState(30);
 
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<SelectedFriend[]>([]);
@@ -67,14 +75,29 @@ const CreateSplitExpense = () => {
   const [searching, setSearching] = useState(false);
   const [requestingSplink, setRequestingSplink] = useState<string | null>(null);
 
+  const categories = useMemo(() => expenseCategories, []);
+
+  const handleAmountChange = (text: string) => {
+    const numericText = text.replace(/[^0-9.]/g, '');
+    const parts = numericText.split('.');
+    let sanitized = parts[0];
+    if (parts.length > 1) {
+      sanitized += '.' + parts[1].slice(0, 2);
+    }
+    const baseWidth = 30;
+    const maxWidth = 100;
+    const calculatedWidth = baseWidth + sanitized.length * 3;
+    setInputWidth(Math.min(calculatedWidth, maxWidth));
+    setTotalAmount(sanitized);
+  };
+
   // Fetch friends list
-  const fetchFriends = async () => {
+  const fetchFriendsList = async () => {
     setLoadingFriends(true);
     try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) return;
-      const response = await api.get(`/api/chat/getFriends/${userId}`);
-      // Map friendId to id as expected by the rest of the component
+      const storedUserId = await AsyncStorage.getItem('userId');
+      if (!storedUserId) return;
+      const response = await api.get(`/api/chat/getFriends/${storedUserId}`);
       const mappedFriends = (response.data || []).map((f: any) => ({
         ...f,
         id: f.friendId,
@@ -88,52 +111,52 @@ const CreateSplitExpense = () => {
   };
 
   useEffect(() => {
-    fetchFriends();
+    fetchFriendsList();
   }, []);
 
-  // Handle search query changes (Local Mentions vs Global Search)
+  // Handle search query changes — filter local friends and optionally search remote
   useEffect(() => {
-    if (searchQuery.startsWith('@')) {
-      const term = searchQuery.slice(1).toLowerCase();
+    const term = searchQuery.toLowerCase().trim();
+
+    // Always filter local friends based on the search term
+    if (term.length === 0) {
+      setFilteredLocalFriends(friends);
+    } else {
       const filtered = friends.filter(
         f =>
           (f.firstName + ' ' + f.lastName).toLowerCase().includes(term) ||
           f.email?.toLowerCase().includes(term),
       );
       setFilteredLocalFriends(filtered);
-      setSearchResults([]);
-    } else {
-      setFilteredLocalFriends([]);
+    }
+
+    // Remote search when query is long enough
+    if (searchQuery.length > 2) {
       const delayDebounceFn = setTimeout(() => {
-        if (searchQuery.length > 2) {
-          searchUsers();
-        } else {
-          setSearchResults([]);
-        }
+        searchRemoteUsers();
       }, 500);
       return () => clearTimeout(delayDebounceFn);
+    } else {
+      setSearchResults([]);
     }
   }, [searchQuery, friends]);
 
   useEffect(() => {
-    const handleSplinkResponse = (payload: any) => {
-      console.log('📨 Splink response received (CreateSplit):', payload);
+    const handleSplinkResponseReceived = (payload: any) => {
       if (payload.action === 'accept') {
-        fetchFriends();
+        fetchFriendsList();
       }
     };
-
-    socket.on('splink_response', handleSplinkResponse);
+    socket.on('splink_response', handleSplinkResponseReceived);
     return () => {
-      socket.off('splink_response', handleSplinkResponse);
+      socket.off('splink_response', handleSplinkResponseReceived);
     };
   }, []);
 
-  const searchUsers = async () => {
+  const searchRemoteUsers = async () => {
     setSearching(true);
     try {
       const resp = await api.get(`/api/users/search?q=${searchQuery}`);
-      // Filter out those who are already locally known to avoid duplicates
       const results = (resp.data?.users || []).filter(
         (u: Friend) => !friends.some(f => f.id === u.id),
       );
@@ -145,7 +168,7 @@ const CreateSplitExpense = () => {
     }
   };
 
-  const sendSplinkRequest = async (friend: Friend) => {
+  const initiateSplinkRequest = async (friend: Friend) => {
     setRequestingSplink(friend.id);
     try {
       await api.post('/api/chat/splink/request', {friendId: friend.id});
@@ -163,11 +186,10 @@ const CreateSplitExpense = () => {
     }
   };
 
-  // Update amounts when total or split type changes
   useEffect(() => {
     if (splitEqually && selectedFriends.length > 0 && totalAmount) {
-      const amount = parseFloat(totalAmount);
-      const perPerson = amount / (selectedFriends.length + 1); // +1 for current user
+      const amountValue = parseFloat(totalAmount);
+      const perPerson = amountValue / (selectedFriends.length + 1);
       setSelectedFriends(
         selectedFriends.map(f => ({
           ...f,
@@ -175,14 +197,14 @@ const CreateSplitExpense = () => {
         })),
       );
     }
-  }, [totalAmount, splitEqually]);
+  }, [totalAmount, splitEqually, selectedFriends.length]);
 
-  const handleDateConfirm = (date: Date) => {
+  const onDateConfirm = (date: Date) => {
     setExpenseDate(date);
     setDatePickerVisibility(false);
   };
 
-  const toggleFriend = (friend: Friend) => {
+  const handleToggleFriend = (friend: Friend) => {
     const exists = selectedFriends.find(f => f.id === friend.id);
     if (exists) {
       setSelectedFriends(selectedFriends.filter(f => f.id !== friend.id));
@@ -195,12 +217,11 @@ const CreateSplitExpense = () => {
         ...selectedFriends,
         {...friend, amountOwed: Math.round(amount * 100) / 100},
       ]);
-      // UX: Clear search after adding
       setSearchQuery('');
     }
   };
 
-  const updateFriendAmount = (friendId: string, amount: string) => {
+  const updateIndividualAmount = (friendId: string, amount: string) => {
     setSelectedFriends(
       selectedFriends.map(f =>
         f.id === friendId ? {...f, amountOwed: parseFloat(amount) || 0} : f,
@@ -208,7 +229,7 @@ const CreateSplitExpense = () => {
     );
   };
 
-  const handleSubmit = async () => {
+  const handleCreateSplitExpense = async () => {
     if (!description.trim()) {
       Alert.alert('Error', 'Please enter a description');
       return;
@@ -224,21 +245,17 @@ const CreateSplitExpense = () => {
 
     setSubmitting(true);
     try {
-      const paidBy = paidByMe ? user.userId : selectedFriends[0].id;
-
-      // Build participants array
+      const payerId = paidByMe ? authUser.userId : selectedFriends[0].id;
       const participants = [
-        // Add all selected friends
         ...selectedFriends.map(f => ({
           userId: f.id,
           amountOwed: f.amountOwed,
         })),
-        // Add current user if not the payer
         ...(paidByMe
           ? []
           : [
               {
-                userId: user.userId,
+                userId: authUser.userId,
                 amountOwed:
                   parseFloat(totalAmount) -
                   selectedFriends.reduce((sum, f) => sum + f.amountOwed, 0),
@@ -246,10 +263,9 @@ const CreateSplitExpense = () => {
             ]),
       ];
 
-      // If I paid, I should also be a participant (as the payer)
       if (paidByMe) {
         participants.push({
-          userId: user.userId,
+          userId: authUser.userId,
           amountOwed:
             parseFloat(totalAmount) -
             selectedFriends.reduce((sum, f) => sum + f.amountOwed, 0),
@@ -259,10 +275,10 @@ const CreateSplitExpense = () => {
       const response = await splitExpenseApi.create({
         description,
         totalAmount: parseFloat(totalAmount),
-        category: selectedCategory || undefined,
+        category: selectedCategoryId ? Number(selectedCategoryId) : undefined,
         participants,
         expenseDate: expenseDate.toISOString(),
-        paidBy,
+        paidBy: payerId,
       });
 
       if (response.data.success) {
@@ -280,763 +296,440 @@ const CreateSplitExpense = () => {
     }
   };
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    scrollContent: {
-      padding: 16,
-      paddingBottom: 100,
-    },
-    section: {
-      marginBottom: 20,
-    },
-    label: {
-      fontSize: 14,
-      color: colors.mutedText,
-      marginBottom: 8,
-      ...commonStyles.textDefault,
-    },
-    input: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      padding: 16,
-      fontSize: 16,
-      color: colors.text,
-      ...commonStyles.textDefault,
-    },
-    amountInput: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      textAlign: 'center',
-      padding: 20,
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    dateButton: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      padding: 16,
-      gap: 8,
-    },
-    dateText: {
-      color: colors.text,
-      fontSize: 16,
-      ...commonStyles.textDefault,
-    },
-    categoryScroll: {
-      marginBottom: 8,
-    },
-    categoryItem: {
-      alignItems: 'center',
-      padding: 12,
-      borderRadius: 12,
-      marginRight: 12,
-      minWidth: 80,
-    },
-    categoryItemSelected: {
-      backgroundColor: colors.primary,
-    },
-    categoryItemUnselected: {
-      backgroundColor: colors.cardBackground,
-    },
-    categoryText: {
-      fontSize: 11,
-      marginTop: 4,
-      textAlign: 'center',
-      ...commonStyles.textDefault,
-    },
-    toggleContainer: {
-      flexDirection: 'row',
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      padding: 4,
-    },
-    toggleButton: {
-      flex: 1,
-      paddingVertical: 12,
-      borderRadius: 10,
-      alignItems: 'center',
-    },
-    toggleActive: {
-      backgroundColor: colors.primary,
-    },
-    toggleText: {
-      fontSize: 14,
-      fontWeight: '500',
-      ...commonStyles.textDefault,
-    },
-    friendsContainer: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      overflow: 'hidden',
-    },
-    addFriendButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-      gap: 12,
-    },
-    addFriendText: {
-      color: colors.primary,
-      fontSize: 16,
-      ...commonStyles.textDefault,
-    },
-    selectedFriend: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    friendInfo: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    friendName: {
-      fontSize: 16,
-      color: colors.text,
-      fontWeight: '500',
-      ...commonStyles.textDefault,
-    },
-    friendAmountInput: {
-      backgroundColor: colors.background,
-      borderRadius: 8,
-      padding: 8,
-      width: 80,
-      textAlign: 'center',
-      color: colors.text,
-      fontSize: 14,
-    },
-    removeButton: {
-      padding: 8,
-    },
-    friendSelector: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      marginTop: 8,
-      maxHeight: 400,
-    },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-      gap: 10,
-    },
-    searchInputField: {
-      flex: 1,
-      height: 40,
-      color: colors.text,
-      ...commonStyles.textDefault,
-    },
-    sectionTitle: {
-      fontSize: 12,
-      color: colors.mutedText,
-      padding: 12,
-      backgroundColor: colors.background,
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-    },
-    splinkButton: {
-      backgroundColor: colors.primary + '20',
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
-      marginLeft: 'auto',
-    },
-    splinkText: {
-      color: colors.primary,
-      fontSize: 12,
-      fontWeight: '600',
-    },
-    friendOption: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    friendOptionSelected: {
-      backgroundColor: colors.primary + '20',
-    },
-    submitButton: {
-      backgroundColor: colors.primary,
-      borderRadius: 12,
-      padding: 16,
-      alignItems: 'center',
-      marginTop: 20,
-    },
-    submitButtonText: {
-      color: '#fff',
-      fontSize: 18,
-      fontWeight: '600',
-      ...commonStyles.textDefault,
-    },
-    previewSection: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      padding: 16,
-      marginTop: 20,
-    },
-    previewTitle: {
-      fontSize: 14,
-      color: colors.mutedText,
-      marginBottom: 12,
-      ...commonStyles.textDefault,
-    },
-    previewRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingVertical: 8,
-    },
-    previewName: {
-      color: colors.text,
-      ...commonStyles.textDefault,
-    },
-    previewAmount: {
-      color: colors.primary,
-      fontWeight: '600',
-      ...commonStyles.textDefault,
-    },
-  });
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        scrollContent: {
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 40,
+        },
+        sectionTitle: {
+          ...commonStyles.textDefault,
+          marginBottom: 12,
+          marginTop: 24,
+        },
+        amountRow: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          marginBottom: 8,
+          width: '100%',
+        },
+        amountInput: {
+          padding: 16,
+          borderRadius: 12,
+          color: colors.inputText,
+          fontSize: 32,
+          fontWeight: '600',
+        },
+        rupee: {
+          fontSize: 32,
+          ...commonStyles.textDefault,
+          color: colors.buttonText,
+        },
+        grid: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+        },
+        dateBox: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.inputBackground,
+          padding: 16,
+          borderRadius: 12,
+        },
+        dateText: {
+          marginLeft: 8,
+          fontSize: 14,
+          color: colors.buttonText,
+        },
+        toggleContainer: {
+          flexDirection: 'row',
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          padding: 4,
+        },
+        toggleButton: {
+          flex: 1,
+          paddingVertical: 12,
+          borderRadius: 10,
+          alignItems: 'center',
+        },
+        friendsContainer: {
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          overflow: 'hidden',
+        },
+        selectedFriend: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          padding: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        friendInfo: {
+          flex: 1,
+          marginLeft: 12,
+        },
+        friendAmountInput: {
+          backgroundColor: colors.background,
+          borderRadius: 8,
+          padding: 8,
+          width: 80,
+          textAlign: 'center',
+          color: colors.text,
+          fontSize: 14,
+        },
+        removeButton: {
+          padding: 8,
+        },
+        searchContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          padding: 12,
+          gap: 10,
+        },
+        searchInputField: {
+          flex: 1,
+          height: 40,
+          color: colors.text,
+          ...commonStyles.textDefault,
+        },
+        friendSelector: {
+          backgroundColor: colors.inputBackground,
+          borderRadius: 12,
+          marginTop: 8,
+          maxHeight: 340,
+          overflow: 'hidden',
+        },
+        sectionLabel: {
+          fontSize: 12,
+          color: colors.mutedText,
+          padding: 12,
+          backgroundColor: colors.background,
+          textTransform: 'uppercase',
+          letterSpacing: 1,
+        },
+        friendOption: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          padding: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        friendOptionSelected: {
+          backgroundColor: colors.primary + '10',
+        },
+        submitButton: {
+          marginTop: 32,
+        },
+        splinkButton: {
+          backgroundColor: colors.primary + '20',
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 8,
+          marginLeft: 'auto',
+        },
+      }),
+    [colors, theme],
+  );
 
   return (
     <View style={styles.container}>
-      <Header title="Create Split Expense" showBack />
+      <Header
+        title="Create Split"
+        showBackButton
+        onBackPress={() => navigation.goBack()}
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1}}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Amount Input */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Total Amount</Text>
-            <View
-              style={[
-                styles.input,
-                {
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                },
-              ]}>
-              <Text style={{color: colors.text, fontSize: 28, marginRight: 4}}>
-                ₹
+        style={{flex: 1}}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Total Amount
+          </AppText>
+          <View style={styles.amountRow}>
+            <View style={styles.amountRow}>
+              <Text style={styles.rupee}>
+                <Icon name="rupee" size={32} color={colors.buttonText} />
               </Text>
               <TextInput
-                style={[styles.amountInput, {color: colors.text, flex: 1}]}
-                placeholder="0"
-                placeholderTextColor={colors.mutedText}
-                keyboardType="numeric"
+                placeholder="0.00"
+                placeholderTextColor={colors.inputText + '80'}
                 value={totalAmount}
-                onChangeText={setTotalAmount}
+                keyboardType="numeric"
+                onChangeText={handleAmountChange}
+                style={[styles.amountInput, {width: `${inputWidth}%`}]} // Use template literal to convert number to string
               />
             </View>
           </View>
-
-          {/* Description */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="What's this expense for?"
-              placeholderTextColor={colors.mutedText}
-              value={description}
-              onChangeText={setDescription}
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Category
+          </AppText>
+          <View style={styles.grid}>
+            <CategorySelector
+              categories={categories}
+              selectedCategory={selectedCategoryId}
+              setSelectedCategory={setSelectedCategoryId}
+              colors={colors}
             />
           </View>
 
-          {/* Date Picker */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Date</Text>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setDatePickerVisibility(true)}>
-              <Icon name="calendar" size={20} color={colors.mutedText} />
-              <Text style={styles.dateText}>
-                {expenseDate.toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </Text>
-            </TouchableOpacity>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Date
+          </AppText>
+          <TouchableOpacity
+            onPress={() => setDatePickerVisibility(true)}
+            style={styles.dateBox}>
+            <MaterialIcon name="calendar" size={24} color={colors.buttonText} />
+            <AppText variant="md" style={styles.dateText}>
+              {formatDate(expenseDate.toString())}
+            </AppText>
+          </TouchableOpacity>
+
+          <AppInput
+            label="Description"
+            placeholder="What's this expense for?"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            labelProps={{
+              variant: 'h6',
+              weight: 'medium',
+            }}
+            containerStyle={{marginTop: 24, marginBottom: 0}}
+            inputStyle={{minHeight: 80, textAlignVertical: 'top'}}
+          />
+
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Paid by
+          </AppText>
+          <View style={styles.toggleContainer}>
+            <Button
+              variant={paidByMe ? 'primary' : 'ghost'}
+              title="You"
+              onPress={() => setPaidByMe(true)}
+              style={styles.toggleButton}
+              textStyle={{fontSize: 14}}
+            />
+            <Button
+              variant={!paidByMe ? 'primary' : 'ghost'}
+              title="Someone else"
+              onPress={() => setPaidByMe(false)}
+              style={styles.toggleButton}
+              textStyle={{fontSize: 14}}
+            />
           </View>
 
-          {/* Category */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Category</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoryScroll}>
-              {category.map(cat => {
-                const IconComponent = cat.icon;
-                const isSelected = selectedCategory === parseInt(cat.id);
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    style={[
-                      styles.categoryItem,
-                      isSelected
-                        ? styles.categoryItemSelected
-                        : styles.categoryItemUnselected,
-                    ]}
-                    onPress={() => setSelectedCategory(parseInt(cat.id))}>
-                    <IconComponent />
-                    <Text
-                      style={[
-                        styles.categoryText,
-                        {color: isSelected ? '#fff' : colors.text},
-                      ]}>
-                      {cat.name.split(' ')[0]}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Split type
+          </AppText>
+          <View style={styles.toggleContainer}>
+            <Button
+              variant={splitEqually ? 'primary' : 'ghost'}
+              title="Equal"
+              onPress={() => setSplitEqually(true)}
+              style={styles.toggleButton}
+              textStyle={{fontSize: 14}}
+            />
+            <Button
+              variant={!splitEqually ? 'primary' : 'ghost'}
+              title="Custom"
+              onPress={() => setSplitEqually(false)}
+              style={styles.toggleButton}
+              textStyle={{fontSize: 14}}
+            />
           </View>
 
-          {/* Paid By Toggle */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Paid by</Text>
-            <View style={styles.toggleContainer}>
-              <TouchableOpacity
-                style={[styles.toggleButton, paidByMe && styles.toggleActive]}
-                onPress={() => setPaidByMe(true)}>
-                <Text
-                  style={[
-                    styles.toggleText,
-                    {color: paidByMe ? '#fff' : colors.text},
-                  ]}>
-                  You
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.toggleButton, !paidByMe && styles.toggleActive]}
-                onPress={() => setPaidByMe(false)}>
-                <Text
-                  style={[
-                    styles.toggleText,
-                    {color: !paidByMe ? '#fff' : colors.text},
-                  ]}>
-                  Someone else
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Split Type Toggle */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Split type</Text>
-            <View style={styles.toggleContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  splitEqually && styles.toggleActive,
-                ]}
-                onPress={() => setSplitEqually(true)}>
-                <Text
-                  style={[
-                    styles.toggleText,
-                    {color: splitEqually ? '#fff' : colors.text},
-                  ]}>
-                  Equal
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  !splitEqually && styles.toggleActive,
-                ]}
-                onPress={() => setSplitEqually(false)}>
-                <Text
-                  style={[
-                    styles.toggleText,
-                    {color: !splitEqually ? '#fff' : colors.text},
-                  ]}>
-                  Custom
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Friends Selection */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Split with</Text>
-            <View style={styles.friendsContainer}>
-              {/* Selected friends */}
-              {selectedFriends.map(friend => (
-                <View key={friend.id} style={styles.selectedFriend}>
-                  <Icon
-                    name="account-circle"
-                    size={40}
-                    color={colors.mutedText}
-                  />
-                  <View style={styles.friendInfo}>
-                    <Text style={styles.friendName}>
-                      {friend.firstName} {friend.lastName}
-                    </Text>
-                  </View>
-                  {!splitEqually && (
-                    <TextInput
-                      style={styles.friendAmountInput}
-                      placeholder="0"
-                      keyboardType="numeric"
-                      value={friend.amountOwed.toString()}
-                      onChangeText={val => updateFriendAmount(friend.id, val)}
-                    />
-                  )}
-                  {splitEqually && (
-                    <RupeeIcon
-                      amount={friend.amountOwed}
-                      size={14}
-                      color={colors.primary}
-                    />
-                  )}
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => toggleFriend(friend)}>
-                    <Icon name="close-circle" size={24} color="#ef4444" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-
-              {/* Persistent Search/Mention Input */}
-              <View
-                style={[
-                  styles.searchContainer,
-                  {borderBottomWidth: showFriendSelector ? 1 : 0},
-                ]}>
-                <Icon name="at" size={20} color={colors.primary} />
-                <TextInput
-                  style={styles.searchInputField}
-                  placeholder="Type @ to search friends or type others..."
-                  placeholderTextColor={colors.mutedText}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  onFocus={() => setShowFriendSelector(true)}
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Split with
+          </AppText>
+          <View style={styles.friendsContainer}>
+            {selectedFriends.map(friend => (
+              <View key={friend.id} style={styles.selectedFriend}>
+                <MaterialIcon
+                  name="account-circle"
+                  size={40}
+                  color={colors.mutedText}
                 />
-                {searching && (
-                  <ActivityIndicator size="small" color={colors.primary} />
+                <View style={styles.friendInfo}>
+                  <AppText weight="medium">
+                    {friend.firstName} {friend.lastName}
+                  </AppText>
+                </View>
+                {!splitEqually ? (
+                  <TextInput
+                    style={styles.friendAmountInput}
+                    placeholder="0"
+                    keyboardType="numeric"
+                    value={friend.amountOwed.toString()}
+                    onChangeText={val => updateIndividualAmount(friend.id, val)}
+                  />
+                ) : (
+                  <RupeeIcon
+                    amount={friend.amountOwed}
+                    size={14}
+                    color={colors.primary}
+                  />
                 )}
-                {searchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Icon
-                      name="close-circle"
-                      size={20}
-                      color={colors.mutedText}
-                    />
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => handleToggleFriend(friend)}>
+                  <MaterialIcon name="close-circle" size={24} color="#ef4444" />
+                </TouchableOpacity>
               </View>
+            ))}
+
+            <View
+              style={[
+                styles.searchContainer,
+                {
+                  borderBottomWidth: showFriendSelector ? 1 : 0,
+                  borderBottomColor: colors.border,
+                },
+              ]}>
+              <MaterialIcon name="at" size={20} color={colors.primary} />
+              <TextInput
+                style={styles.searchInputField}
+                placeholder="Search friends..."
+                placeholderTextColor={colors.mutedText}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onFocus={() => setShowFriendSelector(true)}
+              />
+              {searching && (
+                <ActivityIndicator size="small" color={colors.primary} />
+              )}
             </View>
+          </View>
 
-            {/* Friend selector dropdown */}
-            {showFriendSelector && (
-              <View style={styles.friendSelector}>
-                <ScrollView nestedScrollEnabled style={{maxHeight: 340}}>
-                  {searchQuery.startsWith('@') ? (
-                    <>
-                      <Text style={styles.sectionTitle}>
-                        Mentioning Friends
-                      </Text>
-                      {filteredLocalFriends.length === 0 ? (
-                        <Text
-                          style={{
-                            padding: 16,
-                            color: colors.mutedText,
-                            textAlign: 'center',
-                          }}>
-                          No friends match "@{searchQuery.slice(1)}"
-                        </Text>
-                      ) : (
-                        filteredLocalFriends.map(friend => {
-                          const isSelected = selectedFriends.some(
-                            f => f.id === friend.id,
-                          );
-                          return (
-                            <TouchableOpacity
-                              key={friend.id}
-                              style={[
-                                styles.friendOption,
-                                isSelected && styles.friendOptionSelected,
-                              ]}
-                              onPress={() => toggleFriend(friend)}>
-                              <Icon
-                                name="account-circle"
-                                size={36}
-                                color={colors.mutedText}
-                              />
-                              <View style={{marginLeft: 12}}>
-                                <Text style={styles.friendName}>
-                                  {friend.firstName} {friend.lastName}
-                                </Text>
-                                <Text
-                                  style={{
-                                    fontSize: 12,
-                                    color: colors.mutedText,
-                                  }}>
-                                  {friend.email}
-                                </Text>
-                              </View>
-                              {isSelected && (
-                                <Icon
-                                  name="check-circle"
-                                  size={24}
-                                  color={colors.primary}
-                                  style={{marginLeft: 'auto'}}
-                                />
-                              )}
-                            </TouchableOpacity>
-                          );
-                        })
-                      )}
-                    </>
-                  ) : searchQuery.length > 0 ? (
-                    <>
-                      <Text style={styles.sectionTitle}>
-                        Global Search Results
-                      </Text>
-                      {searching ? (
-                        <ActivityIndicator
-                          style={{margin: 20}}
-                          color={colors.primary}
+          {showFriendSelector && (
+            <View style={styles.friendSelector}>
+              <ScrollView nestedScrollEnabled style={{maxHeight: 340}}>
+                {/* Always show local friends */}
+                <AppText variant="caption" style={styles.sectionLabel}>
+                  Your Friends
+                </AppText>
+                {filteredLocalFriends.length > 0 ? (
+                  filteredLocalFriends.map(friendItem => {
+                    const isSelected = selectedFriends.some(
+                      f => f.id === friendItem.id,
+                    );
+                    return (
+                      <TouchableOpacity
+                        key={friendItem.id}
+                        style={[
+                          styles.friendOption,
+                          isSelected && styles.friendOptionSelected,
+                        ]}
+                        onPress={() => handleToggleFriend(friendItem)}>
+                        <MaterialIcon
+                          name="account-circle"
+                          size={36}
+                          color={colors.mutedText}
                         />
-                      ) : searchResults.length === 0 ? (
-                        <Text
-                          style={{
-                            padding: 16,
-                            color: colors.mutedText,
-                            textAlign: 'center',
-                          }}>
-                          No users found
-                        </Text>
-                      ) : (
-                        searchResults.map(friend => {
-                          const isAlreadyFriend = friends.some(
-                            f => f.id === friend.id,
-                          );
-                          if (isAlreadyFriend) {
-                            const isSelected = selectedFriends.some(
-                              f => f.id === friend.id,
-                            );
-                            return (
-                              <TouchableOpacity
-                                key={friend.id}
-                                style={[
-                                  styles.friendOption,
-                                  isSelected && styles.friendOptionSelected,
-                                ]}
-                                onPress={() => toggleFriend(friend)}>
-                                <Icon
-                                  name="account-circle"
-                                  size={36}
-                                  color={colors.mutedText}
-                                />
-                                <View style={{marginLeft: 12}}>
-                                  <Text style={styles.friendName}>
-                                    {friend.firstName} {friend.lastName}
-                                  </Text>
-                                  <Text
-                                    style={{
-                                      fontSize: 12,
-                                      color: colors.mutedText,
-                                    }}>
-                                    {friend.email}
-                                  </Text>
-                                </View>
-                                <Icon
-                                  name={
-                                    isSelected
-                                      ? 'check-circle'
-                                      : 'plus-circle-outline'
-                                  }
-                                  size={24}
-                                  color={
-                                    isSelected
-                                      ? colors.primary
-                                      : colors.mutedText
-                                  }
-                                  style={{marginLeft: 'auto'}}
-                                />
-                              </TouchableOpacity>
-                            );
-                          }
+                        <View style={{marginLeft: 12}}>
+                          <AppText weight="medium">
+                            {friendItem.firstName} {friendItem.lastName}
+                          </AppText>
+                          <AppText variant="caption">
+                            {friendItem.email}
+                          </AppText>
+                        </View>
+                        {isSelected && (
+                          <MaterialIcon
+                            name="check-circle"
+                            size={24}
+                            color={colors.primary}
+                            style={{marginLeft: 'auto'}}
+                          />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })
+                ) : (
+                  <AppText
+                    variant="caption"
+                    style={{padding: 12, color: colors.mutedText}}>
+                    {searchQuery.length > 0
+                      ? 'No friends match your search'
+                      : 'No friends found'}
+                  </AppText>
+                )}
 
-                          return (
-                            <View key={friend.id} style={styles.friendOption}>
-                              <Icon
-                                name="account-circle"
-                                size={36}
-                                color={colors.mutedText}
-                              />
-                              <View style={{marginLeft: 12}}>
-                                <Text style={styles.friendName}>
-                                  {friend.firstName} {friend.lastName}
-                                </Text>
-                                <Text
-                                  style={{
-                                    fontSize: 12,
-                                    color: colors.mutedText,
-                                  }}>
-                                  {friend.email}
-                                </Text>
-                              </View>
-                              <TouchableOpacity
-                                style={styles.splinkButton}
-                                onPress={() => sendSplinkRequest(friend)}
-                                disabled={requestingSplink === friend.id}>
-                                {requestingSplink === friend.id ? (
-                                  <ActivityIndicator
-                                    size="small"
-                                    color={colors.primary}
-                                  />
-                                ) : (
-                                  <Text style={styles.splinkText}>Splink</Text>
-                                )}
-                              </TouchableOpacity>
-                            </View>
-                          );
-                        })
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          paddingRight: 12,
-                          backgroundColor: colors.background,
-                        }}>
-                        <Text style={styles.sectionTitle}>Recent Friends</Text>
+                {/* Show global search results if available */}
+                {searchResults.length > 0 && (
+                  <>
+                    <AppText variant="caption" style={styles.sectionLabel}>
+                      Global Search
+                    </AppText>
+                    {searchResults.map(remoteUser => (
+                      <View key={remoteUser.id} style={styles.friendOption}>
+                        <MaterialIcon
+                          name="account-circle"
+                          size={36}
+                          color={colors.mutedText}
+                        />
+                        <View style={{marginLeft: 12}}>
+                          <AppText weight="medium">
+                            {remoteUser.firstName} {remoteUser.lastName}
+                          </AppText>
+                          <AppText variant="caption">
+                            {remoteUser.email}
+                          </AppText>
+                        </View>
                         <TouchableOpacity
-                          onPress={() => setShowFriendSelector(false)}>
-                          <Text style={{fontSize: 12, color: colors.primary}}>
-                            Hide List
-                          </Text>
+                          style={styles.splinkButton}
+                          onPress={() => initiateSplinkRequest(remoteUser)}>
+                          {requestingSplink === remoteUser.id ? (
+                            <ActivityIndicator
+                              size="small"
+                              color={colors.primary}
+                            />
+                          ) : (
+                            <AppText
+                              variant="caption"
+                              weight="semiBold"
+                              style={{color: colors.primary}}>
+                              Splink
+                            </AppText>
+                          )}
                         </TouchableOpacity>
                       </View>
-                      {loadingFriends ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={colors.primary}
-                          style={{padding: 20}}
-                        />
-                      ) : friends.length === 0 ? (
-                        <Text
-                          style={{
-                            padding: 16,
-                            color: colors.mutedText,
-                            textAlign: 'center',
-                          }}>
-                          No friends yet. Search for them!
-                        </Text>
-                      ) : (
-                        friends.map(friend => {
-                          const isSelected = selectedFriends.some(
-                            f => f.id === friend.id,
-                          );
-                          return (
-                            <TouchableOpacity
-                              key={friend.id}
-                              style={[
-                                styles.friendOption,
-                                isSelected && styles.friendOptionSelected,
-                              ]}
-                              onPress={() => toggleFriend(friend)}>
-                              <Icon
-                                name="account-circle"
-                                size={36}
-                                color={colors.mutedText}
-                              />
-                              <Text
-                                style={[styles.friendName, {marginLeft: 12}]}>
-                                {friend.firstName} {friend.lastName}
-                              </Text>
-                              {isSelected && (
-                                <Icon
-                                  name="check-circle"
-                                  size={24}
-                                  color={colors.primary}
-                                  style={{marginLeft: 'auto'}}
-                                />
-                              )}
-                            </TouchableOpacity>
-                          );
-                        })
-                      )}
-                    </>
-                  )}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-
-          {/* Preview */}
-          {selectedFriends.length > 0 && totalAmount && (
-            <View style={styles.previewSection}>
-              <Text style={styles.previewTitle}>Split Preview</Text>
-              <View style={styles.previewRow}>
-                <Text style={styles.previewName}>
-                  You {paidByMe ? '(paid)' : ''}
-                </Text>
-                <Text style={styles.previewAmount}>
-                  ₹
-                  {splitEqually
-                    ? (
-                        parseFloat(totalAmount) /
-                        (selectedFriends.length + 1)
-                      ).toFixed(2)
-                    : (
-                        parseFloat(totalAmount) -
-                        selectedFriends.reduce((s, f) => s + f.amountOwed, 0)
-                      ).toFixed(2)}
-                </Text>
-              </View>
-              {selectedFriends.map(friend => (
-                <View key={friend.id} style={styles.previewRow}>
-                  <Text style={styles.previewName}>{friend.firstName}</Text>
-                  <Text style={styles.previewAmount}>
-                    ₹{friend.amountOwed.toFixed(2)}
-                  </Text>
-                </View>
-              ))}
+                    ))}
+                  </>
+                )}
+              </ScrollView>
             </View>
           )}
 
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[styles.submitButton, submitting && {opacity: 0.6}]}
-            onPress={handleSubmit}
-            disabled={submitting}>
-            {submitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.submitButtonText}>Create Split</Text>
-            )}
-          </TouchableOpacity>
+          <Button
+            title="Create Split Expense"
+            onPress={handleCreateSplitExpense}
+            loading={submitting}
+            style={styles.submitButton}
+          />
         </ScrollView>
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={onDateConfirm}
+          onCancel={() => setDatePickerVisibility(false)}
+          locale="en-IN"
+        />
       </KeyboardAvoidingView>
-
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleDateConfirm}
-        onCancel={() => setDatePickerVisibility(false)}
-        date={expenseDate}
-      />
     </View>
   );
 };

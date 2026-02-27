@@ -1,4 +1,4 @@
-import {SafeAreaView} from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -6,28 +6,27 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  StatusBar,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
-import AppText from '../../../components/common/AppText';
-import AppInput from '../../../components/common/AppInput';
-import Button from '../../../components/Button';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {useAuthorizeNavigation} from '../../../navigators/navigators';
-import {createInitialsForImage} from '../../../utils/users';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getStoredKeyPair} from '../../../utils/cryptoUtils';
-import naclUtil from 'tweetnacl-util';
 import nacl from 'tweetnacl';
+import naclUtil from 'tweetnacl-util';
+import Button from '../../../components/Button';
+import AppInput from '../../../components/common/AppInput';
+import AppText from '../../../components/common/AppText';
+import {useAuthorizeNavigation} from '../../../navigators/navigators';
+import {darkTheme, lightTheme} from '../../../providers/Theme';
+import {useTheme} from '../../../providers/ThemeContext';
 import api from '../../../services/api';
 import {useChatStore} from '../../../store';
+import {getStoredKeyPair} from '../../../utils/cryptoUtils';
 import socket from '../../../utils/socket';
-import {useTheme} from '../../../providers/ThemeContext';
-import {lightTheme, darkTheme} from '../../../providers/Theme';
 import {commonStyles} from '../../../utils/styles';
+import {createInitialsForImage} from '../../../utils/users';
 
 interface Message {
   id: number;
@@ -192,7 +191,10 @@ const createStyles = (colors: any) =>
     },
   });
 
-async function fetchAndDecryptChat(withUser: string) {
+async function fetchAndDecryptChat(
+  withUser: string,
+  before?: string,
+): Promise<{messages: Message[]; hasMore: boolean}> {
   try {
     const userId = await AsyncStorage.getItem('userId');
     const privateKey = await AsyncStorage.getItem('privateKey');
@@ -202,17 +204,21 @@ async function fetchAndDecryptChat(withUser: string) {
       throw new Error('Keypair not found');
     }
 
-    const messages = await (
-      await api.get(`/api/chat/history?userId=${userId}&withUser=${withUser}`)
-    ).data;
+    let url = `/api/chat/history?userId=${userId}&withUser=${withUser}&limit=50`;
+    if (before) {
+      url += `&before=${encodeURIComponent(before)}`;
+    }
+
+    const response = await api.get(url);
+    const {messages: rawMessages, hasMore} = response.data;
 
     const resp = await api.get(`/api/chat/get-user-keys/${withUser}`);
-    const {publicKey: theirPubB64} = await resp.data;
+    const {publicKey: theirPubB64} = resp.data;
     const theirPub = naclUtil.decodeBase64(theirPubB64);
 
     const mySK = naclUtil.decodeBase64(privateKey);
 
-    return messages.map((msg: Message) => {
+    const decryptedMessages = (rawMessages || []).map((msg: Message) => {
       const plain = nacl.box.open(
         naclUtil.decodeBase64(msg.message),
         naclUtil.decodeBase64(msg.nonce),
@@ -227,9 +233,11 @@ async function fetchAndDecryptChat(withUser: string) {
           : '[These messages are from before you reinstalled the app and can no longer be decrypted]',
       };
     });
+
+    return {messages: decryptedMessages, hasMore};
   } catch (error) {
     console.error('Failed to fetch and decrypt chat:', error);
-    return [];
+    return {messages: [], hasMore: false};
   }
 }
 
@@ -290,12 +298,14 @@ const FriendChatScreen = ({route}) => {
   const [initialScrollDone, setInitialScrollDone] = useState(false);
   const [userId, setUserId] = useState<string | null>('');
   const [loading, setLoading] = useState(false);
-  const {chats, setMessages, addMessage} = useChatStore();
+  const {chats, setMessages, addMessage, prependMessages} = useChatStore();
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const styles = React.useMemo(() => createStyles(colors), [colors]);
 
   const messages = chats[id] || [];
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
 
   let profileImage = image;
   if (!image) {
@@ -310,45 +320,59 @@ const FriendChatScreen = ({route}) => {
       message: string;
       nonce: string;
     }) => {
-      const pair = await getStoredKeyPair();
-      if (!pair) throw new Error('Keypair not found');
-      let mySK = pair?.secretKey;
+      try {
+        // Only handle messages from the friend we're chatting with
+        if (payload.senderId !== id) {
+          // Message is from another friend — store it for their chat
+          // but don't process here
+          return;
+        }
 
-      if (!mySK) {
-        mySK = naclUtil.decodeBase64(
-          await String(await AsyncStorage.getItem('privateKey')),
+        const pair = await getStoredKeyPair();
+        let mySK = pair?.secretKey;
+
+        if (!mySK) {
+          const storedKey = await AsyncStorage.getItem('privateKey');
+          if (storedKey) {
+            mySK = naclUtil.decodeBase64(storedKey);
+          }
+        }
+
+        if (!mySK) {
+          console.error('❌ Secret key not found, cannot decrypt message');
+          return;
+        }
+
+        const resp = await api.get(
+          `/api/chat/get-user-keys/${payload.senderId}`,
         );
-      }
+        const {publicKey: theirPubB64} = resp.data;
+        const theirPub = naclUtil.decodeBase64(theirPubB64);
 
-      if (!mySK) {
-        throw new Error('Secret key not found');
-      }
+        const decrypted = nacl.box.open(
+          naclUtil.decodeBase64(payload.message),
+          naclUtil.decodeBase64(payload.nonce),
+          theirPub,
+          mySK,
+        );
 
-      const resp = await api.get(`/api/chat/get-user-keys/${payload.senderId}`);
-      const {publicKey: theirPubB64} = resp.data;
-      const theirPub = naclUtil.decodeBase64(theirPubB64);
-
-      const decrypted = nacl.box.open(
-        naclUtil.decodeBase64(payload.message),
-        naclUtil.decodeBase64(payload.nonce),
-        theirPub,
-        mySK,
-      );
-
-      if (decrypted) {
-        const plaintext = naclUtil.encodeUTF8(decrypted);
-        const newMessage: Message = {
-          id: messages.length || 0 + 1, // generate unique id locally
-          message: payload.message,
-          nonce: payload.nonce,
-          plaintext,
-          receiver_id: userId,
-          sender_id: payload.senderId,
-          sent_at: new Date().toISOString(),
-        };
-        addMessage(id, newMessage);
-      } else {
-        console.warn('❌ Could not decrypt message');
+        if (decrypted) {
+          const plaintext = naclUtil.encodeUTF8(decrypted);
+          const newMessage: Message = {
+            id: Date.now(),
+            message: payload.message,
+            nonce: payload.nonce,
+            plaintext,
+            receiver_id: userId,
+            sender_id: payload.senderId,
+            sent_at: new Date().toISOString(),
+          };
+          addMessage(id, newMessage);
+        } else {
+          console.warn('❌ Could not decrypt message');
+        }
+      } catch (error) {
+        console.error('❌ Error handling received message:', error);
       }
     };
 
@@ -356,66 +380,86 @@ const FriendChatScreen = ({route}) => {
     return () => {
       socket.off('receive-message', handleReceiveMessage);
     };
-  }, [userId]);
+  }, [userId, id]);
 
   const sendMessage = async () => {
     if (message.trim() !== '' && userId) {
+      const messageText = message;
       addMessage(id, {
-        id: messages.length || 0 + 1,
-        message,
+        id: Date.now(),
+        message: messageText,
         nonce: naclUtil.encodeBase64(nacl.randomBytes(nacl.box.nonceLength)),
         receiver_id: id,
         sender_id: userId,
         sent_at: new Date().toISOString(),
-        plaintext: message,
+        plaintext: messageText,
       });
       setMessage('');
-      const pair = await getStoredKeyPair();
-      if (!pair) throw new Error('Keypair not found');
-      let mySK = pair?.secretKey;
 
-      if (!mySK) {
-        mySK = naclUtil.decodeBase64(
-          await String(await AsyncStorage.getItem('privateKey')),
+      try {
+        const pair = await getStoredKeyPair();
+        let mySK = pair?.secretKey;
+
+        if (!mySK) {
+          const storedKey = await AsyncStorage.getItem('privateKey');
+          if (storedKey) {
+            mySK = naclUtil.decodeBase64(storedKey);
+          }
+        }
+
+        if (!mySK) {
+          console.error('❌ No secret key found, cannot send message');
+          return;
+        }
+
+        const resp = await api.get(`/api/chat/get-user-keys/${id}`);
+        const {publicKey: theirPubB64} = resp.data;
+
+        if (!theirPubB64) {
+          console.error('❌ No public key found for receiver', id);
+          return;
+        }
+
+        const theirPub = naclUtil.decodeBase64(theirPubB64);
+
+        const nonce = nacl.randomBytes(nacl.box.nonceLength);
+        const cipher = nacl.box(
+          naclUtil.decodeUTF8(messageText),
+          nonce,
+          theirPub,
+          mySK,
         );
+
+        socket.emit('send-message', {
+          senderId: userId,
+          receiverId: id,
+          message: naclUtil.encodeBase64(cipher),
+          nonce: naclUtil.encodeBase64(nonce),
+        });
+        flatListRef.current?.scrollToEnd({animated: true});
+      } catch (error) {
+        console.error('❌ Failed to send message:', error);
       }
-
-      if (!mySK) {
-        throw new Error('Secret key not found');
-      }
-
-      const resp = await api.get(`/api/chat/get-user-keys/${id}`);
-      const {publicKey: theirPubB64} = await resp.data;
-      const theirPub = naclUtil.decodeBase64(theirPubB64);
-
-      const nonce = nacl.randomBytes(nacl.box.nonceLength);
-      const cipher = nacl.box(
-        naclUtil.decodeUTF8(message),
-        nonce,
-        theirPub,
-        mySK,
-      );
-
-      socket.emit('send-message', {
-        senderId: userId,
-        receiverId: id,
-        message: naclUtil.encodeBase64(cipher),
-        nonce: naclUtil.encodeBase64(nonce),
-      });
-      flatListRef.current?.scrollToEnd({animated: true});
     }
   };
 
   useEffect(() => {
-    AsyncStorage.getItem('userId').then(userId => {
-      setUserId(userId);
+    AsyncStorage.getItem('userId').then(uid => {
+      setUserId(uid);
     });
+  }, []);
 
+  // Always fetch fresh chat history on screen mount to load offline/missed messages
+  useEffect(() => {
     const fetchChat = async () => {
-      setLoading(true);
+      // Only show loading spinner if there are no cached messages
+      if (messages.length === 0) {
+        setLoading(true);
+      }
       try {
-        const chat = await fetchAndDecryptChat(id);
+        const {messages: chat, hasMore: more} = await fetchAndDecryptChat(id);
         setMessages(id, chat);
+        setHasMore(more);
       } catch (error) {
         console.error('Failed to fetch chat:', error);
       } finally {
@@ -423,10 +467,30 @@ const FriendChatScreen = ({route}) => {
       }
     };
 
-    if (messages.length === 0) {
-      fetchChat();
+    fetchChat();
+  }, [id]);
+
+  // Load older messages when user scrolls to top
+  const loadOlderMessages = async () => {
+    if (loadingOlder || !hasMore || messages.length === 0) return;
+
+    setLoadingOlder(true);
+    try {
+      const oldestMessage = messages[0];
+      const {messages: olderMsgs, hasMore: more} = await fetchAndDecryptChat(
+        id,
+        oldestMessage.sent_at,
+      );
+      if (olderMsgs.length > 0) {
+        prependMessages(id, olderMsgs);
+      }
+      setHasMore(more);
+    } catch (error) {
+      console.error('Failed to load older messages:', error);
+    } finally {
+      setLoadingOlder(false);
     }
-  }, [userId]);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
@@ -469,9 +533,6 @@ const FriendChatScreen = ({route}) => {
                           ? styles.messageTextSender
                           : styles.messageTextReceiver,
                       ]}>
-                      {item.sender_id === userId
-                        ? 'You: '
-                        : firstName + ' ' + lastName + ': '}
                       {item.plaintext}
                     </AppText>
                     <AppText
@@ -495,18 +556,45 @@ const FriendChatScreen = ({route}) => {
                   </View>
                 </View>
               )}
-              keyExtractor={item => new Date(item.sent_at).getTime().toString()}
+              keyExtractor={(item, index) =>
+                `${item.sent_at}-${item.id}-${index}`
+              }
               ref={flatListRef}
               keyboardShouldPersistTaps="handled"
-              onLayout={() => {
-                if (!initialScrollDone) {
-                  flatListRef.current?.scrollToEnd({animated: false}); // Instant jump
-                  setInitialScrollDone(true);
+              ListHeaderComponent={
+                loadingOlder ? (
+                  <View
+                    style={{
+                      padding: 12,
+                      alignItems: 'center',
+                    }}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  </View>
+                ) : null
+              }
+              onScroll={({nativeEvent}) => {
+                // Trigger load older messages when scrolled near the top
+                if (
+                  nativeEvent.contentOffset.y < 100 &&
+                  hasMore &&
+                  !loadingOlder
+                ) {
+                  loadOlderMessages();
                 }
               }}
+              scrollEventThrottle={400}
+              ListFooterComponent={<View style={{height: 16}} />}
               onContentSizeChange={() => {
-                if (initialScrollDone) {
-                  flatListRef.current?.scrollToEnd({animated: true}); // Smooth scroll for new message
+                if (!loadingOlder) {
+                  // Always scroll to end for initial load and new messages
+                  setTimeout(() => {
+                    flatListRef.current?.scrollToEnd({
+                      animated: initialScrollDone,
+                    });
+                    if (!initialScrollDone) {
+                      setInitialScrollDone(true);
+                    }
+                  }, 100);
                 }
               }}
             />
