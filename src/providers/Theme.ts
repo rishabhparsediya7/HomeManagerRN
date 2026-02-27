@@ -87,7 +87,7 @@ export const lightTheme: AppTheme = {
   buttonTextSecondary: '#FFFFFF',
   buttonBorder: '#007AFF',
 
-  inputBackground: '#F9FAFB',
+  inputBackground: '#f7f7f7',
   inputText: '#121212',
   inputBorder: '#D1D5DB',
   inputFocusBorder: '#007AFF',
@@ -95,7 +95,7 @@ export const lightTheme: AppTheme = {
   overlay: 'rgba(0, 0, 0, 0.3)',
   modalBackground: '#FFFFFF',
 
-  tabBarBackground: 'rgba(0, 0, 0, 0.1)',
+  tabBarBackground: '#F0F0F0',
   tabBarIconActive: '#007AFF',
   tabBarIconInactive: '#A0AEC0',
 
@@ -112,52 +112,54 @@ export const lightTheme: AppTheme = {
   receiverText: '#121212',
 };
 
-// export const darkTheme: AppTheme = {
-//   background: '#121212',
-//   surface: '#121212',
-//   text: '#FFFFFF',
-//   mutedText: '#9CA3AF',
-//   placeholder: '#6B7280',
+export const darkTheme: AppTheme = {
+  background: '#121212',
+  surface: '#121212',
+  text: '#FFFFFF',
+  mutedText: '#9CA3AF',
+  placeholder: '#6B7280',
 
-//   border: '#2D2D2D',
-//   borderLight: '#3A3A3A',
+  border: '#2D2D2D',
+  borderLight: '#3A3A3A',
 
-//   primary: '#0A84FF',
-//   primaryLight: '#4FA5FF',
-//   secondary: '#FF9F0A',
-//   secondaryLight: '#FFD580',
+  primary: '#0A84FF',
+  primaryLight: '#4FA5FF',
+  secondary: '#FF9F0A',
+  secondaryLight: '#FFD580',
 
-//   success: '#32D74B',
-//   warning: '#FFD60A',
-//   error: '#FF453A',
-//   info: '#64D2FF',
+  success: '#32D74B',
+  warning: '#FFD60A',
+  error: '#FF453A',
+  info: '#64D2FF',
 
-//   buttonBackground: '#0A84FF',
-//   buttonText: '#FFFFFF',
-//   buttonTextSecondary: '#121212',
-//   buttonBorder: '#0A84FF',
+  buttonBackground: '#0A84FF',
+  buttonPrimaryBackground: '#0A84FF',
+  buttonText: '#FFFFFF',
+  buttonTextPrimary: '#FFFFFF',
+  buttonTextSecondary: '#121212',
+  buttonBorder: '#0A84FF',
 
-//   inputBackground: '#1C1C1E',
-//   inputText: '#FFFFFF',
-//   inputBorder: '#2C2C2E',
-//   inputFocusBorder: '#0A84FF',
+  inputBackground: '#1C1C1E',
+  inputText: '#FFFFFF',
+  inputBorder: '#2C2C2E',
+  inputFocusBorder: '#0A84FF',
 
-//   overlay: 'rgba(255, 255, 255, 0.2)',
-//   modalBackground: '#1C1C1E',
+  overlay: 'rgba(255, 255, 255, 0.2)',
+  modalBackground: '#1C1C1E',
 
-//   tabBarBackground: '#242424',
-//   tabBarIconActive: '#0A84FF',
-//   tabBarIconInactive: '#7C7C7C',
+  tabBarBackground: '#242424',
+  tabBarIconActive: '#0A84FF',
+  tabBarIconInactive: '#7C7C7C',
 
-//   shadowColor: '#000000',
-//   cardBackground: '#1E1E1E',
-//   rippleColor: 'rgba(255, 255, 255, 0.1)',
+  shadowColor: '#000000',
+  cardBackground: '#1E1E1E',
+  rippleColor: 'rgba(255, 255, 255, 0.1)',
 
-//   isDark: true,
+  isDark: true,
 
-//   senderBackground: '#1C1C1E',
-//   receiverBackground: '#F9FAFB',
+  senderBackground: '#1C1C1E',
+  receiverBackground: '#F9FAFB',
 
-//   senderText: '#FFFFFF',
-//   receiverText: '#121212',
-// };
+  senderText: '#FFFFFF',
+  receiverText: '#121212',
+};

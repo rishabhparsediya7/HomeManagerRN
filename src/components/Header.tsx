@@ -17,6 +17,7 @@ import {useTheme} from '../providers/ThemeContext';
 import {lightTheme} from '../providers/Theme';
 import {useMemo} from 'react';
 import {commonStyles} from '../utils/styles';
+import AppText from './common/AppText';
 
 interface HeaderProps {
   title?: string;
@@ -69,17 +70,6 @@ const Header: React.FC<HeaderProps> = ({
           backgroundColor: colors.background,
           height: 72,
           paddingHorizontal: 4,
-          ...Platform.select({
-            ios: {
-              shadowColor: colors.shadowColor,
-              shadowOffset: {width: 0, height: 2},
-              shadowOpacity: 1,
-              shadowRadius: 2,
-            },
-            android: {
-              elevation: 2,
-            },
-          }),
         },
         backButton: {
           padding: 8,
@@ -119,7 +109,9 @@ const Header: React.FC<HeaderProps> = ({
 
         <View style={styles.titleContainer}>
           {title && (
-            <Text style={[styles.title, headerTitleStyle]}>{title}</Text>
+            <AppText weight="semiBold" variant="h2">
+              {title}
+            </AppText>
           )}
         </View>
       </View>

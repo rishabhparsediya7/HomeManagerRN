@@ -1,10 +1,10 @@
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { StyleSheet, Text, TextStyle, View } from 'react-native';
-import { getReadableAmount } from '../../utils/amounts';
-import { useTheme } from '../../providers/ThemeContext';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { commonStyles } from '../../utils/styles';
-import { useMemo } from 'react';
+import {Platform, StyleSheet, Text, TextStyle, View} from 'react-native';
+import {getReadableAmount} from '../../utils/amounts';
+import {useTheme} from '../../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {commonStyles} from '../../utils/styles';
+import {useMemo} from 'react';
 
 interface RupeeIconProps {
   amount: number;
@@ -18,27 +18,36 @@ export default function RupeeIcon({
   color = '#32D74B',
   textStyle,
 }: RupeeIconProps) {
-  const { theme } = useTheme();
+  const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      justifyContent: 'center',
-      gap: 2,
-    },
-    icon: {
-      borderWidth: 1,
-      borderColor: 'transparent',
-    },
-    text: {
-      textAlignVertical: 'auto',
-      fontSize: size,
-      textAlign: 'center',
-      ...commonStyles.textDefault,
-      color: color,
-    },
-  }), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 2,
+        },
+        icon: {
+          borderWidth: 1,
+          borderColor: 'transparent',
+          ...Platform.select({
+            ios: {
+              paddingTop: 2, // Fine-tune alignment for iOS icon fonts
+            },
+          }),
+        },
+        text: {
+          textAlignVertical: 'auto',
+          fontSize: size,
+          textAlign: 'center',
+          ...commonStyles.textDefault,
+          color: color,
+        },
+      }),
+    [theme],
+  );
   return (
     <View style={styles.container}>
       <Icon name="rupee" style={styles.icon} size={size} color={color} />
