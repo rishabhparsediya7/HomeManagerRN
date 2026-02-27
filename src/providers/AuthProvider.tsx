@@ -8,11 +8,13 @@ import {
   useEffect,
   useState,
 } from 'react';
+import {Platform} from 'react-native';
 import api from '../services/api';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 
 GoogleSignin.configure({
   webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
+  iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
   offlineAccess: true,
   forceCodeForRefreshToken: true,
 });

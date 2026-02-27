@@ -1,13 +1,18 @@
+import {Platform} from 'react-native';
+
 export const fonts = {
-  black: 'Inter_18pt-Black',
-  default: 'Inter_18pt-Regular',
-  bold: 'Inter_18pt-Bold',
-  medium: 'Inter_18pt-Medium',
-  light: 'Inter_18pt-Light',
-  extraBold: 'Inter_18pt-ExtraBold',
-  thin: 'Inter_18pt-Thin',
-  extraLight: 'Inter_18pt-ExtraLight',
-  semiBold: 'Inter_18pt-SemiBold',
+  black: Platform.select({ios: 'System', android: 'Inter_18pt-Black'}),
+  default: Platform.select({ios: 'System', android: 'Inter_18pt-Regular'}),
+  bold: Platform.select({ios: 'System', android: 'Inter_18pt-Bold'}),
+  medium: Platform.select({ios: 'System', android: 'Inter_18pt-Medium'}),
+  light: Platform.select({ios: 'System', android: 'Inter_18pt-Light'}),
+  extraBold: Platform.select({ios: 'System', android: 'Inter_18pt-ExtraBold'}),
+  thin: Platform.select({ios: 'System', android: 'Inter_18pt-Thin'}),
+  extraLight: Platform.select({
+    ios: 'System',
+    android: 'Inter_18pt-ExtraLight',
+  }),
+  semiBold: Platform.select({ios: 'System', android: 'Inter_18pt-SemiBold'}),
 };
 
 export const commonStyles = {

@@ -1,24 +1,25 @@
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { NavigationContainer } from '@react-navigation/native';
-import { Buffer } from 'buffer';
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {NavigationContainer} from '@react-navigation/native';
+import {Buffer} from 'buffer';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import 'react-native-get-random-values';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import AuthorizeNavigation from './src/navigators/authorizeStack';
 import UnauthorizeNavigation from './src/navigators/unauthorizeStack';
-import AuthProvider, { useAuth } from './src/providers/AuthProvider';
-import { ThemeProvider } from './src/providers/ThemeContext';
+import AuthProvider, {useAuth} from './src/providers/AuthProvider';
+import {ThemeProvider} from './src/providers/ThemeContext';
 import UserProvider from './src/providers/UserContext';
 import socket from './src/utils/socket';
 import Toast from 'react-native-toast-message';
 
 GoogleSignin.configure({
   webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
+  iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
   offlineAccess: true,
   forceCodeForRefreshToken: true,
 });
@@ -28,7 +29,7 @@ if (typeof global.Buffer === 'undefined') {
 }
 
 const RootNavigator = () => {
-  const { isAuthenticated } = useAuth();
+  const {isAuthenticated} = useAuth();
   return isAuthenticated ? <AuthorizeNavigation /> : <UnauthorizeNavigation />;
 };
 
@@ -62,15 +63,14 @@ const App = () => {
       <ErrorBoundary fallback={fallbackUI}>
         <GestureHandlerRootView style={styles.container}>
           <BottomSheetModalProvider>
-            <SafeAreaView 
+            <SafeAreaView
               style={StyleSheet.absoluteFill}
-              edges={['right', 'bottom', 'left']}
-            >
+              edges={['top', 'right', 'bottom', 'left']}>
               <AuthProvider>
                 <UserProvider>
                   <NavigationContainer>
                     <RootNavigator />
-                    <Toast/>
+                    <Toast />
                   </NavigationContainer>
                 </UserProvider>
               </AuthProvider>
