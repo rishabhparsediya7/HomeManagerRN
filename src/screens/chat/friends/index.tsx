@@ -1,12 +1,10 @@
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import {
   View,
-  Text,
   FlatList,
   Image,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,7 +19,9 @@ import {useChatStore} from '../../../store';
 import {useTheme} from '../../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../../providers/Theme';
 import {commonStyles} from '../../../utils/styles';
-import Input from '../../../components/form/input';
+import AppText from '../../../components/common/AppText';
+import AppInput from '../../../components/common/AppInput';
+import Button from '../../../components/Button';
 import socket from '../../../utils/socket';
 const handleReceiveMessage = async (payload: {
   senderId: string;
@@ -113,14 +113,16 @@ const FriendItem = ({
         <Image source={{uri: image}} style={styles.image} />
       ) : (
         <View style={styles.initialsContainer}>
-          <Text style={styles.initials}>{profileImage}</Text>
+          <AppText weight="semiBold" style={styles.initials}>
+            {profileImage}
+          </AppText>
         </View>
       )}
       <View style={{flex: 1}}>
         <View style={styles.nameContainer}>
-          <Text style={styles.name}>{firstName + ' ' + lastName}</Text>
+          <AppText variant="h6">{`${firstName} ${lastName}`}</AppText>
           {lastMessageTime && (
-            <Text style={styles.time}>
+            <AppText variant="sm" style={styles.time}>
               {new Date(lastMessageTime)
                 .toLocaleTimeString()
                 .split(':')[0]
@@ -132,24 +134,24 @@ const FriendItem = ({
                   .split(':')[1]
                   .slice(0, 2)
                   .padStart(2, '0')}
-            </Text>
+            </AppText>
           )}
         </View>
         {lastMessageToDisplay && (
-          <Text numberOfLines={1} style={styles.lastMessage}>
+          <AppText variant="sm" numberOfLines={1} style={styles.lastMessage}>
             {lastMessageToDisplay}
-          </Text>
+          </AppText>
         )}
       </View>
     </TouchableOpacity>
   );
 };
 
-const LoadingComponent = ({styles}: {styles: any}) => {
+const LoadingComponent = ({styles, colors}: {styles: any; colors: any}) => {
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color={styles.loadingText} />
-      <Text style={styles.loadingText}>Loading...</Text>
+      <ActivityIndicator size="large" color={colors.primary} />
+      <AppText style={styles.loadingText}>Loading...</AppText>
     </View>
   );
 };
@@ -157,7 +159,7 @@ const LoadingComponent = ({styles}: {styles: any}) => {
 const ListEmptyComponent = ({styles}: {styles: any}) => {
   return (
     <View style={styles.emptyTextContainer}>
-      <Text style={styles.emptyText}>No friends found</Text>
+      <AppText style={styles.emptyText}>No friends found</AppText>
     </View>
   );
 };
@@ -283,11 +285,6 @@ const FriendsScreen = ({
       ...commonStyles.textDefault,
       paddingLeft: 40,
     },
-    name: {
-      fontSize: 18,
-      ...commonStyles.textDefault,
-      color: colors.text,
-    },
     time: {
       ...commonStyles.textDefault,
       color: colors.text,
@@ -365,65 +362,56 @@ const FriendsScreen = ({
       fontSize: 12,
       fontWeight: '600',
     },
-    sectionTitle: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginBottom: 12,
-      ...commonStyles.textDefault,
-    },
   });
 
   if (loading) {
-    return <LoadingComponent styles={styles} />;
+    return <LoadingComponent styles={styles} colors={colors} />;
   }
   return (
     <FlatList
       ListHeaderComponent={
         <View>
-          <View style={styles.header}>
-            <FontAwesome5Icon
-              name="search"
-              size={18}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor={colors.inputText}
-              placeholder="Search for friends"
-            />
-          </View>
+          <AppInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search for friends"
+            leftIcon={
+              <FontAwesome5Icon name="search" size={18} color={colors.text} />
+            }
+            containerStyle={{flex: 1}}
+          />
 
           {pendingSplinks.length > 0 && (
             <View style={styles.pendingSection}>
-              <Text style={styles.sectionTitle}>Pending Splinks</Text>
+              <AppText weight="bold" style={{marginTop: 20}}>
+                Pending Splinks
+              </AppText>
               {pendingSplinks.map(item => (
                 <View key={item.friendId} style={styles.pendingItem}>
                   <Icon name="user-circle" size={40} color={colors.mutedText} />
                   <View style={styles.pendingInfo}>
-                    <Text style={styles.name}>
-                      {item.firstName} {item.lastName}
-                    </Text>
+                    <AppText variant="h3" weight="semiBold">
+                      {`${item.firstName} ${item.lastName}`}
+                    </AppText>
                   </View>
                   <View style={styles.actionButtons}>
-                    <TouchableOpacity
-                      style={styles.acceptButton}
+                    <Button
+                      title="Accept"
                       onPress={() =>
                         handleSplinkResponse(item.friendId, 'accept')
-                      }>
-                      <Text style={styles.buttonText}>Accept</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.rejectButton}
+                      }
+                      style={{paddingVertical: 8, paddingHorizontal: 12}}
+                      textStyle={{fontSize: 13}}
+                    />
+                    <Button
+                      title="Reject"
+                      variant="outline"
                       onPress={() =>
                         handleSplinkResponse(item.friendId, 'reject')
-                      }>
-                      <Text style={[styles.buttonText, {color: colors.text}]}>
-                        Reject
-                      </Text>
-                    </TouchableOpacity>
+                      }
+                      style={{paddingVertical: 8, paddingHorizontal: 12}}
+                      textStyle={{fontSize: 13}}
+                    />
                   </View>
                 </View>
               ))}
@@ -431,9 +419,9 @@ const FriendsScreen = ({
           )}
 
           {friends.length > 0 && (
-            <Text style={[styles.sectionTitle, {marginTop: 20}]}>
+            <AppText weight="bold" style={[{marginTop: 20}]}>
               Your Friends
-            </Text>
+            </AppText>
           )}
         </View>
       }

@@ -8,11 +8,12 @@ import {
   Platform,
   StatusBar,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import AppText from '../../../components/common/AppText';
+import AppInput from '../../../components/common/AppInput';
+import Button from '../../../components/Button';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useAuthorizeNavigation} from '../../../navigators/navigators';
@@ -22,7 +23,6 @@ import {getStoredKeyPair} from '../../../utils/cryptoUtils';
 import naclUtil from 'tweetnacl-util';
 import nacl from 'tweetnacl';
 import api from '../../../services/api';
-import {useKeyboardStatus} from '../../../hooks/useKeyboardStatus';
 import {useChatStore} from '../../../store';
 import socket from '../../../utils/socket';
 import {useTheme} from '../../../providers/ThemeContext';
@@ -38,6 +38,159 @@ interface Message {
   sender_id: string | null;
   sent_at: string;
 }
+
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    loadingText: {
+      fontSize: 18,
+      ...commonStyles.textDefault,
+      color: colors.inputText,
+    },
+    headerIconContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 10,
+      padding: 8,
+    },
+    headerInfoGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 4,
+    },
+    header: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      backgroundColor: colors.background,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    contentContainer: {
+      flexGrow: 1,
+      width: '100%',
+    },
+    headerImage: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+    },
+    headerIcon: {
+      color: colors.text,
+    },
+    headerText: {
+      fontSize: 18,
+      color: colors.text,
+      ...commonStyles.textDefault,
+      marginLeft: 4,
+    },
+    messageContainer: {
+      width: '100%',
+      alignItems: 'flex-start',
+      paddingVertical: 4,
+      paddingHorizontal: 12,
+    },
+    messageContainerSender: {
+      alignItems: 'flex-end',
+      width: '100%',
+    },
+    messageText: {
+      fontSize: 18,
+      ...commonStyles.textDefault,
+    },
+    messageTextSender: {
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+    },
+    messageTime: {
+      fontSize: 14,
+      ...commonStyles.textDefault,
+      color: colors.buttonText,
+    },
+    messageTimeSender: {
+      color: colors.buttonText,
+      ...commonStyles.textDefault,
+    },
+    sender: {
+      backgroundColor: colors.inputBackground,
+      padding: 10,
+      borderRadius: 10,
+      maxWidth: '70%',
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between',
+      gap: 6,
+      flexWrap: 'wrap',
+    },
+    receiver: {
+      backgroundColor: colors.receiverBackground,
+      padding: 10,
+      borderRadius: 10,
+      alignSelf: 'flex-start',
+      width: '100%',
+      maxWidth: '70%',
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between',
+      gap: 6,
+      flexWrap: 'wrap',
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    input: {
+      flex: 1,
+      minHeight: 40,
+      maxHeight: 120,
+    },
+    sendButton: {
+      padding: 4,
+    },
+    sendIcon: {
+      color: colors.text,
+    },
+    initialsContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.buttonText,
+      padding: 8,
+    },
+    initials: {
+      color: 'white',
+    },
+    messageTextReceiver: {
+      color: colors.receiverText,
+      ...commonStyles.textDefault,
+    },
+    messageTimeReceiver: {
+      color: colors.receiverText,
+      ...commonStyles.textDefault,
+    },
+    keyboardAvoidingView: {
+      flex: 1,
+    },
+  });
 
 async function fetchAndDecryptChat(withUser: string) {
   try {
@@ -80,6 +233,19 @@ async function fetchAndDecryptChat(withUser: string) {
   }
 }
 
+const ChatAvatar = ({image, profileImage, styles}: any) => {
+  if (image) {
+    return <Image source={{uri: image}} style={styles.headerImage} />;
+  }
+  return (
+    <View style={styles.initialsContainer}>
+      <AppText variant="lg" style={styles.initials}>
+        {profileImage}
+      </AppText>
+    </View>
+  );
+};
+
 const ListHeaderComponent = ({
   navigation,
   firstName,
@@ -91,31 +257,27 @@ const ListHeaderComponent = ({
   return (
     <View style={styles.header}>
       <TouchableOpacity
-        style={styles.headerIconContainer}
+        style={styles.headerInfoGroup}
         onPress={() => navigation.canGoBack() && navigation.goBack()}>
         <EntypoIcon
           name="chevron-thin-left"
-          size={28}
+          size={20}
           style={styles.headerIcon}
         />
+        <ChatAvatar image={image} profileImage={profileImage} styles={styles} />
       </TouchableOpacity>
-      {image ? (
-        <Image source={{uri: image}} style={styles.headerImage} />
-      ) : (
-        <View style={styles.initialsContainer}>
-          <Text style={styles.initials}>{profileImage}</Text>
-        </View>
-      )}
-      <Text style={styles.headerText}>{firstName + ' ' + lastName}</Text>
+      <AppText variant="h6" style={styles.headerText}>
+        {firstName + ' ' + lastName}
+      </AppText>
     </View>
   );
 };
 
-const LoadingComponent = ({styles}: {styles: any}) => {
+const LoadingComponent = ({styles, colors}: {styles: any; colors: any}) => {
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color={styles.loadingText} />
-      <Text style={styles.loadingText}>Loading...</Text>
+      <ActivityIndicator size="large" color={colors.primary} />
+      <AppText style={styles.loadingText}>Loading messages...</AppText>
     </View>
   );
 };
@@ -131,6 +293,7 @@ const FriendChatScreen = ({route}) => {
   const {chats, setMessages, addMessage} = useChatStore();
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
 
   const messages = chats[id] || [];
 
@@ -265,172 +428,12 @@ const FriendChatScreen = ({route}) => {
     }
   }, [userId]);
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.background,
-    },
-    loadingText: {
-      fontSize: 18,
-      ...commonStyles.textDefault,
-      color: colors.inputText,
-    },
-    headerIconContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 10,
-      padding: 10,
-    },
-    header: {
-      width: '100%',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      backgroundColor: colors.background,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    contentContainer: {
-      flexGrow: 1,
-      width: '100%',
-    },
-    headerImage: {
-      width: 40,
-      height: 40,
-      borderRadius: 25,
-      marginLeft: -12,
-    },
-    headerIcon: {
-      color: colors.text,
-    },
-    headerText: {
-      fontSize: 24,
-      fontWeight: 'semibold',
-      color: colors.text,
-      ...commonStyles.textDefault,
-    },
-    messageContainer: {
-      width: '100%',
-      alignItems: 'flex-start',
-      paddingVertical: 4,
-      paddingHorizontal: 12,
-    },
-    messageContainerSender: {
-      alignItems: 'flex-end',
-      width: '100%',
-    },
-    messageText: {
-      fontSize: 18,
-      ...commonStyles.textDefault,
-    },
-    messageTextSender: {
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-    },
-    messageTime: {
-      fontSize: 14,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
-    messageTimeSender: {
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-    },
-    sender: {
-      backgroundColor: colors.inputBackground,
-      padding: 10,
-      borderRadius: 10,
-      maxWidth: '70%',
-      width: '100%',
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      justifyContent: 'space-between',
-      gap: 6,
-      flexWrap: 'wrap',
-    },
-    receiver: {
-      backgroundColor: colors.receiverBackground,
-      padding: 10,
-      borderRadius: 10,
-      alignSelf: 'flex-start',
-      width: '100%',
-      maxWidth: '70%',
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      justifyContent: 'space-between',
-      gap: 6,
-      flexWrap: 'wrap',
-    },
-    inputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      backgroundColor: colors.inputBackground,
-    },
-    input: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 10,
-      padding: 12,
-      minHeight: 40,
-      maxHeight: 120,
-      color: colors.inputText,
-      fontSize: 16,
-      ...commonStyles.textDefault,
-    },
-    sendButton: {
-      padding: 12,
-    },
-    sendIcon: {
-      color: colors.text,
-    },
-    initialsContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.buttonText,
-      marginLeft: -12,
-    },
-    initials: {
-      fontSize: 18,
-      ...commonStyles.textBold,
-      color: colors.buttonTextSecondary,
-    },
-    messageTextReceiver: {
-      color: colors.receiverText,
-      ...commonStyles.textDefault,
-    },
-    messageTimeReceiver: {
-      color: colors.receiverText,
-      ...commonStyles.textDefault,
-    },
-    keyboardAvoidingView: {
-      flex: 1,
-      marginTop: StatusBar.currentHeight,
-    },
-  });
-
-  if (loading) {
-    return <LoadingComponent styles={styles} />;
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
         <ListHeaderComponent
           navigation={navigation}
           firstName={firstName}
@@ -439,79 +442,92 @@ const FriendChatScreen = ({route}) => {
           profileImage={profileImage}
           styles={styles}
         />
-        <FlatList
-          // ListHeaderComponent={() => <ListHeaderComponent navigation={navigation} firstName={firstName} lastName={lastName} image={image} profileImage={profileImage} />}
-          data={messages}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-          renderItem={({item}) => (
-            <View
-              style={[
-                styles.messageContainer,
-                item.sender_id === userId && styles.messageContainerSender,
-              ]}>
-              <View
-                style={
-                  item.sender_id === userId ? styles.sender : styles.receiver
-                }>
-                <Text
+        <View style={{flex: 1}}>
+          {loading ? (
+            <LoadingComponent styles={styles} colors={colors} />
+          ) : (
+            <FlatList
+              data={messages}
+              contentContainerStyle={styles.contentContainer}
+              showsVerticalScrollIndicator={false}
+              renderItem={({item}) => (
+                <View
                   style={[
-                    styles.messageText,
-                    item.sender_id === userId
-                      ? styles.messageTextSender
-                      : styles.messageTextReceiver,
+                    styles.messageContainer,
+                    item.sender_id === userId && styles.messageContainerSender,
                   ]}>
-                  {item.sender_id === userId
-                    ? 'You: '
-                    : firstName + ' ' + lastName + ': '}
-                  {item.plaintext}
-                </Text>
-                <Text
-                  style={[
-                    styles.messageTime,
-                    item.sender_id === userId
-                      ? styles.messageTimeSender
-                      : styles.messageTimeReceiver,
-                  ]}>
-                  {new Date(item.sent_at)
-                    .toLocaleTimeString()
-                    .split(':')[0]
-                    .slice(0, 2) +
-                    ':' +
-                    new Date(item.sent_at)
-                      .toLocaleTimeString()
-                      .split(':')[1]
-                      .slice(0, 2)}
-                </Text>
-              </View>
-            </View>
+                  <View
+                    style={
+                      item.sender_id === userId
+                        ? styles.sender
+                        : styles.receiver
+                    }>
+                    <AppText
+                      style={[
+                        styles.messageText,
+                        item.sender_id === userId
+                          ? styles.messageTextSender
+                          : styles.messageTextReceiver,
+                      ]}>
+                      {item.sender_id === userId
+                        ? 'You: '
+                        : firstName + ' ' + lastName + ': '}
+                      {item.plaintext}
+                    </AppText>
+                    <AppText
+                      variant="caption"
+                      style={[
+                        styles.messageTime,
+                        item.sender_id === userId
+                          ? styles.messageTimeSender
+                          : styles.messageTimeReceiver,
+                      ]}>
+                      {new Date(item.sent_at)
+                        .toLocaleTimeString()
+                        .split(':')[0]
+                        .slice(0, 2) +
+                        ':' +
+                        new Date(item.sent_at)
+                          .toLocaleTimeString()
+                          .split(':')[1]
+                          .slice(0, 2)}
+                    </AppText>
+                  </View>
+                </View>
+              )}
+              keyExtractor={item => new Date(item.sent_at).getTime().toString()}
+              ref={flatListRef}
+              keyboardShouldPersistTaps="handled"
+              onLayout={() => {
+                if (!initialScrollDone) {
+                  flatListRef.current?.scrollToEnd({animated: false}); // Instant jump
+                  setInitialScrollDone(true);
+                }
+              }}
+              onContentSizeChange={() => {
+                if (initialScrollDone) {
+                  flatListRef.current?.scrollToEnd({animated: true}); // Smooth scroll for new message
+                }
+              }}
+            />
           )}
-          keyExtractor={item => new Date(item.sent_at).getTime().toString()}
-          ref={flatListRef}
-          onLayout={() => {
-            if (!initialScrollDone) {
-              flatListRef.current?.scrollToEnd({animated: false}); // Instant jump
-              setInitialScrollDone(true);
-            }
-          }}
-          onContentSizeChange={() => {
-            if (initialScrollDone) {
-              flatListRef.current?.scrollToEnd({animated: true}); // Smooth scroll for new message
-            }
-          }}
-        />
+        </View>
         <View style={styles.inputContainer}>
-          <TextInput
+          <AppInput
             style={styles.input}
             placeholder="Type your message..."
             value={message}
             multiline
             onChangeText={setMessage}
             placeholderTextColor={colors.inputText}
+            containerStyle={{flex: 1, marginBottom: 0}}
           />
-          <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-            <Icon name="send" size={24} style={styles.sendIcon} />
-          </TouchableOpacity>
+          <Button
+            variant="ghost"
+            onPress={sendMessage}
+            style={{padding: 4}}
+            icon={<Icon name="send" size={24} color={colors.primary} />}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
