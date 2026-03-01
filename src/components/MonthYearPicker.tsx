@@ -123,14 +123,22 @@ export const MonthYearPicker: FC<MonthYearPickerProps> = ({
   }, [yearRange]);
 
   useEffect(() => {
-    const monthIndex = MONTHS.findIndex(m => m.value === date.month);
-    if (monthIndex !== -1) {
-      monthListRef.current?.scrollToIndex({index: monthIndex, animated: true});
-    }
-    const yearIndex = years.indexOf(date.year);
-    if (yearIndex !== -1) {
-      yearListRef.current?.scrollToIndex({index: yearIndex, animated: true});
-    }
+    const timer = setTimeout(() => {
+      const monthIndex = MONTHS.findIndex(m => m.value === date.month);
+      if (monthIndex !== -1) {
+        monthListRef.current?.scrollToIndex({
+          index: monthIndex,
+          animated: false,
+        });
+        monthScrollY.value = monthIndex * ITEM_HEIGHT;
+      }
+      const yearIndex = years.indexOf(date.year);
+      if (yearIndex !== -1) {
+        yearListRef.current?.scrollToIndex({index: yearIndex, animated: false});
+        yearScrollY.value = yearIndex * ITEM_HEIGHT;
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const updateDate = (newDate: {month: number; year: number}) => {
