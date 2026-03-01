@@ -4,7 +4,7 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {NavigationContainer} from '@react-navigation/native';
 import {Buffer} from 'buffer';
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Platform, StyleSheet, Text, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -17,12 +17,14 @@ import UserProvider from './src/providers/UserContext';
 import socket from './src/utils/socket';
 import Toast from 'react-native-toast-message';
 
-GoogleSignin.configure({
-  webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
-  iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
-  offlineAccess: true,
-  forceCodeForRefreshToken: true,
-});
+if (Platform.OS === 'android') {
+  GoogleSignin.configure({
+    webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
+    offlineAccess: true,
+    forceCodeForRefreshToken: true,
+  });
+}
 
 if (typeof global.Buffer === 'undefined') {
   global.Buffer = Buffer;

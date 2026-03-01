@@ -16,13 +16,16 @@ import {
   setupForegroundHandler,
 } from '../services/notificationService';
 import socket from '../utils/socket';
+import {Platform} from 'react-native';
 
-GoogleSignin.configure({
-  webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
-  iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
-  offlineAccess: true,
-  forceCodeForRefreshToken: true,
-});
+if (Platform.OS === 'android') {
+  GoogleSignin.configure({
+    webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.GOOGLE_IOS_CLIENT_ID,
+    offlineAccess: true,
+    forceCodeForRefreshToken: true,
+  });
+}
 
 type AuthContext = {
   signIn: () => void;
@@ -347,7 +350,7 @@ export default function AuthProvider({children}: PropsWithChildren) {
       socket.disconnect();
     }
     await AsyncStorage.clear();
-    if (GoogleSignin) {
+    if (Platform.OS === 'android' && GoogleSignin) {
       GoogleSignin.signOut();
     }
     setIsAuthenticated(false);

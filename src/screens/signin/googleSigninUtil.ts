@@ -1,10 +1,13 @@
-// googleSignInUtil.js
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
+import {Platform} from 'react-native';
 
 export const googleSignIn = async () => {
+  if (Platform.OS === 'ios') {
+    return {success: false, error: 'Google Sign-in is not supported on iOS'};
+  }
   try {
     await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
     const userInfo = await GoogleSignin.signIn();
@@ -25,6 +28,9 @@ export const googleSignIn = async () => {
 };
 
 export const signOutGoogle = async () => {
+  if (Platform.OS === 'ios') {
+    return {success: true};
+  }
   try {
     await GoogleSignin.signOut();
     return {success: true};

@@ -44,6 +44,9 @@ export async function displayNotification(
  * Request notification permissions (required for iOS + Android 13+)
  */
 export async function requestNotificationPermission(): Promise<boolean> {
+  if (Platform.OS === 'ios') {
+    return false;
+  }
   // Request FCM permission (handles iOS)
   const authStatus = await messaging().requestPermission();
   const enabled =
@@ -73,6 +76,9 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * Get FCM token and register it with the backend
  */
 export async function registerForNotifications(userId: string): Promise<void> {
+  if (Platform.OS === 'ios') {
+    return;
+  }
   try {
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) return;
@@ -114,6 +120,9 @@ export async function registerForNotifications(userId: string): Promise<void> {
  * Unregister FCM token from backend (call on sign-out)
  */
 export async function unregisterNotifications(userId: string): Promise<void> {
+  if (Platform.OS === 'ios') {
+    return;
+  }
   try {
     const token = await AsyncStorage.getItem('fcmToken');
     if (token) {
@@ -134,6 +143,9 @@ export async function unregisterNotifications(userId: string): Promise<void> {
  * Shows a system notification when a message arrives while the app is open
  */
 export function setupForegroundHandler() {
+  if (Platform.OS === 'ios') {
+    return () => {}; // return dummy unsubscribe
+  }
   return messaging().onMessage(async remoteMessage => {
     console.log('📬 Foreground notification:', remoteMessage);
     const {notification, data} = remoteMessage;
