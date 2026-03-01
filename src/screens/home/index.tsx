@@ -102,15 +102,12 @@ const Home = () => {
     setLoading(true);
     try {
       let expenseQuery = api.get(`/api/expense/get-home-summary`);
-      let chartQuery = api.get(`/api/expense/getWeekChart`);
       let categoryQuery = api.get(`/api/expense/getExpenseByCategory`);
-      const [response, chartResponse, categoryResponse] = await Promise.all([
+      const [response, categoryResponse] = await Promise.all([
         expenseQuery,
-        chartQuery,
         categoryQuery,
       ]);
       const data = response.data?.data?.last5Transactions;
-      const chartData = chartResponse.data?.data || [];
       const categoryData = categoryResponse.data?.data || [];
       setRecentExpenses(data);
       setMonthSummary({
@@ -122,11 +119,9 @@ const Home = () => {
         ),
         totalBudget: Number(response.data?.data?.financeSummary?.budget || 0),
       });
-      const updatedChartData = mapExpenseDataToChart(chartData);
       const updatedCategoryData =
         mapCategoryExpensePercentageToChartData(categoryData);
 
-      setWeekChartData(updatedChartData);
       setCategoryChartData(updatedCategoryData);
     } catch (error) {
       console.log(error);
@@ -447,18 +442,6 @@ const Home = () => {
                 icon="wallet-outline"
               />
               <ActionButton
-                onPress={() => openActionScreen('bills')}
-                label="Bills"
-                icon="receipt-outline"
-              />
-            </View>
-            <View style={styles.actionButtonContainer}>
-              <ActionButton
-                onPress={() => openActionScreen('budget')}
-                label="Budget"
-                icon="bar-chart-outline"
-              />
-              <ActionButton
                 onPress={() => openActionScreen('budget')}
                 label="Budget"
                 icon="bar-chart-outline"
@@ -502,24 +485,7 @@ const Home = () => {
           </View>
 
           {/* Monthly Overview */}
-          {/* <Text style={styles.sectionTitle}>Monthly Overview</Text> */}
           <View style={styles.chartContainer}>
-            {/* <View style={styles.chartBars}>
-              {weekChartData.map((day: any, i: number) => (
-                <View key={i} style={styles.chartBarContainer}>
-                  <View style={styles.chartBarItem}>
-                    <AppGradient
-                      start={{x: 0, y: 1}}
-                      end={{x: 0, y: 0}}
-                      colors={[colors.primary, colors.primaryLight]}
-                      style={[styles.bar, {height: day.height}]}
-                    />
-                  </View>
-                <AppText variant="caption" style={styles.dayLabel}>{day.label}</AppText>
-                </View>
-              ))}
-            </View> */}
-
             <AppText
               variant="h5"
               weight="semiBold"
