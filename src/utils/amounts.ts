@@ -1,6 +1,5 @@
 export function getReadableAmount(amount: number): string {
-
-  if(!amount) return '0';
+  if (!amount) return '0';
   const [integerPart, decimalPart] = amount.toString().split('.');
 
   // Format the integer part using Indian numbering system

@@ -19,6 +19,7 @@ import CreateSplitExpense from '../screens/splitExpense/create';
 import SplitExpenseDetail from '../screens/splitExpense/detail';
 import SettlementScreen from '../screens/splitExpense/settle';
 import BalancesScreen from '../screens/splitExpense/balances';
+import QuickAddExpense from '../screens/addExpense/QuickAddExpenseScreen';
 
 type ActionType = 'income' | 'bills' | 'budget' | null;
 
@@ -53,6 +54,7 @@ export type AuthorizeNavigationStackList = {
     payeeId: string;
   };
   Balances: undefined;
+  QuickAddExpense: undefined;
 };
 
 export type AuthorizeNavigationProp<
@@ -128,6 +130,10 @@ const AuthorizeNavigation = () => {
       <AuthorizeNavigationStack.Screen
         name="Balances"
         component={BalancesScreen}
+      />
+      <AuthorizeNavigationStack.Screen
+        name="QuickAddExpense"
+        component={QuickAddExpense}
       />
     </AuthorizeNavigationStack.Navigator>
   );

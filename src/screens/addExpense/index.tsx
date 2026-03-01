@@ -1,6 +1,7 @@
-import React, {useMemo, useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,20 +12,28 @@ import {
   View,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Button from '../../components/Button';
 import CategorySelector from '../../components/categorySelector';
+import AppInput from '../../components/common/AppInput';
+import AppText from '../../components/common/AppText';
 import Header from '../../components/Header';
 import Icons from '../../components/icons';
 import PaymentMethodSelector from '../../components/paymentMethodSelector';
 import {category as expenseCategory} from '../../constants';
-import api from '../../services/api';
-import {useTheme} from '../../providers/ThemeContext';
+import {AuthorizeNavigationStackList} from '../../navigators/authorizeStack';
 import {darkTheme, lightTheme} from '../../providers/Theme';
-import {commonStyles} from '../../utils/styles';
+import {useTheme} from '../../providers/ThemeContext';
+import api from '../../services/api';
 import {formatDate} from '../../utils/formatDate';
-import Button from '../../components/Button';
-import AppText from '../../components/common/AppText';
-import AppInput from '../../components/common/AppInput';
+import {commonStyles} from '../../utils/styles';
 
 export const paymentMethods = [
   {
@@ -56,6 +65,25 @@ const AddExpenseScreen = () => {
   const [loading, setLoading] = useState(false);
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const navigation =
+    useNavigation<StackNavigationProp<AuthorizeNavigationStackList>>();
+
+  const pulse = useSharedValue(1);
+
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.1, {duration: 1000}),
+        withTiming(1, {duration: 1000}),
+      ),
+      -1,
+      true,
+    );
+  }, []);
+
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    transform: [{scale: pulse.value}],
+  }));
 
   const categories = useMemo(() => expenseCategory, []);
 
@@ -85,7 +113,7 @@ const AddExpenseScreen = () => {
   };
 
   const handleAddExpense = async () => {
-    if (!amount || !paymentMethod || !paymentDate || !category || !note) {
+    if (!amount || !note) {
       return;
     }
     setLoading(true);
@@ -214,13 +242,26 @@ const AddExpenseScreen = () => {
       }),
     [theme],
   );
+  const isDisabled = useMemo(() => {
+    return !amount || !note;
+  }, [amount, note]);
 
   return (
     <KeyboardAvoidingView
       style={{flex: 1, backgroundColor: colors.background}}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
-      <Header title="Create" onBackPress={() => {}} />
+      <Header
+        title="Create"
+        onBackPress={() => navigation.goBack()}
+        rightComponent={
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('QuickAddExpense')}>
+            <Icons.AIStarIcon height={28} width={28} />
+          </TouchableOpacity>
+        }
+      />
       <ScrollView
         contentContainerStyle={{paddingBottom: 12}}
         showsVerticalScrollIndicator={false}>
@@ -289,6 +330,7 @@ const AddExpenseScreen = () => {
           />
 
           <Button
+            disabled={isDisabled}
             onPress={handleAddExpense}
             title="Save Expense"
             loading={loading}

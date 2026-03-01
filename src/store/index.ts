@@ -12,6 +12,10 @@ export type Message = {
   nonce: string;
   sent_at: string;
   plaintext?: string;
+  // Support for camelCase from backend
+  senderId?: string | null;
+  receiverId?: string;
+  sentAt?: string;
 };
 
 type ChatState = {
