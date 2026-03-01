@@ -1,6 +1,22 @@
-import React from 'react';
-import Svg, { Rect, Circle, Path, G } from 'react-native-svg';
-import { IconProps } from '../../types/iconProps';
+import React, {useEffect} from 'react';
+import Svg, {
+  Rect,
+  Circle,
+  Path,
+  G,
+  Defs,
+  LinearGradient,
+  Stop,
+} from 'react-native-svg';
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withRepeat,
+  withTiming,
+  withSequence,
+  withDelay,
+} from 'react-native-reanimated';
+import {IconProps} from '../../types/iconProps';
 
 const WalletIcon = (props: IconProps) => {
   return (
@@ -538,8 +554,7 @@ const GoogleIcon = (props: IconProps) => {
       viewBox="0 0 48 48"
       width="48px"
       height="48px"
-      {...props}
-    >
+      {...props}>
       <Path
         fill="#FFC107"
         d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
@@ -567,12 +582,101 @@ const GithubIcon = (props: IconProps) => {
       viewBox="0 0 30 30"
       width="30px"
       height="30px"
-      {...props}
-    >
+      {...props}>
       <Path d="M15 3C8.373 3 3 8.373 3 15c0 5.623 3.872 10.328 9.092 11.63a1.751 1.751 0 01-.092-.583v-2.051h-1.508c-.821 0-1.551-.353-1.905-1.009-.393-.729-.461-1.844-1.435-2.526-.289-.227-.069-.486.264-.451.615.174 1.125.596 1.605 1.222.478.627.703.769 1.596.769.433 0 1.081-.025 1.691-.121.328-.833.895-1.6 1.588-1.962-3.996-.411-5.903-2.399-5.903-5.098 0-1.162.495-2.286 1.336-3.233-.276-.94-.623-2.857.106-3.587 1.798 0 2.885 1.166 3.146 1.481A8.993 8.993 0 0115.495 9c1.036 0 2.024.174 2.922.483C18.675 9.17 19.763 8 21.565 8c.732.731.381 2.656.102 3.594.836.945 1.328 2.066 1.328 3.226 0 2.697-1.904 4.684-5.894 5.097C18.199 20.49 19 22.1 19 23.313v2.734c0 .104-.023.179-.035.268C23.641 24.676 27 20.236 27 15c0-6.627-5.373-12-12-12z" />
     </Svg>
-  )
-}
+  );
+};
+
+const AnimatedG = Animated.createAnimatedComponent(G);
+
+const AIStarIcon = (props: IconProps) => {
+  const {color} = props;
+  const scale1 = useSharedValue(1);
+  const scale2 = useSharedValue(1);
+
+  useEffect(() => {
+    scale1.value = withRepeat(
+      withSequence(
+        withTiming(1.2, {duration: 800}),
+        withTiming(1, {duration: 800}),
+      ),
+      -1,
+      true,
+    );
+
+    scale2.value = withDelay(
+      400,
+      withRepeat(
+        withSequence(
+          withTiming(1.3, {duration: 1000}),
+          withTiming(1, {duration: 1000}),
+        ),
+        -1,
+        true,
+      ),
+    );
+  }, []);
+
+  const animatedProps1 = useAnimatedProps(() => ({
+    transform: [
+      {translateX: 30},
+      {translateY: 35},
+      {scale: scale1.value},
+      {translateX: -30},
+      {translateY: -35},
+    ],
+  }));
+
+  const animatedProps2 = useAnimatedProps(() => ({
+    transform: [
+      {translateX: 65},
+      {translateY: 65},
+      {scale: scale2.value},
+      {translateX: -65},
+      {translateY: -65},
+    ],
+  }));
+
+  return (
+    <Svg
+      width={props.width || 24}
+      height={props.height || 24}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}>
+      <Defs>
+        <LinearGradient
+          id="ai_shiny_gradient"
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="100%">
+          <Stop offset="0%" stopColor="#007AFF" />
+          <Stop offset="25%" stopColor="#007AFF" />
+          <Stop offset="45%" stopColor="#FF69B4" />
+          <Stop offset="50%" stopColor="#FFFFFF" />
+          <Stop offset="55%" stopColor="#FF69B4" />
+          <Stop offset="75%" stopColor="#007AFF" />
+          <Stop offset="100%" stopColor="#3F37C9" />
+        </LinearGradient>
+      </Defs>
+      <AnimatedG animatedProps={animatedProps1}>
+        <Path
+          d="M30 15 Q30 35 50 35 Q30 35 30 55 Q30 35 10 35 Q30 35 30 15 Z"
+          fill={color || 'url(#ai_shiny_gradient)'}
+        />
+      </AnimatedG>
+      <AnimatedG animatedProps={animatedProps2}>
+        <Path
+          d="M65 25 Q65 65 100 65 Q65 65 65 100 Q65 65 25 65 Q65 65 65 25 Z"
+          fill={color || 'url(#ai_shiny_gradient)'}
+        />
+      </AnimatedG>
+    </Svg>
+  );
+};
 const Icons = {
   WalletIcon,
   CheckIcon,
@@ -589,6 +693,7 @@ const Icons = {
   CreditCardIcon,
   GoogleIcon,
   GithubIcon,
+  AIStarIcon,
 };
 
 type IconType = typeof Icons;
