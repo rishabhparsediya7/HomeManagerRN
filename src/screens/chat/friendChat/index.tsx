@@ -218,7 +218,7 @@ async function fetchAndDecryptChat(
 
     const mySK = naclUtil.decodeBase64(privateKey);
 
-    const decryptedMessages = (rawMessages || []).map((msg: Message) => {
+    const decryptedMessages = (rawMessages || []).map((msg: any) => {
       const plain = nacl.box.open(
         naclUtil.decodeBase64(msg.message),
         naclUtil.decodeBase64(msg.nonce),
@@ -227,7 +227,12 @@ async function fetchAndDecryptChat(
       );
 
       return {
-        ...msg,
+        id: msg.id,
+        message: msg.message,
+        nonce: msg.nonce,
+        sender_id: msg.sender_id || msg.senderId,
+        receiver_id: msg.receiver_id || msg.receiverId,
+        sent_at: msg.sent_at || msg.sentAt,
         plaintext: plain
           ? naclUtil.encodeUTF8(plain)
           : '[These messages are from before you reinstalled the app and can no longer be decrypted]',
@@ -543,15 +548,15 @@ const FriendChatScreen = ({route}) => {
                           ? styles.messageTimeSender
                           : styles.messageTimeReceiver,
                       ]}>
-                      {new Date(item.sent_at)
-                        .toLocaleTimeString()
-                        .split(':')[0]
-                        .slice(0, 2) +
-                        ':' +
-                        new Date(item.sent_at)
-                          .toLocaleTimeString()
-                          .split(':')[1]
-                          .slice(0, 2)}
+                      {(() => {
+                        const date = new Date(item.sent_at);
+                        if (isNaN(date.getTime())) return '';
+                        return date.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false,
+                        });
+                      })()}
                     </AppText>
                   </View>
                 </View>
