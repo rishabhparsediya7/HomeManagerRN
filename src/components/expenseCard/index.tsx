@@ -8,6 +8,7 @@ import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
 import RupeeIcon from '../../components/rupeeIcon';
+import Icons from '../../components/icons';
 
 const ExpenseCard = ({expense}) => {
   const {theme} = useTheme();
@@ -67,7 +68,7 @@ const ExpenseCard = ({expense}) => {
             ?.icon({
               width: 20,
               height: 20,
-            })}
+            }) || <Icons.OthersIcon color={colors.buttonText} />}
         </View>
         <View>
           <AppText variant="lg" style={styles.category}>

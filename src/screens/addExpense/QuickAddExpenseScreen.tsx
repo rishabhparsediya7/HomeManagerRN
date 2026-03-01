@@ -1,5 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Alert,
   Animated as CoreAnimated,
@@ -22,6 +29,7 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withSequence,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -71,6 +79,20 @@ const QuickAddExpenseScreen = () => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [activeDateIndex, setActiveDateIndex] = useState<number | null>(null);
+  const firstItemSwipeableRef = useRef<Swipeable>(null);
+
+  // Trigger peek animation when drafts are populated
+  useEffect(() => {
+    if (drafts.length > 0 && firstItemSwipeableRef.current) {
+      const timer = setTimeout(() => {
+        firstItemSwipeableRef.current?.openRight();
+        setTimeout(() => {
+          firstItemSwipeableRef.current?.close();
+        }, 1000);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [drafts.length === 0]); // Trigger when first newly populated
 
   const handleParse = async () => {
     if (!rawText.trim()) {
@@ -94,34 +116,38 @@ const QuickAddExpenseScreen = () => {
     }
   };
 
-  const handleUpdateDraft = (
-    index: number,
-    field: keyof DraftExpense,
-    value: string,
-  ) => {
-    const updatedDrafts = [...drafts];
-    if (field === 'amount') {
-      updatedDrafts[index].amount = parseFloat(value) || 0;
-    } else if (field === 'expenseDate') {
-      updatedDrafts[index].expenseDate = value;
-    } else {
-      updatedDrafts[index].description = value;
-    }
-    setDrafts(updatedDrafts);
-  };
+  const handleUpdateDraft = useCallback(
+    (index: number, field: keyof DraftExpense, value: string) => {
+      setDrafts(prev => {
+        const updated = [...prev];
+        if (field === 'amount') {
+          updated[index].amount = parseFloat(value) || 0;
+        } else if (field === 'expenseDate') {
+          updated[index].expenseDate = value;
+        } else {
+          updated[index].description = value;
+        }
+        return updated;
+      });
+    },
+    [],
+  );
 
-  const handleConfirmDate = (date: Date) => {
-    if (activeDateIndex !== null) {
-      handleUpdateDraft(activeDateIndex, 'expenseDate', date.toISOString());
-    }
-    setIsDatePickerVisible(false);
-    setActiveDateIndex(null);
-  };
+  const handleConfirmDate = useCallback(
+    (date: Date) => {
+      if (activeDateIndex !== null) {
+        handleUpdateDraft(activeDateIndex, 'expenseDate', date.toISOString());
+      }
+      setIsDatePickerVisible(false);
+      setActiveDateIndex(null);
+    },
+    [activeDateIndex, handleUpdateDraft],
+  );
 
-  const handleRemoveDraft = (index: number) => {
-    setDrafts(drafts.filter((_, i) => i !== index));
-    if (editingIndex === index) setEditingIndex(null);
-  };
+  const handleRemoveDraft = useCallback((index: number) => {
+    setDrafts(prev => prev.filter((_, i) => i !== index));
+    setEditingIndex(prev => (prev === index ? null : prev));
+  }, []);
 
   const handleAddExpenses = async () => {
     if (drafts.length === 0) {
@@ -153,23 +179,14 @@ const QuickAddExpenseScreen = () => {
     }
   };
 
-  const renderRightActions = (progress: any, dragX: any, index: number) => {
-    const trans = dragX.interpolate({
-      inputRange: [-100, 0],
-      outputRange: [1, 0],
-      extrapolate: 'clamp',
-    });
+  const onEditDate = useCallback((idx: number) => {
+    setActiveDateIndex(idx);
+    setIsDatePickerVisible(true);
+  }, []);
 
-    return (
-      <TouchableOpacity
-        onPress={() => handleRemoveDraft(index)}
-        style={[styles.deleteAction, {backgroundColor: colors.error}]}>
-        <CoreAnimated.View style={{transform: [{scale: trans}]}}>
-          <Icon name="delete-outline" size={28} color="#FFF" />
-        </CoreAnimated.View>
-      </TouchableOpacity>
-    );
-  };
+  const onLongPressItem = useCallback((idx: number) => {
+    setEditingIndex(prev => (prev === idx ? null : idx));
+  }, []);
 
   const styles = useMemo(
     () =>
@@ -346,180 +363,55 @@ const QuickAddExpenseScreen = () => {
             </Animated.View>
 
             {drafts.length > 0 && (
-              <Animated.View entering={FadeInDown} style={styles.draftHeader}>
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <Icon
-                    name="auto-fix"
-                    size={20}
-                    color="#6C63FF"
-                    style={{marginRight: 6}}
-                  />
-                  <AppText variant="h6" weight="semiBold">
-                    AI Proposed ({drafts.length})
-                  </AppText>
-                </View>
-                <TouchableOpacity onPress={() => setDrafts([])}>
-                  <AppText
-                    variant="md"
-                    weight="medium"
-                    style={{color: colors.error}}>
-                    Reset
-                  </AppText>
-                </TouchableOpacity>
-              </Animated.View>
+              <View>
+                <Animated.View entering={FadeInDown} style={styles.draftHeader}>
+                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <Icon
+                      name="auto-fix"
+                      size={20}
+                      color="#6C63FF"
+                      style={{marginRight: 6}}
+                    />
+                    <AppText variant="h6" weight="semiBold">
+                      AI Proposed ({drafts.length})
+                    </AppText>
+                  </View>
+                  <TouchableOpacity onPress={() => setDrafts([])}>
+                    <AppText
+                      variant="md"
+                      weight="medium"
+                      style={{color: colors.error}}>
+                      Reset
+                    </AppText>
+                  </TouchableOpacity>
+                </Animated.View>
+                <AppText
+                  variant="sm"
+                  style={{
+                    color: colors.inputText + '80',
+                    marginBottom: 10,
+                    marginTop: -10,
+                  }}>
+                  💡 Tip: Swipe left to delete • Long press to edit
+                </AppText>
+              </View>
             )}
           </Animated.View>
         }
         renderItem={({item, index}) => (
-          <Swipeable
-            renderRightActions={(progress, dragX) =>
-              renderRightActions(progress, dragX, index)
-            }
-            overshootRight={false}>
-            <Animated.View
-              entering={FadeInDown.delay(index * 50)}
-              layout={Layout.springify()}
-              style={styles.cardWrapper}>
-              <View style={styles.draftCard}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => setEditingIndex(index)}
-                  style={[
-                    styles.rowContainer,
-                    {
-                      backgroundColor:
-                        theme === 'dark' ? colors.cardBackground : '#FFF',
-                    },
-                  ]}>
-                  {editingIndex === index ? (
-                    <View style={{flex: 1}}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'flex-end',
-                          gap: 12,
-                          marginBottom: 12,
-                        }}>
-                        <View style={{flex: 1}}>
-                          <Text style={styles.cardLabel}>Description</Text>
-                          <AppInput
-                            value={item.description}
-                            onChangeText={val =>
-                              handleUpdateDraft(index, 'description', val)
-                            }
-                            containerStyle={{marginBottom: 0}}
-                            inputStyle={{
-                              fontSize: 14,
-                              paddingVertical: 4,
-                              backgroundColor: 'transparent',
-                              borderWidth: 0,
-                            }}
-                            autoFocus
-                          />
-                        </View>
-                        <View style={{width: 100}}>
-                          <Text style={styles.cardLabel}>Amount</Text>
-                          <AppInput
-                            value={item.amount.toString()}
-                            onChangeText={val =>
-                              handleUpdateDraft(index, 'amount', val)
-                            }
-                            keyboardType="numeric"
-                            containerStyle={{marginBottom: 0}}
-                            inputStyle={{
-                              fontSize: 16,
-                              fontWeight: '700',
-                              color: '#6C63FF',
-                              paddingVertical: 4,
-                              backgroundColor: 'transparent',
-                              borderWidth: 0,
-                            }}
-                            leftIcon={
-                              <Icon
-                                name="currency-inr"
-                                size={16}
-                                color="#6C63FF"
-                              />
-                            }
-                          />
-                        </View>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'flex-end',
-                          gap: 12,
-                        }}>
-                        <View style={{flex: 1}}>
-                          <Text style={styles.cardLabel}>Date</Text>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setActiveDateIndex(index);
-                              setIsDatePickerVisible(true);
-                            }}
-                            style={{
-                              paddingVertical: 4,
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                            }}>
-                            <Icon
-                              name="calendar-edit"
-                              size={16}
-                              color={colors.buttonText}
-                              style={{marginRight: 6}}
-                            />
-                            <AppText
-                              variant="md"
-                              weight="medium"
-                              style={{fontSize: 13}}>
-                              {formatDate(item.expenseDate)}
-                            </AppText>
-                          </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity
-                          onPress={() => setEditingIndex(null)}
-                          style={[
-                            styles.actionBtn,
-                            styles.saveBtnInner,
-                            {marginBottom: 0, marginTop: 0, marginLeft: 'auto'},
-                          ]}>
-                          <Icon name="check" size={24} color="#4CAF50" />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ) : (
-                    <View style={styles.draftInfo}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}>
-                        <AppText
-                          variant="lg"
-                          numberOfLines={1}
-                          style={styles.draftDescription}>
-                          {item.description}
-                        </AppText>
-                        <AppText
-                          variant="lg"
-                          weight="medium"
-                          style={styles.draftAmount}>
-                          ₹{item.amount}
-                        </AppText>
-                      </View>
-                      <AppText
-                        variant="sm"
-                        weight="medium"
-                        style={{color: colors.inputText + '80', marginTop: 4}}>
-                        {formatDate(item.expenseDate)}
-                      </AppText>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          </Swipeable>
+          <MemoizedDraftItem
+            item={item}
+            index={index}
+            isEditing={editingIndex === index}
+            onLongPress={onLongPressItem}
+            onRemove={handleRemoveDraft}
+            onUpdate={handleUpdateDraft}
+            onEditDate={onEditDate}
+            swipeableRef={index === 0 ? firstItemSwipeableRef : undefined}
+            theme={theme}
+            colors={colors}
+            styles={styles}
+          />
         )}
         ListEmptyComponent={
           !isParsing && drafts.length === 0 ? (
@@ -592,3 +484,209 @@ const QuickAddExpenseScreen = () => {
 };
 
 export default QuickAddExpenseScreen;
+
+interface DraftItemProps {
+  item: DraftExpense;
+  index: number;
+  isEditing: boolean;
+  onLongPress: (index: number) => void;
+  onRemove: (index: number) => void;
+  onUpdate: (index: number, field: keyof DraftExpense, value: string) => void;
+  onEditDate: (index: number) => void;
+  swipeableRef?: React.Ref<Swipeable>;
+  theme: any;
+  colors: any;
+  styles: any;
+}
+
+const MemoizedDraftItem = memo(
+  ({
+    item,
+    index,
+    isEditing,
+    onLongPress,
+    onRemove,
+    onUpdate,
+    onEditDate,
+    swipeableRef,
+    theme,
+    colors,
+    styles,
+  }: DraftItemProps) => {
+    const scale = useSharedValue(1);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{scale: scale.value}],
+    }));
+
+    const handlePressIn = () => {
+      if (!isEditing) {
+        scale.value = withSpring(0.96);
+      }
+    };
+
+    const handlePressOut = () => {
+      scale.value = withSpring(1);
+    };
+
+    return (
+      <Swipeable
+        ref={swipeableRef}
+        renderRightActions={() => (
+          <TouchableOpacity
+            onPress={() => onRemove(index)}
+            style={{
+              backgroundColor: colors.error,
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: 80,
+              height: '100%',
+              borderTopRightRadius: 16,
+              borderBottomRightRadius: 16,
+              marginLeft: 8,
+            }}>
+            <Icon name="delete-outline" size={28} color="#FFF" />
+          </TouchableOpacity>
+        )}
+        overshootRight={false}>
+        <Animated.View
+          entering={FadeInDown.delay(index * 50)}
+          layout={Layout.springify()}
+          style={[styles.cardWrapper, animatedStyle]}>
+          <View style={styles.draftCard}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onLongPress={() => onLongPress(index)}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+              disabled={isEditing}
+              style={[
+                styles.rowContainer,
+                {
+                  backgroundColor:
+                    theme === 'dark' ? colors.cardBackground : '#FFF',
+                },
+              ]}>
+              {isEditing ? (
+                <View style={{flex: 1}}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'flex-end',
+                      gap: 12,
+                      marginBottom: 12,
+                    }}>
+                    <View style={{flex: 1}}>
+                      <Text style={styles.cardLabel}>Description</Text>
+                      <AppInput
+                        value={item.description}
+                        onChangeText={val =>
+                          onUpdate(index, 'description', val)
+                        }
+                        containerStyle={{marginBottom: 0}}
+                        inputStyle={{
+                          fontSize: 14,
+                          paddingVertical: 4,
+                          backgroundColor: 'transparent',
+                          borderWidth: 0,
+                        }}
+                        autoFocus
+                      />
+                    </View>
+                    <View style={{width: 100}}>
+                      <Text style={styles.cardLabel}>Amount</Text>
+                      <AppInput
+                        value={item.amount.toString()}
+                        onChangeText={val => onUpdate(index, 'amount', val)}
+                        keyboardType="numeric"
+                        containerStyle={{marginBottom: 0}}
+                        inputStyle={{
+                          fontSize: 16,
+                          fontWeight: '700',
+                          color: '#6C63FF',
+                          paddingVertical: 4,
+                          backgroundColor: 'transparent',
+                          borderWidth: 0,
+                        }}
+                        leftIcon={
+                          <Icon name="currency-inr" size={16} color="#6C63FF" />
+                        }
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'flex-end',
+                      gap: 12,
+                    }}>
+                    <View style={{flex: 1}}>
+                      <Text style={styles.cardLabel}>Date</Text>
+                      <TouchableOpacity
+                        onPress={() => onEditDate(index)}
+                        style={{
+                          paddingVertical: 4,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                        }}>
+                        <Icon
+                          name="calendar-edit"
+                          size={16}
+                          color={colors.buttonText}
+                          style={{marginRight: 6}}
+                        />
+                        <AppText
+                          variant="md"
+                          weight="medium"
+                          style={{fontSize: 13}}>
+                          {formatDate(item.expenseDate)}
+                        </AppText>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => onLongPress(index)}
+                      style={[
+                        styles.actionBtn,
+                        styles.saveBtnInner,
+                        {marginBottom: 0, marginTop: 0, marginLeft: 'auto'},
+                      ]}>
+                      <Icon name="check" size={24} color="#4CAF50" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.draftInfo}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}>
+                    <AppText
+                      variant="lg"
+                      numberOfLines={1}
+                      style={styles.draftDescription}>
+                      {item.description}
+                    </AppText>
+                    <AppText
+                      variant="lg"
+                      weight="medium"
+                      style={styles.draftAmount}>
+                      ₹{item.amount}
+                    </AppText>
+                  </View>
+                  <AppText
+                    variant="sm"
+                    weight="medium"
+                    style={{color: colors.inputText + '80', marginTop: 4}}>
+                    {formatDate(item.expenseDate)}
+                  </AppText>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </Swipeable>
+    );
+  },
+);
