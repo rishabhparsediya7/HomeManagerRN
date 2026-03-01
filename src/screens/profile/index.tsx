@@ -18,6 +18,7 @@ import AccountOption from '../../components/accountOptions';
 import ImageUploader from '../../components/imageUploader';
 import {Modal} from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
+import AppText from '../../components/common/AppText';
 import {useAuth} from '../../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
@@ -31,6 +32,8 @@ const Profile = ({navigation}: {navigation: any}) => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [profilePicture, setProfilePicture] = useState(user?.photoUrl || '');
+  const [monthlyBudget, setMonthlyBudget] = useState(0);
+  const [amountSpent, setAmountSpent] = useState(0);
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [selectedImage, setSelectedImage] = useState<Asset | undefined>(
     undefined,
@@ -113,6 +116,8 @@ const Profile = ({navigation}: {navigation: any}) => {
       setEmail(response.data.user.email);
       setName(response.data.user.name);
       setProfilePicture(response.data.user.profilePicture);
+      setMonthlyBudget(Number(response.data.user.budget || 0));
+      setAmountSpent(Number(response.data.user.amountSpent || 0));
     } catch (error) {
       console.log(error);
     } finally {
@@ -122,9 +127,7 @@ const Profile = ({navigation}: {navigation: any}) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!user) {
-        getUser();
-      }
+      getUser();
     }, []),
   );
 
@@ -149,106 +152,84 @@ const Profile = ({navigation}: {navigation: any}) => {
           backgroundColor: colors.background,
         },
         name: {
-          fontSize: 22,
-          color: colors.buttonText,
-          ...commonStyles.textDefault,
-          marginTop: 12,
+          marginTop: 16,
+          textAlign: 'center',
         },
         email: {
-          fontSize: 14,
-          color: colors.buttonText,
-          ...commonStyles.textDefault,
+          marginTop: 4,
+          textAlign: 'center',
+        },
+        phone: {
+          marginTop: 8,
+          textAlign: 'center',
+          color: colors.mutedText,
         },
         statsContainer: {
           flexDirection: 'row',
           justifyContent: 'space-around',
-          marginVertical: 20,
+          marginVertical: 24,
           paddingHorizontal: 16,
-          gap: 8,
+          gap: 12,
         },
         statBox: {
           flex: 1,
-          backgroundColor: colors.inputBackground,
-          borderColor: 'transparent',
-          borderWidth: 1,
-          borderRadius: 12,
+          backgroundColor: colors.cardBackground,
+          borderRadius: 20,
           padding: 20,
           alignItems: 'center',
+          // Shadow for premium feel
+          shadowColor: '#000',
+          shadowOffset: {width: 0, height: 4},
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
+          elevation: 2,
+        },
+        iconContainer: {
+          width: 44,
+          height: 44,
+          borderRadius: 12,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: 12,
         },
         statLabel: {
-          fontSize: 14,
-          color: colors.buttonText,
-          ...commonStyles.textDefault,
-          marginTop: 6,
+          marginBottom: 4,
         },
         statValue: {
           fontSize: 18,
-          color: colors.buttonText,
-          ...commonStyles.textDefault,
-          marginTop: 4,
+          fontWeight: '700',
+          color: colors.success,
         },
         sectionTitle: {
-          fontSize: 16,
-          color: colors.buttonText,
-          ...commonStyles.textDefault,
           marginHorizontal: 20,
-          marginTop: 10,
-          marginBottom: 10,
+          marginTop: 12,
+          marginBottom: 16,
         },
         button: {
-          backgroundColor: colors.buttonBackground,
-          padding: 12,
-          borderRadius: 8,
-          marginVertical: 8,
+          backgroundColor: colors.inputBackground,
+          padding: 16,
+          borderRadius: 14,
           flex: 1,
           alignItems: 'center',
         },
         modalContainer: {
           flex: 1,
-          flexDirection: 'column',
-          padding: 20,
-          gap: 12,
+          padding: 24,
+          gap: 24,
         },
         buttonContainer: {
           flexDirection: 'row',
-          gap: 8,
+          gap: 12,
           width: '100%',
-          justifyContent: 'center',
-        },
-        buttonText: {
-          color: colors.buttonText,
-          fontSize: 16,
-          ...commonStyles.textDefault,
-        },
-        modalText: {
-          fontSize: 16,
-          ...commonStyles.textDefault,
-          color: colors.buttonText,
-          // textAlign: 'center',
-        },
-        sectionTitleText: {
-          fontSize: 16,
-          ...commonStyles.textDefault,
-          color: colors.buttonText,
         },
         versionSection: {
-          marginHorizontal: 20,
-          marginTop: 10,
+          marginTop: 32,
           alignItems: 'center',
-        },
-        versionText: {
-          fontSize: 16,
-          ...commonStyles.textDefault,
-          color: colors.buttonText,
         },
         madeBySection: {
-          marginTop: 12,
+          marginTop: 8,
+          marginBottom: 24,
           alignItems: 'center',
-        },
-        madeByText: {
-          fontSize: 12,
-          ...commonStyles.textDefault,
-          color: colors.mutedText,
         },
       }),
     [theme],
@@ -267,24 +248,57 @@ const Profile = ({navigation}: {navigation: any}) => {
           showUploadIcon
           profilePicture={profilePicture}
         />
-        <Text style={styles.name}>{user?.name || name}</Text>
-        <Text style={styles.email}>{user?.email || email}</Text>
-        <Text style={styles.name}>{user?.phoneNumber}</Text>
+        <AppText variant="h3" weight="bold" style={styles.name}>
+          {user?.name || name}
+        </AppText>
+        <AppText variant="h6" color={colors.mutedText} style={styles.email}>
+          {user?.email || email}
+        </AppText>
+        <AppText variant="lg" weight="medium" style={styles.phone}>
+          {user?.phoneNumber}
+        </AppText>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
-          <Ionicons name="wallet" size={24} color={colors.buttonText} />
-          <Text style={styles.statLabel}>Remaining Budget</Text>
-          <RupeeIcon amount={12450} />
+          <View
+            style={[
+              styles.iconContainer,
+              {backgroundColor: colors.primary + '15'},
+            ]}>
+            <Ionicons name="wallet" size={20} color={colors.primary} />
+          </View>
+          <AppText
+            variant="md"
+            color={colors.mutedText}
+            style={styles.statLabel}>
+            Remaining Budget
+          </AppText>
+          <RupeeIcon
+            amount={Math.max(0, monthlyBudget - amountSpent)}
+            textStyle={styles.statValue}
+          />
         </View>
         <View style={styles.statBox}>
-          <FontAwesome5 name="coins" size={24} color={colors.buttonText} />
-          <Text style={styles.statLabel}>Monthly Budget</Text>
-          <RupeeIcon amount={3000} />
+          <View
+            style={[
+              styles.iconContainer,
+              {backgroundColor: colors.success + '15'},
+            ]}>
+            <FontAwesome5 name="coins" size={18} color={colors.primary} />
+          </View>
+          <AppText
+            variant="md"
+            color={colors.mutedText}
+            style={styles.statLabel}>
+            Monthly Budget
+          </AppText>
+          <RupeeIcon amount={monthlyBudget} textStyle={styles.statValue} />
         </View>
       </View>
-      <Text style={styles.sectionTitle}>Account Settings</Text>
+      <AppText variant="h6" weight="semiBold" style={styles.sectionTitle}>
+        Account Settings
+      </AppText>
       <FlatList
         data={accountOptionsData}
         renderItem={({item}) => (
@@ -299,15 +313,17 @@ const Profile = ({navigation}: {navigation: any}) => {
       />
 
       <View style={styles.versionSection}>
-        <Text style={styles.versionText}>
+        <AppText variant="md" color={colors.mutedText}>
           {`v${deviceInfo?.versionName || ''} (${
             deviceInfo?.versionCode || ''
           })`}
-        </Text>
+        </AppText>
       </View>
 
       <View style={styles.madeBySection}>
-        <Text style={styles.madeByText}>Made with ❤️ by Rishabh Parsediya</Text>
+        <AppText variant="sm" color={colors.mutedText}>
+          Made with ❤️ by Rishabh Parsediya
+        </AppText>
       </View>
 
       <Modal
@@ -317,15 +333,21 @@ const Profile = ({navigation}: {navigation: any}) => {
         bottomSheetRef={bottomSheetModalRef}
         modalSnapPoints={['35%']}>
         <View style={styles.modalContainer}>
-          <Text style={styles.modalText}>Are you sure you want to logout?</Text>
+          <AppText variant="h6">Are you sure you want to logout?</AppText>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               onPress={() => bottomSheetModalRef.current?.dismiss()}
               style={styles.button}>
-              <Text style={styles.buttonText}>Cancel</Text>
+              <AppText weight="semiBold" style={{color: colors.buttonText}}>
+                Cancel
+              </AppText>
             </TouchableOpacity>
-            <TouchableOpacity onPress={signOut} style={styles.button}>
-              <Text style={styles.buttonText}>Logout</Text>
+            <TouchableOpacity
+              onPress={signOut}
+              style={[styles.button, {backgroundColor: colors.error}]}>
+              <AppText weight="semiBold" style={{color: 'white'}}>
+                Logout
+              </AppText>
             </TouchableOpacity>
           </View>
         </View>
