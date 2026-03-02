@@ -95,6 +95,7 @@ const Home = () => {
     totalIncome: 0,
     totalBudget: 0,
   });
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const limit = 4;
   const filter = 'custom';
 
@@ -123,6 +124,9 @@ const Home = () => {
         mapCategoryExpensePercentageToChartData(categoryData);
 
       setCategoryChartData(updatedCategoryData);
+
+      const notificationResponse = await api.get('/api/notifications/me');
+      setUnreadNotifications(notificationResponse.data.unreadCount || 0);
     } catch (error) {
       console.log(error);
     } finally {
@@ -372,6 +376,8 @@ const Home = () => {
       <Header
         title="Trakio"
         showNotification
+        notificationCount={unreadNotifications}
+        onNotificationPress={() => navigation.navigate('Notifications')}
         showImage
         image={user?.photoUrl}
       />

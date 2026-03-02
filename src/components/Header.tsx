@@ -27,6 +27,7 @@ interface HeaderProps {
   image?: string;
   onBackPress?: () => void;
   onNotificationPress?: () => void;
+  notificationCount?: number;
   showCrossButton?: boolean;
   onCrossPress?: () => void;
   headerStyle?: StyleProp<ViewStyle>;
@@ -43,6 +44,7 @@ const Header: React.FC<HeaderProps> = ({
   image = 'https://randomuser.me/api/portraits/men/32.jpg',
   onBackPress,
   onNotificationPress,
+  notificationCount = 0,
   showCrossButton = false,
   onCrossPress,
   headerStyle,
@@ -94,8 +96,26 @@ const Header: React.FC<HeaderProps> = ({
           height: 32,
           borderRadius: 16,
         },
+        badge: {
+          position: 'absolute',
+          top: -2,
+          right: -2,
+          backgroundColor: '#FF3B30',
+          borderRadius: 8,
+          width: 16,
+          height: 16,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderWidth: 1.5,
+          borderColor: colors.background,
+        },
+        badgeText: {
+          color: 'white',
+          fontSize: 8,
+          fontWeight: 'bold',
+        },
       }),
-    [],
+    [colors.background],
   );
 
   return (
@@ -121,6 +141,13 @@ const Header: React.FC<HeaderProps> = ({
         {showNotification && (
           <TouchableOpacity onPress={onNotificationPress}>
             <Icon name="notifications" size={24} color={colors.buttonText} />
+            {notificationCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         )}
         {showImage && (
