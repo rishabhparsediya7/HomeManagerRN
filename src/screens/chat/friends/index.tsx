@@ -23,14 +23,28 @@ import AppText from '../../../components/common/AppText';
 import AppInput from '../../../components/common/AppInput';
 import Button from '../../../components/Button';
 import socket from '../../../utils/socket';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const handleReceiveMessage = async (payload: {
   senderId: string;
   message: string;
   nonce: string;
 }) => {
   const pair = await getStoredKeyPair();
-  if (!pair) throw new Error('Keypair not found');
-  const {secretKey: mySK} = pair;
+  let mySK = pair?.secretKey;
+
+  // Fallback: initKeys() stores keys in AsyncStorage, not Keychain.
+  // On reinstall, Keychain is empty but AsyncStorage has the keys.
+  if (!mySK) {
+    const storedKey = await AsyncStorage.getItem('privateKey');
+    if (storedKey) {
+      mySK = naclUtil.decodeBase64(storedKey);
+    }
+  }
+
+  if (!mySK) {
+    throw new Error('Keypair not found');
+  }
 
   const resp = await api.get(`/api/chat/get-user-keys/${payload.senderId}`);
   const {publicKey: theirPubB64} = resp.data;
@@ -91,18 +105,50 @@ const FriendItem = ({
     });
   };
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchLastMessage() {
-      const lastMessageToDisplay = await handleReceiveMessage({
-        senderId: id,
-        message: lastMessage,
-        nonce: nonce,
-      });
-      if (!lastMessageToDisplay) return;
-      setLastMessageToDisplay(lastMessageToDisplay);
+      // Skip if there's no encrypted message from the API
+      if (!lastMessage || !nonce) return;
+
+      try {
+        const decrypted = await handleReceiveMessage({
+          senderId: id,
+          message: lastMessage,
+          nonce: nonce,
+        });
+        if (!cancelled && decrypted) {
+          setLastMessageToDisplay(decrypted);
+        }
+      } catch (err) {
+        // Keys may not be ready yet (race with initKeys).
+        // Retry once after a short delay.
+        if (!cancelled) {
+          setTimeout(async () => {
+            try {
+              const decrypted = await handleReceiveMessage({
+                senderId: id,
+                message: lastMessage,
+                nonce: nonce,
+              });
+              if (!cancelled && decrypted) {
+                setLastMessageToDisplay(decrypted);
+              }
+            } catch {
+              // Still failed — keys truly aren't available
+            }
+          }, 2000);
+        }
+      }
     }
+
     if (!lastMessages[id]) {
       fetchLastMessage();
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [lastMessages[id]]);
 
   return (
