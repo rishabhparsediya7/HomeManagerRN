@@ -26,7 +26,7 @@ export const getWeekDates = (date: Date) => {
   const monday = getMonday(date);
   const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-  const weekDates = [];
+  const weekDates: any[] = [];
   for (let i = 0; i < 7; i++) {
     const currentDate = new Date(monday);
     currentDate.setDate(monday.getDate() + i);
@@ -87,4 +87,51 @@ export const getMonthStartAndEndDates = () => {
     startDate: formatDate(startDate),
     endDate: formatDate(endDate),
   };
+};
+
+export const getChatDateLabel = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const strDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  const diffTime = today.getTime() - strDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) {
+    const days = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+    return days[date.getDay()];
+  }
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
 };

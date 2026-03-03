@@ -9,8 +9,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  Keyboard,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import nacl from 'tweetnacl';
@@ -27,6 +29,7 @@ import {getStoredKeyPair} from '../../../utils/cryptoUtils';
 import socket from '../../../utils/socket';
 import {commonStyles} from '../../../utils/styles';
 import {createInitialsForImage} from '../../../utils/users';
+import {getChatDateLabel} from '../../../utils/dates';
 
 interface Message {
   id: number;
@@ -37,6 +40,14 @@ interface Message {
   sender_id: string | null;
   sent_at: string;
 }
+
+interface DateHeaderItem {
+  id: string;
+  type: 'date';
+  dateLabel: string;
+}
+
+type ChatItem = (Message & {type?: 'message'}) | DateHeaderItem;
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -78,10 +89,11 @@ const createStyles = (colors: any) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    contentContainer: {
+    contentContainerStyle: {
       flexGrow: 1,
       width: '100%',
     },
+
     headerImage: {
       width: 36,
       height: 36,
@@ -99,7 +111,7 @@ const createStyles = (colors: any) =>
     messageContainer: {
       width: '100%',
       alignItems: 'flex-start',
-      paddingVertical: 4,
+      paddingVertical: 2,
       paddingHorizontal: 12,
     },
     messageContainerSender: {
@@ -107,47 +119,56 @@ const createStyles = (colors: any) =>
       width: '100%',
     },
     messageText: {
-      fontSize: 18,
+      fontSize: 16,
       ...commonStyles.textDefault,
+      lineHeight: 22,
     },
     messageTextSender: {
-      color: colors.buttonText,
+      color: colors.senderText,
       ...commonStyles.textDefault,
     },
     messageTime: {
-      fontSize: 14,
+      fontSize: 11,
       ...commonStyles.textDefault,
-      color: colors.buttonText,
+      marginTop: 2,
     },
     messageTimeSender: {
-      color: colors.buttonText,
+      color: 'rgba(255, 255, 255, 0.7)',
       ...commonStyles.textDefault,
     },
     sender: {
-      backgroundColor: colors.inputBackground,
-      padding: 10,
-      borderRadius: 10,
-      maxWidth: '70%',
-      width: '100%',
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      justifyContent: 'space-between',
-      gap: 6,
-      flexWrap: 'wrap',
+      backgroundColor: colors.senderBackground,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 4,
+      borderBottomLeftRadius: 16,
+      borderBottomRightRadius: 16,
+      maxWidth: '78%',
+      alignSelf: 'flex-end',
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.1,
+      shadowRadius: 1,
+      elevation: 1,
     },
     receiver: {
       backgroundColor: colors.receiverBackground,
-      padding: 10,
-      borderRadius: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderTopLeftRadius: 4,
+      borderTopRightRadius: 16,
+      borderBottomLeftRadius: 16,
+      borderBottomRightRadius: 16,
       alignSelf: 'flex-start',
-      width: '100%',
-      maxWidth: '70%',
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      justifyContent: 'space-between',
-      gap: 6,
-      flexWrap: 'wrap',
+      maxWidth: '78%',
+      shadowColor: '#000',
+      shadowOffset: {width: 0, height: 1},
+      shadowOpacity: 0.1,
+      shadowRadius: 1,
+      elevation: 1,
     },
+
     inputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -188,6 +209,24 @@ const createStyles = (colors: any) =>
     },
     keyboardAvoidingView: {
       flex: 1,
+    },
+    dateHeaderContainer: {
+      alignItems: 'center',
+      paddingVertical: 16,
+      width: '100%',
+    },
+    dateHeaderPill: {
+      backgroundColor: colors.chatDateHeaderBackground,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+    dateHeaderText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.chatDateHeaderText,
+      ...commonStyles.textDefault,
+      textTransform: 'uppercase',
     },
   });
 
@@ -259,6 +298,14 @@ const ChatAvatar = ({image, profileImage, styles}: any) => {
   );
 };
 
+const DateHeader = ({dateLabel, styles}: {dateLabel: string; styles: any}) => (
+  <View style={styles.dateHeaderContainer}>
+    <View style={styles.dateHeaderPill}>
+      <AppText style={styles.dateHeaderText}>{dateLabel}</AppText>
+    </View>
+  </View>
+);
+
 const ListHeaderComponent = ({
   navigation,
   firstName,
@@ -307,10 +354,12 @@ const FriendChatScreen = ({route}) => {
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const styles = React.useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
 
   const messages = chats[id] || [];
   const [hasMore, setHasMore] = useState(true);
   const [loadingOlder, setLoadingOlder] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   let profileImage = image;
   if (!image) {
@@ -441,7 +490,6 @@ const FriendChatScreen = ({route}) => {
           message: naclUtil.encodeBase64(cipher),
           nonce: naclUtil.encodeBase64(nonce),
         });
-        flatListRef.current?.scrollToEnd({animated: true});
       } catch (error) {
         console.error('❌ Failed to send message:', error);
       }
@@ -454,7 +502,35 @@ const FriendChatScreen = ({route}) => {
     });
   }, []);
 
+  // Track keyboard visibility and scroll to newest message when keyboard opens
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showListener = Keyboard.addListener(showEvent, () => {
+      setIsKeyboardVisible(true);
+      setTimeout(
+        () => {
+          flatListRef.current?.scrollToOffset({offset: 0, animated: true});
+        },
+        Platform.OS === 'android' ? 150 : 50,
+      );
+    });
+
+    const hideListener = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
+
   // Always fetch fresh chat history on screen mount to load offline/missed messages
+
   useEffect(() => {
     const fetchChat = async () => {
       // Only show loading spinner if there are no cached messages
@@ -497,12 +573,48 @@ const FriendChatScreen = ({route}) => {
     }
   };
 
+  const getGroupedItems = (): ChatItem[] => {
+    const groupedItems: ChatItem[] = [];
+
+    // In an inverted list, index 0 is at the bottom (newest).
+    // So we iterate the chronologically sorted messages BACKWARDS
+    // to build the array from newest to oldest.
+    let lastDateLabel = '';
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      const dateLabel = getChatDateLabel(msg.sent_at);
+
+      groupedItems.push({...msg, type: 'message'});
+
+      // If the NEXT message (which is older, so i-1) has a DIFFERENT date,
+      // OR if this is the very first message ever (i === 0),
+      // we need to push a date header AFTER this message in the array
+      // (which renders ABOVE it in the inverted list).
+
+      const prevMsg = i > 0 ? messages[i - 1] : null;
+      const prevDateLabel = prevMsg ? getChatDateLabel(prevMsg.sent_at) : '';
+
+      if (dateLabel !== prevDateLabel) {
+        groupedItems.push({
+          id: `date-${msg.id}-${dateLabel}`,
+          type: 'date',
+          dateLabel,
+        });
+      }
+    }
+
+    return groupedItems;
+  };
+
+  const groupedItems = getGroupedItems();
+
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
         <ListHeaderComponent
           navigation={navigation}
           firstName={firstName}
@@ -516,57 +628,73 @@ const FriendChatScreen = ({route}) => {
             <LoadingComponent styles={styles} colors={colors} />
           ) : (
             <FlatList
-              data={messages}
-              contentContainerStyle={styles.contentContainer}
-              showsVerticalScrollIndicator={false}
-              renderItem={({item}) => (
-                <View
-                  style={[
-                    styles.messageContainer,
-                    item.sender_id === userId && styles.messageContainerSender,
-                  ]}>
-                  <View
-                    style={
-                      item.sender_id === userId
-                        ? styles.sender
-                        : styles.receiver
-                    }>
-                    <AppText
-                      style={[
-                        styles.messageText,
-                        item.sender_id === userId
-                          ? styles.messageTextSender
-                          : styles.messageTextReceiver,
-                      ]}>
-                      {item.plaintext}
-                    </AppText>
-                    <AppText
-                      variant="caption"
-                      style={[
-                        styles.messageTime,
-                        item.sender_id === userId
-                          ? styles.messageTimeSender
-                          : styles.messageTimeReceiver,
-                      ]}>
-                      {(() => {
-                        const date = new Date(item.sent_at);
-                        if (isNaN(date.getTime())) return '';
-                        return date.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: false,
-                        });
-                      })()}
-                    </AppText>
-                  </View>
-                </View>
-              )}
-              keyExtractor={(item, index) =>
-                `${item.sent_at}-${item.id}-${index}`
-              }
               ref={flatListRef}
+              data={groupedItems}
+              inverted
+              contentContainerStyle={styles.contentContainerStyle}
+              showsVerticalScrollIndicator={false}
+              renderItem={({item}) => {
+                if ('type' in item && item.type === 'date') {
+                  return (
+                    <DateHeader dateLabel={item.dateLabel} styles={styles} />
+                  );
+                }
+
+                const msg = item as Message;
+                return (
+                  <View
+                    style={[
+                      styles.messageContainer,
+                      msg.sender_id === userId && styles.messageContainerSender,
+                    ]}>
+                    <View
+                      style={
+                        msg.sender_id === userId
+                          ? styles.sender
+                          : styles.receiver
+                      }>
+                      <AppText
+                        style={[
+                          styles.messageText,
+                          msg.sender_id === userId
+                            ? styles.messageTextSender
+                            : styles.messageTextReceiver,
+                        ]}>
+                        {msg.plaintext}
+                      </AppText>
+                      <AppText
+                        variant="caption"
+                        style={[
+                          styles.messageTime,
+                          {
+                            alignSelf:
+                              msg.sender_id === userId
+                                ? 'flex-end'
+                                : 'flex-start',
+                          },
+                          msg.sender_id === userId
+                            ? styles.messageTimeSender
+                            : styles.messageTimeReceiver,
+                        ]}>
+                        {(() => {
+                          const date = new Date(msg.sent_at);
+                          if (isNaN(date.getTime())) return '';
+                          return date.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                          });
+                        })()}
+                      </AppText>
+                    </View>
+                  </View>
+                );
+              }}
+              keyExtractor={(item, index) =>
+                'id' in item ? `${item.id}-${index}` : `message-${index}`
+              }
               keyboardShouldPersistTaps="handled"
-              ListHeaderComponent={
+              ListFooterComponent={
                 loadingOlder ? (
                   <View
                     style={{
@@ -575,37 +703,38 @@ const FriendChatScreen = ({route}) => {
                     }}>
                     <ActivityIndicator size="small" color={colors.primary} />
                   </View>
-                ) : null
+                ) : (
+                  <View style={{height: 16}} />
+                )
               }
-              onScroll={({nativeEvent}) => {
-                // Trigger load older messages when scrolled near the top
-                if (
-                  nativeEvent.contentOffset.y < 100 &&
-                  hasMore &&
-                  !loadingOlder
-                ) {
+              onEndReachedThreshold={0.5}
+              onEndReached={() => {
+                if (hasMore && !loadingOlder) {
                   loadOlderMessages();
-                }
-              }}
-              scrollEventThrottle={400}
-              ListFooterComponent={<View style={{height: 16}} />}
-              onContentSizeChange={() => {
-                if (!loadingOlder) {
-                  // Always scroll to end for initial load and new messages
-                  setTimeout(() => {
-                    flatListRef.current?.scrollToEnd({
-                      animated: initialScrollDone,
-                    });
-                    if (!initialScrollDone) {
-                      setInitialScrollDone(true);
-                    }
-                  }, 100);
                 }
               }}
             />
           )}
         </View>
-        <View style={styles.inputContainer}>
+
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              paddingBottom:
+                Platform.OS === 'ios'
+                  ? styles.inputContainer.paddingVertical
+                  : Math.max(
+                      insets.bottom,
+                      Number(styles.inputContainer.paddingVertical),
+                    ),
+            },
+            // Extra padding when keyboard is open to clear suggestion toolbar
+            Platform.OS === 'android' &&
+              isKeyboardVisible && {
+                paddingBottom: 30,
+              },
+          ]}>
           <AppInput
             style={styles.input}
             placeholder="Type your message..."

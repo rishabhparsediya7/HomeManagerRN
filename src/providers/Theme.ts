@@ -58,6 +58,10 @@ export type AppTheme = {
 
   senderText: string;
   receiverText: string;
+
+  // Chat specific
+  chatDateHeaderBackground: string;
+  chatDateHeaderText: string;
 };
 
 export const lightTheme: AppTheme = {
@@ -105,11 +109,14 @@ export const lightTheme: AppTheme = {
 
   isDark: false,
 
-  senderBackground: '#F9FAFB',
-  receiverBackground: '#F9FAFB',
+  senderBackground: '#007AFF', // Use primary blue for sender
+  receiverBackground: '#F3F4F6', // Subtle grey for receiver
 
-  senderText: '#121212',
+  senderText: '#FFFFFF',
   receiverText: '#121212',
+
+  chatDateHeaderBackground: '#E5E7EB',
+  chatDateHeaderText: '#6B7280',
 };
 
 export const darkTheme: AppTheme = {
@@ -157,9 +164,12 @@ export const darkTheme: AppTheme = {
 
   isDark: true,
 
-  senderBackground: '#1C1C1E',
-  receiverBackground: '#F9FAFB',
+  senderBackground: '#0A84FF', // Use primary blue for sender
+  receiverBackground: '#1C1C1E', // Dark surface for receiver
 
   senderText: '#FFFFFF',
-  receiverText: '#121212',
+  receiverText: '#FFFFFF',
+
+  chatDateHeaderBackground: '#2C2C2E',
+  chatDateHeaderText: '#9CA3AF',
 };
