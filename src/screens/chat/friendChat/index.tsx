@@ -318,7 +318,10 @@ const ListHeaderComponent = ({
     <View style={styles.header}>
       <TouchableOpacity
         style={styles.headerInfoGroup}
-        onPress={() => navigation.canGoBack() && navigation.goBack()}>
+        onPress={() => {
+          Keyboard.dismiss();
+          navigation.canGoBack() && navigation.goBack();
+        }}>
         <EntypoIcon
           name="chevron-thin-left"
           size={20}
