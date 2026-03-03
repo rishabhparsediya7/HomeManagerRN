@@ -9,13 +9,13 @@ import api from '../../../services/api';
  * Tries Keychain first, then falls back to AsyncStorage.
  */
 export async function getMySecretKey(): Promise<Uint8Array> {
+  // 1. Try Keychain first (most secure and survives reinstalls)
   const pair = await getStoredKeyPair();
   if (pair?.secretKey) {
     return pair.secretKey;
   }
 
-  // Fallback: initKeys() stores keys in AsyncStorage, not Keychain.
-  // On reinstall, Keychain is wiped but AsyncStorage has the keys.
+  // 2. Fallback to AsyncStorage (where keys are sometimes saved directly)
   const storedKey = await AsyncStorage.getItem('privateKey');
   if (storedKey) {
     return naclUtil.decodeBase64(storedKey);
