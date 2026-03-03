@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useAuthorizeNavigation} from '../../../navigators/navigators';
@@ -171,6 +172,8 @@ const ListEmptyComponent = ({styles}: {styles: any}) => {
   );
 };
 
+import SegmentedControl from '../../../components/common/SegmentedControl';
+
 const FriendsScreen = ({
   friends,
   loading,
@@ -182,9 +185,11 @@ const FriendsScreen = ({
 }) => {
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const [activeTab, setActiveTab] = useState('Chats');
   const [searchQuery, setSearchQuery] = useState('');
   const [pendingSplinks, setPendingSplinks] = useState<any[]>([]);
   const [loadingPending, setLoadingPending] = useState(false);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
   const fetchPendingSplinks = async () => {
     setLoadingPending(true);
@@ -202,6 +207,7 @@ const FriendsScreen = ({
     friendId: string,
     action: 'accept' | 'reject',
   ) => {
+    setRespondingTo(friendId);
     try {
       await api.post('/api/chat/splink/response', {friendId, action});
       fetchPendingSplinks();
@@ -210,6 +216,8 @@ const FriendsScreen = ({
       }
     } catch (error) {
       console.error('Error responding to Splink:', error);
+    } finally {
+      setRespondingTo(null);
     }
   };
 
@@ -217,80 +225,64 @@ const FriendsScreen = ({
     fetchPendingSplinks();
 
     const handleSplinkRequest = (payload: any) => {
-      console.log('📨 New Splink request received:', payload);
       fetchPendingSplinks();
     };
 
-    const handleSplinkResponse = (payload: any) => {
-      console.log('📨 Splink response received:', payload);
+    const handleSplinkResponseListener = (payload: any) => {
       fetchPendingSplinks();
       refreshFriends();
     };
 
     socket.on('splink_request', handleSplinkRequest);
-    socket.on('splink_response', handleSplinkResponse);
+    socket.on('splink_response', handleSplinkResponseListener);
 
     return () => {
       socket.off('splink_request', handleSplinkRequest);
-      socket.off('splink_response', handleSplinkResponse);
+      socket.off('splink_response', handleSplinkResponseListener);
     };
   }, []);
 
   const styles = StyleSheet.create({
     container: {
-      gap: 24,
-      padding: 20,
-      backgroundColor: colors.background,
       flex: 1,
+      paddingHorizontal: 20,
+      backgroundColor: colors.background,
+    },
+    listContent: {
+      paddingBottom: 40,
     },
     loadingContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      paddingVertical: 40,
     },
     loadingText: {
-      fontSize: 18,
+      fontSize: 16,
+      marginTop: 12,
       ...commonStyles.textDefault,
-      color: colors.inputText,
+      color: colors.mutedText,
     },
     emptyText: {
-      fontSize: 18,
+      fontSize: 16,
+      textAlign: 'center',
       ...commonStyles.textDefault,
-      color: colors.inputText,
+      color: colors.mutedText,
     },
-    header: {
-      flexDirection: 'row',
+    headerSpace: {
+      paddingTop: 16,
+      paddingBottom: 12,
     },
-    headerText: {
-      fontSize: 28,
-      ...commonStyles.textDefault,
-      color: colors.text,
+    sectionLabel: {
+      fontSize: 12,
+      color: colors.mutedText,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 12,
+      marginTop: 16,
     },
-    subheaderText: {
-      fontSize: 24,
-      ...commonStyles.textDefault,
-      color: colors.text,
-    },
-    searchIcon: {
-      position: 'absolute',
-      left: 0,
-      top: 6,
-      color: colors.buttonText,
-      padding: 10,
-      borderRadius: 10,
-      zIndex: 1,
-      ...commonStyles.textDefault,
-    },
-    searchInput: {
-      flex: 1,
-      height: 52,
-      backgroundColor: colors.inputBackground,
-      borderRadius: 10,
-      paddingHorizontal: 10,
-      color: colors.inputText,
-      fontSize: 18,
-      ...commonStyles.textDefault,
-      paddingLeft: 40,
+    searchInputContainer: {
+      marginBottom: 16,
     },
     time: {
       ...commonStyles.textDefault,
@@ -300,12 +292,13 @@ const FriendsScreen = ({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 10,
+      gap: 12,
+      marginBottom: 20,
     },
     image: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
+      width: 54,
+      height: 54,
+      borderRadius: 27,
     },
     nameContainer: {
       flexDirection: 'row',
@@ -316,31 +309,42 @@ const FriendsScreen = ({
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      paddingVertical: 80,
     },
     initialsContainer: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
+      width: 54,
+      height: 54,
+      borderRadius: 27,
       backgroundColor: colors.inputBackground,
       justifyContent: 'center',
       alignItems: 'center',
     },
     initials: {
-      fontSize: 20,
+      fontSize: 18,
       ...commonStyles.textDefault,
       color: colors.text,
-    },
-    pendingSection: {
-      marginBottom: 20,
     },
     pendingItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.cardBackground,
-      padding: 12,
+      backgroundColor: colors.inputBackground,
+      padding: 14,
       borderRadius: 12,
       marginBottom: 8,
       gap: 12,
+    },
+    avatar: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: '700',
     },
     pendingInfo: {
       flex: 1,
@@ -351,96 +355,155 @@ const FriendsScreen = ({
     },
     acceptButton: {
       backgroundColor: colors.primary,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 20,
     },
     rejectButton: {
-      backgroundColor: colors.receiverBackground,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
+      backgroundColor: colors.error + '15',
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 20,
     },
     buttonText: {
-      color: '#fff',
+      color: 'white',
       fontSize: 12,
       fontWeight: '600',
     },
   });
 
+  const filteredFriends = searchQuery.trim()
+    ? friends.filter((f: any) =>
+        (f.firstName + ' ' + f.lastName)
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase().trim()),
+      )
+    : friends;
+
   if (loading) {
     return <LoadingComponent styles={styles} colors={colors} />;
   }
+
   return (
-    <FlatList
-      ListHeaderComponent={
-        <View style={{marginBottom: 40}}>
+    <View style={styles.container}>
+      <View style={styles.headerSpace}>
+        <SegmentedControl
+          options={['Chats', 'Requests']}
+          activeOption={activeTab}
+          onOptionPress={setActiveTab}
+          containerStyle={{marginBottom: 16}}
+        />
+
+        {activeTab === 'Chats' && (
           <AppInput
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search for friends"
             leftIcon={
-              <FontAwesome5Icon name="search" size={18} color={colors.text} />
+              <Icon name="magnify" size={22} color={colors.mutedText} />
             }
-            containerStyle={{flex: 1}}
+            containerStyle={styles.searchInputContainer}
           />
+        )}
+      </View>
 
-          {pendingSplinks.length > 0 && (
-            <View style={styles.pendingSection}>
-              <AppText weight="bold" style={{marginTop: 20}}>
-                Pending Splinks
+      {activeTab === 'Chats' ? (
+        <FlatList
+          data={filteredFriends}
+          keyExtractor={item => item.friendId}
+          renderItem={({item}) => (
+            <FriendItem
+              id={item.friendId}
+              image={item.image}
+              firstName={item.firstName}
+              lastName={item.lastName}
+              lastMessage={item.lastMessage}
+              lastMessageTime={item.lastMessageTime}
+              nonce={item.nonce}
+              styles={styles}
+            />
+          )}
+          ListEmptyComponent={<ListEmptyComponent styles={styles} />}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}>
+          {loadingPending ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <AppText style={styles.loadingText}>Fetching requests...</AppText>
+            </View>
+          ) : pendingSplinks.length > 0 ? (
+            <>
+              <AppText
+                variant="caption"
+                weight="semiBold"
+                style={styles.sectionLabel}>
+                Incoming Requests ({pendingSplinks.length})
               </AppText>
               {pendingSplinks.map(item => (
                 <View key={item.friendId} style={styles.pendingItem}>
-                  <Icon name="user-circle" size={40} color={colors.mutedText} />
+                  <View style={styles.avatar}>
+                    <AppText weight="bold" style={styles.avatarText}>
+                      {createInitialsForImage(
+                        (item.firstName || '') + ' ' + (item.lastName || ''),
+                      )}
+                    </AppText>
+                  </View>
                   <View style={styles.pendingInfo}>
-                    <AppText variant="h3" weight="semiBold">
-                      {`${item.firstName} ${item.lastName}`}
+                    <AppText weight="semiBold">
+                      {item.firstName} {item.lastName}
+                    </AppText>
+                    <AppText variant="caption" color={colors.mutedText}>
+                      Sent you a Splink
                     </AppText>
                   </View>
                   <View style={styles.actionButtons}>
-                    <Button
-                      title="Accept"
+                    <TouchableOpacity
+                      style={styles.acceptButton}
+                      disabled={respondingTo === item.friendId}
                       onPress={() =>
                         handleSplinkResponse(item.friendId, 'accept')
-                      }
-                      style={{paddingVertical: 8, paddingHorizontal: 12}}
-                      textStyle={{fontSize: 13}}
-                    />
-                    <Button
-                      title="Reject"
-                      variant="outline"
+                      }>
+                      {respondingTo === item.friendId ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <AppText style={styles.buttonText}>Accept</AppText>
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.rejectButton}
+                      disabled={respondingTo === item.friendId}
                       onPress={() =>
                         handleSplinkResponse(item.friendId, 'reject')
-                      }
-                      style={{paddingVertical: 8, paddingHorizontal: 12}}
-                      textStyle={{fontSize: 13}}
-                    />
+                      }>
+                      <AppText
+                        style={[styles.buttonText, {color: colors.error}]}>
+                        Reject
+                      </AppText>
+                    </TouchableOpacity>
                   </View>
                 </View>
               ))}
+            </>
+          ) : (
+            <View style={styles.emptyTextContainer}>
+              <Icon
+                name="clock-outline"
+                size={48}
+                color={colors.inputBackground}
+                style={{marginBottom: 12}}
+              />
+              <AppText style={styles.emptyText}>No pending requests</AppText>
             </View>
           )}
-        </View>
-      }
-      ListFooterComponent={<View style={{height: 40}} />}
-      showsVerticalScrollIndicator={false}
-      data={friends}
-      contentContainerStyle={styles.container}
-      renderItem={({item}) => (
-        <FriendItem
-          id={item?.friendId}
-          image={item?.image}
-          firstName={item?.firstName}
-          lastName={item?.lastName}
-          lastMessage={item?.lastMessage}
-          lastMessageTime={item?.lastMessageTime}
-          nonce={item?.nonce}
-          styles={styles}
-        />
+        </ScrollView>
       )}
-      ListEmptyComponent={<ListEmptyComponent styles={styles} />}
-    />
+    </View>
   );
 };
+
 export default FriendsScreen;

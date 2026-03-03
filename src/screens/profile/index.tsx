@@ -3,11 +3,11 @@ import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
+  Alert,
   ColorSchemeName,
   FlatList,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -15,19 +15,20 @@ import {Asset} from 'react-native-image-picker';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AccountOption from '../../components/accountOptions';
+import AppText from '../../components/common/AppText';
 import ImageUploader from '../../components/imageUploader';
 import {Modal} from '../../components/modal';
 import RupeeIcon from '../../components/rupeeIcon';
-import AppText from '../../components/common/AppText';
 import {useAuth} from '../../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
-import api from '../../services/api';
-import {commonStyles} from '../../utils/styles';
+import {
+  getUser as fetchUser,
+  uploadProfilePicture,
+} from '../../services/userService';
 import {DeviceInfo, getDeviceInfo} from '../../utils/deviceInfo';
-import useAuthorizeNavigation from '../../navigators/authorizeStack';
 const Profile = ({navigation}: {navigation: any}) => {
-  const {signOut, user} = useAuth();
+  const {signOut, user, setUser} = useAuth();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -63,8 +64,8 @@ const Profile = ({navigation}: {navigation: any}) => {
     {
       icon: 'dark-mode',
       label: 'Theme',
-      onPress: handleToggleTheme,
-      options: ['Light', 'Dark'],
+      onPress: () => {},
+      options: ['Light'],
     },
     {
       icon: 'credit-card',
@@ -75,8 +76,16 @@ const Profile = ({navigation}: {navigation: any}) => {
     {
       icon: 'users',
       label: 'Split Expenses',
-      onPress: () => navigation.navigate('SplitExpenseList'),
-      options: ['Split with Friends'],
+      onPress: (option: string) => {
+        if (option === 'Split it') {
+          navigation.navigate('CreateSplitExpense');
+        } else if (option === 'Add Friends') {
+          navigation.navigate('AddFriends');
+        } else {
+          navigation.navigate('SplitExpenseList');
+        }
+      },
+      options: ['Split it', 'Expenses', 'Add Friends'],
     },
     {
       icon: 'bell',
@@ -112,16 +121,34 @@ const Profile = ({navigation}: {navigation: any}) => {
   const getUser = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/api/users/me');
-      setEmail(response.data.user.email);
-      setName(response.data.user.name);
-      setProfilePicture(response.data.user.profilePicture);
-      setMonthlyBudget(Number(response.data.user.budget || 0));
-      setAmountSpent(Number(response.data.user.amountSpent || 0));
+      const user = await fetchUser();
+      setEmail(user.email);
+      setName(user.name);
+      setProfilePicture(user.profilePicture);
+      setMonthlyBudget(user.budget);
+      setAmountSpent(user.amountSpent);
     } catch (error) {
       console.log(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageSelected = async (image: Asset) => {
+    setSelectedImage(image);
+    try {
+      const {url} = await uploadProfilePicture(image);
+      setProfilePicture(url);
+      // Update auth context so the Header image updates immediately
+      setUser({...user, photoUrl: url});
+      Alert.alert('Success', 'Profile picture updated!');
+    } catch (error) {
+      console.error('Failed to upload profile picture:', error);
+      Alert.alert(
+        'Error',
+        'Failed to upload profile picture. Please try again.',
+      );
+      setSelectedImage(undefined);
     }
   };
 
@@ -242,7 +269,7 @@ const Profile = ({navigation}: {navigation: any}) => {
       style={styles.container}>
       <View style={styles.header}>
         <ImageUploader
-          onImageSelected={image => setSelectedImage(image)}
+          onImageSelected={handleImageSelected}
           selectedImage={selectedImage}
           isProfilePic
           showUploadIcon

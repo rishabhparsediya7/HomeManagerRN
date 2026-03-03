@@ -1,22 +1,24 @@
 import React from 'react';
 import {
-  View,
-  Button,
   Alert,
   Image,
   StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import {
+  Asset,
   launchCamera,
   launchImageLibrary,
-  Asset,
 } from 'react-native-image-picker';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   requestCameraPermission,
   requestGalleryPermission,
 } from '../../utils/permissions';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useAuth} from '../../providers/AuthProvider';
+import {createInitialsForImage} from '../../utils/users';
 
 interface ImageUploaderProps {
   onImageSelected: (image: Asset) => void;
@@ -33,6 +35,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   showUploadIcon,
   profilePicture,
 }) => {
+  const {user} = useAuth();
   const handleImagePick = () => {
     Alert.alert(
       'Upload Image',
@@ -71,14 +74,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   return (
     <View style={styles.container}>
       <View>
-        <Image
-          source={
-            selectedImage?.uri || profilePicture
-              ? {uri: selectedImage?.uri || profilePicture}
-              : require('../../../assets/images/avatar.gif')
-          }
-          style={styles.image}
-        />
+        {selectedImage?.uri || profilePicture ? (
+          <Image
+            source={{uri: selectedImage?.uri || profilePicture}}
+            style={styles.image}
+          />
+        ) : (
+          <View style={[styles.image, styles.initialsContainer]}>
+            <Text style={styles.initialsText}>
+              {createInitialsForImage(user?.name || '')}
+            </Text>
+          </View>
+        )}
         {showUploadIcon && (
           <TouchableOpacity style={styles.editIcon} onPress={handleImagePick}>
             <Ionicons
@@ -116,5 +123,15 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     paddingBottom: 8,
     zIndex: 10,
+  },
+  initialsContainer: {
+    backgroundColor: '#4F46E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  initialsText: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: '700',
   },
 });

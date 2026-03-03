@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import React, {useEffect, useState, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -8,14 +8,18 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
   View,
-  TextInput,
-  Text,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import Button from '../../components/Button';
+import CategorySelector from '../../components/categorySelector';
+import AppInput from '../../components/common/AppInput';
+import AppText from '../../components/common/AppText';
 import Header from '../../components/Header';
 import RupeeIcon from '../../components/rupeeIcon';
 import {category as expenseCategories} from '../../constants';
@@ -24,14 +28,9 @@ import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
 import splitExpenseApi from '../../services/splitExpenseApi';
-import {commonStyles} from '../../utils/styles';
-import socket from '../../utils/socket';
 import {formatDate} from '../../utils/formatDate';
-import AppText from '../../components/common/AppText';
-import AppInput from '../../components/common/AppInput';
-import Button from '../../components/Button';
-import CategorySelector from '../../components/categorySelector';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import socket from '../../utils/socket';
+import {commonStyles} from '../../utils/styles';
 
 interface Friend {
   id: string;

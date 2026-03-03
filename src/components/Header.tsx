@@ -1,22 +1,19 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
   Image,
   StyleProp,
-  ViewStyle,
-  Platform,
+  StyleSheet,
+  Text,
   TextStyle,
-  StatusBar,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../providers/AuthProvider';
-import {useTheme} from '../providers/ThemeContext';
 import {lightTheme} from '../providers/Theme';
-import {useMemo} from 'react';
 import {commonStyles} from '../utils/styles';
+import {createInitialsForImage} from '../utils/users';
 import AppText from './common/AppText';
 
 interface HeaderProps {
@@ -41,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({
   showBackButton = false,
   showNotification = false,
   showImage = true,
-  image = 'https://randomuser.me/api/portraits/men/32.jpg',
+  image = '',
   onBackPress,
   onNotificationPress,
   notificationCount = 0,
@@ -114,6 +111,16 @@ const Header: React.FC<HeaderProps> = ({
           fontSize: 8,
           fontWeight: 'bold',
         },
+        initialsContainer: {
+          backgroundColor: colors.primary || '#4F46E5',
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        initialsText: {
+          color: 'white',
+          fontSize: 12,
+          fontWeight: 'bold',
+        },
       }),
     [colors.background],
   );
@@ -150,9 +157,15 @@ const Header: React.FC<HeaderProps> = ({
             )}
           </TouchableOpacity>
         )}
-        {showImage && (
+        {showImage && (photoUrl || image) ? (
           <Image source={{uri: photoUrl || image}} style={styles.image} />
-        )}
+        ) : showImage ? (
+          <View style={[styles.image, styles.initialsContainer]}>
+            <Text style={styles.initialsText}>
+              {createInitialsForImage(user?.name || '')}
+            </Text>
+          </View>
+        ) : null}
         {showCrossButton && (
           <TouchableOpacity onPress={onCrossPress}>
             <Icon name="close" size={24} color={colors.buttonText} />

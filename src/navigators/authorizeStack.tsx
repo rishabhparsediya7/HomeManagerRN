@@ -21,6 +21,7 @@ import SettlementScreen from '../screens/splitExpense/settle';
 import BalancesScreen from '../screens/splitExpense/balances';
 import QuickAddExpense from '../screens/addExpense/QuickAddExpenseScreen';
 import NotificationsScreen from '../screens/notifications';
+import AddFriends from '../screens/friends/addFriends';
 
 type ActionType = 'income' | 'bills' | 'budget' | null;
 
@@ -57,6 +58,7 @@ export type AuthorizeNavigationStackList = {
   Balances: undefined;
   QuickAddExpense: undefined;
   Notifications: undefined;
+  AddFriends: undefined;
 };
 
 export type AuthorizeNavigationProp<
@@ -140,6 +142,10 @@ const AuthorizeNavigation = () => {
       <AuthorizeNavigationStack.Screen
         name="Notifications"
         component={NotificationsScreen}
+      />
+      <AuthorizeNavigationStack.Screen
+        name="AddFriends"
+        component={AddFriends}
       />
     </AuthorizeNavigationStack.Navigator>
   );
