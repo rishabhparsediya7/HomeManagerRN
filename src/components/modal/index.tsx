@@ -19,10 +19,10 @@ import {
   initialWindowMetrics,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import Header from '../../components/Header';
-import { useTheme } from '../../providers/ThemeContext';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { commonStyles } from '../../utils/styles';
+import Header from '../Header';
+import {useTheme} from '../../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {commonStyles} from '../../utils/styles';
 
 interface ModalProps {
   isBottomSheetNonDismissible?: boolean;
@@ -46,7 +46,7 @@ export const Modal = ({
   headerTitle,
   onCrossPress,
   variant,
-  showImage=false,
+  showImage = false,
   ...rest
 }: ModalProps) => {
   const {theme} = useTheme();
@@ -76,44 +76,47 @@ export const Modal = ({
   }, []);
   const onChange = () => {};
 
-  const styles = useMemo(() => StyleSheet.create({
-    bottomPadding: {
-      paddingBottom: 16,
-    },
-  
-    keyboardAvoidingView: {
-      flex: 1,
-      width: '100%',
-     
-    },
-    scrollContainer: {
-      flexGrow: 1,
-      justifyContent: 'flex-start',
-      width: '100%',
-    },
-  
-    viewModalContainer: {
-      flex: 1,
-      backgroundColor: colors.background,
-      width: '100%',
-    },
-    contentContainer: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    header: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
-      backgroundColor: colors.background,
-      height: 72,
-      marginTop: 0,
-    },
-    headerTitle: {
-      fontSize: 28,
-      color: colors.buttonText,
-      ...commonStyles .textDefault,
-    },
-  }), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        bottomPadding: {
+          paddingBottom: 16,
+        },
+
+        keyboardAvoidingView: {
+          flex: 1,
+          width: '100%',
+        },
+        scrollContainer: {
+          flexGrow: 1,
+          justifyContent: 'flex-start',
+          width: '100%',
+        },
+
+        viewModalContainer: {
+          flex: 1,
+          backgroundColor: colors.background,
+          width: '100%',
+        },
+        contentContainer: {
+          flex: 1,
+          alignItems: 'center',
+        },
+        header: {
+          borderTopLeftRadius: 12,
+          borderTopRightRadius: 12,
+          backgroundColor: colors.background,
+          height: 72,
+          marginTop: 0,
+        },
+        headerTitle: {
+          fontSize: 28,
+          color: colors.buttonText,
+          ...commonStyles.textDefault,
+        },
+      }),
+    [theme],
+  );
 
   switch (variant) {
     case 'scrollableModal': {
@@ -209,5 +212,3 @@ export const Modal = ({
     }
   }
 };
-
-

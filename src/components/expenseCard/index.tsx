@@ -7,8 +7,8 @@ import {category} from '../../constants';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
-import RupeeIcon from '../../components/rupeeIcon';
-import Icons from '../../components/icons';
+import RupeeIcon from '../rupeeIcon';
+import Icons from '../icons';
 
 const ExpenseCard = ({expense}) => {
   const {theme} = useTheme();

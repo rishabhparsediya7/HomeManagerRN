@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import RupeeIcon from '../../components/rupeeIcon';
+import RupeeIcon from '../rupeeIcon';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {ExpenseDataProps} from '../../screens/home';

@@ -22,7 +22,7 @@ import FilterButton from '../../components/filterButton';
 import Icon from 'react-native-vector-icons/SimpleLineIcons';
 import SlideDropdown from '../../components/dropdown';
 import {categories} from '../../types/categories';
-import {paymentMethods} from '../../screens/addExpense';
+import {paymentMethods} from '../addExpense';
 
 type ExportDataProps = {
   navigation: any;

@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
-import Accordion from '../../components/accordion';
-import { darkTheme, lightTheme } from '../../providers/Theme';
-import { useTheme } from '../../providers/ThemeContext';
-import { commonStyles } from '../../utils/styles';
+import React, {useMemo} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Accordion from '../accordion';
+import {darkTheme, lightTheme} from '../../providers/Theme';
+import {useTheme} from '../../providers/ThemeContext';
+import {commonStyles} from '../../utils/styles';
 
 interface AccountOptionProps {
   icon: string;
@@ -12,31 +12,34 @@ interface AccountOptionProps {
   options?: string[];
 }
 
-const AccountOption = ({ icon, label, onPress, options }: AccountOptionProps) => {
-
-  const { theme } = useTheme();
+const AccountOption = ({icon, label, onPress, options}: AccountOptionProps) => {
+  const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
-  const styles = useMemo(() => StyleSheet.create({
-    row: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: 10,
-    },
-    iconContainer: {
-      width: 30,
-    },
-    label: {
-      flex: 1,
-      fontSize: 16,
-      marginLeft: 10,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
-    arrow: {
-      alignSelf: 'center',
-    },
-  }), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        row: {
+          flex: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginHorizontal: 10,
+        },
+        iconContainer: {
+          width: 30,
+        },
+        label: {
+          flex: 1,
+          fontSize: 16,
+          marginLeft: 10,
+          ...commonStyles.textDefault,
+          color: colors.buttonText,
+        },
+        arrow: {
+          alignSelf: 'center',
+        },
+      }),
+    [theme],
+  );
 
   return (
     <View style={styles.row}>
@@ -44,12 +47,10 @@ const AccountOption = ({ icon, label, onPress, options }: AccountOptionProps) =>
         title={label}
         icon={icon}
         options={options || []}
-        onOptionPress={(option) => onPress?.(option)}
+        onOptionPress={option => onPress?.(option)}
       />
     </View>
   );
 };
-
-
 
 export default AccountOption;

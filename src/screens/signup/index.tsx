@@ -17,7 +17,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Button from '../../components/Button';
 import {useAuth} from '../../providers/AuthProvider';
 import {lightTheme} from '../../providers/Theme';
-import {googleSignIn} from '../../screens/signin/googleSigninUtil';
+import {googleSignIn} from '../signin/googleSigninUtil';
 import {commonStyles} from '../../utils/styles';
 
 const SignUpScreen = ({navigation}) => {
