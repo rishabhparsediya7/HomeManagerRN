@@ -15,19 +15,20 @@ import {
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import nacl from 'tweetnacl';
-import naclUtil from 'tweetnacl-util';
 import Button from '../../../components/Button';
 import AppInput from '../../../components/common/AppInput';
 import AppText from '../../../components/common/AppText';
 import {useAuthorizeNavigation} from '../../../navigators/navigators';
 import {darkTheme, lightTheme} from '../../../providers/Theme';
 import {useTheme} from '../../../providers/ThemeContext';
-import api from '../../../services/api';
 import {useChatStore} from '../../../store';
-import {getStoredKeyPair} from '../../../utils/cryptoUtils';
 import socket from '../../../utils/socket';
 import {commonStyles} from '../../../utils/styles';
+import {
+  fetchAndDecryptChatHistory,
+  sendEncryptedMessage,
+  decryptReceivedMessage,
+} from '../services/chatApiService';
 import {createInitialsForImage} from '../../../utils/users';
 import {getChatDateLabel} from '../../../utils/dates';
 
@@ -230,61 +231,6 @@ const createStyles = (colors: any) =>
     },
   });
 
-async function fetchAndDecryptChat(
-  withUser: string,
-  before?: string,
-): Promise<{messages: Message[]; hasMore: boolean}> {
-  try {
-    const userId = await AsyncStorage.getItem('userId');
-    const privateKey = await AsyncStorage.getItem('privateKey');
-    const publicKey = await AsyncStorage.getItem('publicKey');
-
-    if (!privateKey || !publicKey) {
-      throw new Error('Keypair not found');
-    }
-
-    let url = `/api/chat/history?userId=${userId}&withUser=${withUser}&limit=50`;
-    if (before) {
-      url += `&before=${encodeURIComponent(before)}`;
-    }
-
-    const response = await api.get(url);
-    const {messages: rawMessages, hasMore} = response.data;
-
-    const resp = await api.get(`/api/chat/get-user-keys/${withUser}`);
-    const {publicKey: theirPubB64} = resp.data;
-    const theirPub = naclUtil.decodeBase64(theirPubB64);
-
-    const mySK = naclUtil.decodeBase64(privateKey);
-
-    const decryptedMessages = (rawMessages || []).map((msg: any) => {
-      const plain = nacl.box.open(
-        naclUtil.decodeBase64(msg.message),
-        naclUtil.decodeBase64(msg.nonce),
-        theirPub,
-        mySK,
-      );
-
-      return {
-        id: msg.id,
-        message: msg.message,
-        nonce: msg.nonce,
-        sender_id: msg.sender_id || msg.senderId,
-        receiver_id: msg.receiver_id || msg.receiverId,
-        sent_at: msg.sent_at || msg.sentAt,
-        plaintext: plain
-          ? naclUtil.encodeUTF8(plain)
-          : '[These messages are from before you reinstalled the app and can no longer be decrypted]',
-      };
-    });
-
-    return {messages: decryptedMessages, hasMore};
-  } catch (error) {
-    console.error('Failed to fetch and decrypt chat:', error);
-    return {messages: [], hasMore: false};
-  }
-}
-
 const ChatAvatar = ({image, profileImage, styles}: any) => {
   if (image) {
     return <Image source={{uri: image}} style={styles.headerImage} />;
@@ -380,41 +326,16 @@ const FriendChatScreen = ({route}) => {
       try {
         // Only handle messages from the friend we're chatting with
         if (payload.senderId !== id) {
-          // Message is from another friend — store it for their chat
-          // but don't process here
           return;
         }
 
-        const pair = await getStoredKeyPair();
-        let mySK = pair?.secretKey;
-
-        if (!mySK) {
-          const storedKey = await AsyncStorage.getItem('privateKey');
-          if (storedKey) {
-            mySK = naclUtil.decodeBase64(storedKey);
-          }
-        }
-
-        if (!mySK) {
-          console.error('❌ Secret key not found, cannot decrypt message');
-          return;
-        }
-
-        const resp = await api.get(
-          `/api/chat/get-user-keys/${payload.senderId}`,
-        );
-        const {publicKey: theirPubB64} = resp.data;
-        const theirPub = naclUtil.decodeBase64(theirPubB64);
-
-        const decrypted = nacl.box.open(
-          naclUtil.decodeBase64(payload.message),
-          naclUtil.decodeBase64(payload.nonce),
-          theirPub,
-          mySK,
+        const plaintext = await decryptReceivedMessage(
+          payload.senderId,
+          payload.message,
+          payload.nonce,
         );
 
-        if (decrypted) {
-          const plaintext = naclUtil.encodeUTF8(decrypted);
+        if (plaintext) {
           const newMessage: Message = {
             id: Date.now(),
             message: payload.message,
@@ -445,7 +366,7 @@ const FriendChatScreen = ({route}) => {
       addMessage(id, {
         id: Date.now(),
         message: messageText,
-        nonce: naclUtil.encodeBase64(nacl.randomBytes(nacl.box.nonceLength)),
+        nonce: '',
         receiver_id: id,
         sender_id: userId,
         sent_at: new Date().toISOString(),
@@ -454,45 +375,7 @@ const FriendChatScreen = ({route}) => {
       setMessage('');
 
       try {
-        const pair = await getStoredKeyPair();
-        let mySK = pair?.secretKey;
-
-        if (!mySK) {
-          const storedKey = await AsyncStorage.getItem('privateKey');
-          if (storedKey) {
-            mySK = naclUtil.decodeBase64(storedKey);
-          }
-        }
-
-        if (!mySK) {
-          console.error('❌ No secret key found, cannot send message');
-          return;
-        }
-
-        const resp = await api.get(`/api/chat/get-user-keys/${id}`);
-        const {publicKey: theirPubB64} = resp.data;
-
-        if (!theirPubB64) {
-          console.error('❌ No public key found for receiver', id);
-          return;
-        }
-
-        const theirPub = naclUtil.decodeBase64(theirPubB64);
-
-        const nonce = nacl.randomBytes(nacl.box.nonceLength);
-        const cipher = nacl.box(
-          naclUtil.decodeUTF8(messageText),
-          nonce,
-          theirPub,
-          mySK,
-        );
-
-        socket.emit('send-message', {
-          senderId: userId,
-          receiverId: id,
-          message: naclUtil.encodeBase64(cipher),
-          nonce: naclUtil.encodeBase64(nonce),
-        });
+        await sendEncryptedMessage(userId, id, messageText);
       } catch (error) {
         console.error('❌ Failed to send message:', error);
       }
@@ -541,7 +424,8 @@ const FriendChatScreen = ({route}) => {
         setLoading(true);
       }
       try {
-        const {messages: chat, hasMore: more} = await fetchAndDecryptChat(id);
+        const {messages: chat, hasMore: more} =
+          await fetchAndDecryptChatHistory(id);
         setMessages(id, chat);
         setHasMore(more);
       } catch (error) {
@@ -561,10 +445,8 @@ const FriendChatScreen = ({route}) => {
     setLoadingOlder(true);
     try {
       const oldestMessage = messages[0];
-      const {messages: olderMsgs, hasMore: more} = await fetchAndDecryptChat(
-        id,
-        oldestMessage.sent_at,
-      );
+      const {messages: olderMsgs, hasMore: more} =
+        await fetchAndDecryptChatHistory(id, oldestMessage.sent_at);
       if (olderMsgs.length > 0) {
         prependMessages(id, olderMsgs);
       }

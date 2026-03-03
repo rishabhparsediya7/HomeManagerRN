@@ -10,9 +10,6 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useAuthorizeNavigation} from '../../../navigators/navigators';
 import {createInitialsForImage} from '../../../utils/users';
-import {getStoredKeyPair} from '../../../utils/cryptoUtils';
-import naclUtil from 'tweetnacl-util';
-import nacl from 'tweetnacl';
 import api from '../../../services/api';
 import {useEffect, useState} from 'react';
 import {useChatStore} from '../../../store';
@@ -23,48 +20,8 @@ import AppText from '../../../components/common/AppText';
 import AppInput from '../../../components/common/AppInput';
 import Button from '../../../components/Button';
 import socket from '../../../utils/socket';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {decryptSingleMessage} from '../services/chatApiService';
 
-const handleReceiveMessage = async (payload: {
-  senderId: string;
-  message: string;
-  nonce: string;
-}) => {
-  const pair = await getStoredKeyPair();
-  let mySK = pair?.secretKey;
-
-  // Fallback: initKeys() stores keys in AsyncStorage, not Keychain.
-  // On reinstall, Keychain is empty but AsyncStorage has the keys.
-  if (!mySK) {
-    const storedKey = await AsyncStorage.getItem('privateKey');
-    if (storedKey) {
-      mySK = naclUtil.decodeBase64(storedKey);
-    }
-  }
-
-  if (!mySK) {
-    throw new Error('Keypair not found');
-  }
-
-  const resp = await api.get(`/api/chat/get-user-keys/${payload.senderId}`);
-  const {publicKey: theirPubB64} = resp.data;
-  const theirPub = naclUtil.decodeBase64(theirPubB64);
-
-  const decrypted = nacl.box.open(
-    naclUtil.decodeBase64(payload.message),
-    naclUtil.decodeBase64(payload.nonce),
-    theirPub,
-    mySK,
-  );
-
-  if (decrypted) {
-    const plaintext = naclUtil.encodeUTF8(decrypted);
-    return plaintext;
-  } else {
-    console.warn('❌ Could not decrypt message');
-    return null;
-  }
-};
 const FriendItem = ({
   id,
   image,
@@ -104,33 +61,29 @@ const FriendItem = ({
       lastMessageTime,
     });
   };
+  // Effect 1: Always decrypt the API's lastMessage — it's the DB source of truth.
+  // This handles messages received while the user wasn't on the chat screen.
   useEffect(() => {
     let cancelled = false;
 
     async function fetchLastMessage() {
-      // Skip if there's no encrypted message from the API
       if (!lastMessage || !nonce) return;
 
       try {
-        const decrypted = await handleReceiveMessage({
-          senderId: id,
-          message: lastMessage,
-          nonce: nonce,
-        });
+        const decrypted = await decryptSingleMessage(id, lastMessage, nonce);
         if (!cancelled && decrypted) {
           setLastMessageToDisplay(decrypted);
         }
       } catch (err) {
-        // Keys may not be ready yet (race with initKeys).
-        // Retry once after a short delay.
+        // Keys may not be ready yet (race with initKeys). Retry once.
         if (!cancelled) {
           setTimeout(async () => {
             try {
-              const decrypted = await handleReceiveMessage({
-                senderId: id,
-                message: lastMessage,
-                nonce: nonce,
-              });
+              const decrypted = await decryptSingleMessage(
+                id,
+                lastMessage,
+                nonce,
+              );
               if (!cancelled && decrypted) {
                 setLastMessageToDisplay(decrypted);
               }
@@ -142,13 +95,19 @@ const FriendItem = ({
       }
     }
 
-    if (!lastMessages[id]) {
-      fetchLastMessage();
-    }
+    fetchLastMessage();
 
     return () => {
       cancelled = true;
     };
+  }, [lastMessage, nonce]);
+
+  // Effect 2: Sync from store for real-time updates during the current session.
+  // When a message is sent/received in the chat, addMessage() updates lastMessages[id].
+  useEffect(() => {
+    if (lastMessages[id]) {
+      setLastMessageToDisplay(lastMessages[id]);
+    }
   }, [lastMessages[id]]);
 
   return (

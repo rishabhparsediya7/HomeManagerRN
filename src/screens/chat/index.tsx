@@ -2,115 +2,15 @@ import 'react-native-get-random-values';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useState} from 'react';
-import {
-  decryptPassphrase,
-  decryptPrivateKey,
-  encryptPassphrase,
-  encryptPrivateKey,
-  generateAndStoreKeyPair,
-  generatePassphrase,
-} from '../../utils/cryptoUtils';
 import FriendsScreen from './friends';
-import {
-  savePassphraseToAsyncStorage,
-  savePrivateKeyToAsyncStorage,
-  savePublicKeyToAsyncStorage,
-} from '../../utils/users';
 import {View} from 'react-native';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {StyleSheet} from 'react-native';
 import Header from '../../components/Header';
-import api from '../../services/api';
 import {useFriendsStore} from '../../store';
-
-const uploadEncryptedPassphrase = async (userId: string) => {
-  try {
-    const passphrase = await generatePassphrase();
-    const {cipherText, iv} = await encryptPassphrase(passphrase, userId);
-    await savePassphraseToAsyncStorage(passphrase);
-
-    await api.post('/api/chat/upload-passphrase', {
-      userId,
-      cipherText,
-      iv,
-    });
-    return passphrase;
-  } catch (error) {
-    console.error('Failed to upload passphrase:', error);
-    throw error;
-  }
-};
-
-async function initKeys() {
-  try {
-    const userId = await AsyncStorage.getItem('userId');
-    if (!userId) {
-      return;
-    }
-    const storedPublicKey = await AsyncStorage.getItem('publicKey');
-    const storedPrivateKey = await AsyncStorage.getItem('privateKey');
-
-    if (storedPublicKey && storedPrivateKey) {
-      return;
-    }
-
-    const response = await api.get(`/api/chat/get-user-keys/${userId}`, {
-      validateStatus: () => true,
-    });
-    if (response.status === 200) {
-      const encryptedPrivateKey = JSON.parse(
-        response?.data?.encryptedPrivateKey,
-      );
-
-      const {iv: ivHex, cipherText: encryptedPrivateKeyHex} =
-        encryptedPrivateKey;
-      const {iv: passphraseIvHex, cipherText: passphraseCipherTextHex} =
-        response?.data;
-      const passphraseFromServer = await decryptPassphrase(
-        passphraseCipherTextHex,
-        passphraseIvHex,
-        userId,
-      );
-      await savePassphraseToAsyncStorage(passphraseFromServer);
-
-      const decryptedPrivateKey = await decryptPrivateKey(
-        encryptedPrivateKeyHex,
-        ivHex,
-        passphraseFromServer,
-      );
-      await savePublicKeyToAsyncStorage(response?.data?.publicKey);
-      await savePrivateKeyToAsyncStorage(decryptedPrivateKey);
-      return;
-    } else {
-      console.warn(`No keys found on server. Status: ${response.status}`);
-    }
-
-    const {publicKeyB64, privateKeyB64} = await generateAndStoreKeyPair();
-    const passphrase = await uploadEncryptedPassphrase(userId!);
-    const encryptedPrivateKey = await encryptPrivateKey(
-      privateKeyB64,
-      passphrase,
-    );
-
-    const uploadKeyResponse = await api.post('/api/chat/upload-key', {
-      userId,
-      publicKey: publicKeyB64,
-      privateKey: JSON.stringify(encryptedPrivateKey),
-    });
-    if (uploadKeyResponse.status === 200) {
-      await savePublicKeyToAsyncStorage(publicKeyB64);
-      await savePrivateKeyToAsyncStorage(privateKeyB64);
-      await savePassphraseToAsyncStorage(passphrase);
-    } else {
-      console.warn(
-        `Failed to upload keys. Status: ${uploadKeyResponse.status}`,
-      );
-    }
-  } catch (error) {
-    console.log('🚀 ~ initKeys ~ error:', error);
-  }
-}
+import {initKeys} from './services/chatKeyService';
+import {fetchFriends as fetchFriendsApi} from './services/chatApiService';
 
 const ChatScreen = () => {
   const [loading, setLoading] = useState(false);
@@ -126,9 +26,9 @@ const ChatScreen = () => {
       setLoading(true);
     }
     try {
-      const resp = await api.get(`/api/chat/getFriends/${userId}`);
-      setFriends(resp.data);
-      setCachedFriends(resp.data); // Persist to local storage
+      const data = await fetchFriendsApi(userId);
+      setFriends(data);
+      setCachedFriends(data); // Persist to local storage
     } catch (error) {
       console.error('Failed to fetch friends:', error);
     } finally {
