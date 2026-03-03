@@ -107,3 +107,36 @@ export async function fetchFriends(userId: string): Promise<any[]> {
   const resp = await api.get(`/api/chat/getFriends/${userId}`);
   return resp.data;
 }
+
+/**
+ * Fetches the encryption keys for a specific user.
+ */
+export async function fetchUserKeys(userId: string): Promise<any> {
+  return await api.get(`/api/chat/get-user-keys/${userId}`, {
+    validateStatus: () => true,
+  });
+}
+
+/**
+ * Uploads a user's encryption keys to the server.
+ */
+export async function uploadKey(params: {
+  userId: string;
+  publicKey: string;
+  privateKey: string;
+  force?: boolean;
+}): Promise<any> {
+  return await api.post('/api/chat/upload-key', params);
+}
+
+/**
+ * Uploads an encrypted passphrase to the server.
+ */
+export async function uploadPassphrase(params: {
+  userId: string;
+  cipherText: string;
+  iv: string;
+  force?: boolean;
+}): Promise<any> {
+  return await api.post('/api/chat/upload-passphrase', params);
+}

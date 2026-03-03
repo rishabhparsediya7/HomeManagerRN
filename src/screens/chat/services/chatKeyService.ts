@@ -13,7 +13,30 @@ import {
   savePrivateKeyToAsyncStorage,
   savePublicKeyToAsyncStorage,
 } from '../../../utils/users';
-import api from '../../../services/api';
+import {fetchUserKeys, uploadKey, uploadPassphrase} from './chatApiService';
+
+/**
+ * Generates a passphrase, encrypts it, saves locally, and uploads to server.
+ */
+export async function uploadEncryptedPassphrase(
+  userId: string,
+): Promise<string> {
+  try {
+    const passphrase = await generatePassphrase();
+    const {cipherText, iv} = await encryptPassphrase(passphrase, userId);
+    await savePassphraseToAsyncStorage(passphrase);
+
+    await uploadPassphrase({
+      userId,
+      cipherText,
+      iv,
+    });
+    return passphrase;
+  } catch (error) {
+    console.error('Failed to upload passphrase:', error);
+    throw error;
+  }
+}
 
 /**
  * Initializes the user's encryption keys.
@@ -56,9 +79,7 @@ export async function initKeys(): Promise<void> {
 
     // 3. Try recovering from server
     console.log('[initKeys] No local keys found, checking server...');
-    const response = await api.get(`/api/chat/get-user-keys/${userId}`, {
-      validateStatus: () => true,
-    });
+    const response = await fetchUserKeys(userId);
 
     if (response.status === 200) {
       console.log('[initKeys] Found keys on server, attempting recovery...');
@@ -105,16 +126,8 @@ export async function initKeys(): Promise<void> {
       console.log('[initKeys] No keys on server, generating new pair...');
       const {publicKeyB64, privateKeyB64} = await generateAndStoreKeyPair();
 
-      // Generate a new passphrase
-      const passphrase = await generatePassphrase();
-      const {cipherText, iv} = await encryptPassphrase(passphrase, userId);
-
-      // Upload passphrase
-      await api.post('/api/chat/upload-passphrase', {
-        userId,
-        cipherText,
-        iv,
-      });
+      // Generate and upload passphrase
+      const passphrase = await uploadEncryptedPassphrase(userId);
 
       // Encrypt and upload private key
       const encryptedPrivateKey = await encryptPrivateKey(
@@ -122,7 +135,7 @@ export async function initKeys(): Promise<void> {
         passphrase,
       );
 
-      const uploadKeyResponse = await api.post('/api/chat/upload-key', {
+      const uploadKeyResponse = await uploadKey({
         userId,
         publicKey: publicKeyB64,
         privateKey: JSON.stringify(encryptedPrivateKey),

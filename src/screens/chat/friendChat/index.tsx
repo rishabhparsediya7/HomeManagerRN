@@ -362,7 +362,7 @@ const FriendChatScreen = ({route}) => {
 
   const sendMessage = async () => {
     if (message.trim() !== '' && userId) {
-      const messageText = message;
+      const messageText = message.trim();
       addMessage(id, {
         id: Date.now(),
         message: messageText,
