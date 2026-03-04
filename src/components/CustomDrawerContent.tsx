@@ -74,21 +74,26 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           borderBottomWidth: 1,
           borderBottomColor: colors.borderLight,
           marginBottom: 10,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 14,
         },
         profileImage: {
-          width: 60,
-          height: 60,
-          borderRadius: 30,
-          marginBottom: 15,
+          width: 50,
+          height: 50,
+          borderRadius: 25,
+          borderWidth: 2,
+          borderColor: colors.primary,
         },
         initialsContainer: {
-          width: 60,
-          height: 60,
-          borderRadius: 30,
+          width: 50,
+          height: 50,
+          borderRadius: 25,
           backgroundColor: colors.primary,
           justifyContent: 'center',
           alignItems: 'center',
-          marginBottom: 15,
+          borderWidth: 2,
+          borderColor: colors.primaryLight,
         },
         initialsText: {
           color: 'white',
@@ -111,9 +116,9 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         drawerItem: {
           flexDirection: 'row',
           alignItems: 'center',
-          paddingHorizontal: 20,
+          paddingHorizontal: 4,
           paddingVertical: 14,
-          marginHorizontal: 10,
+          marginHorizontal: 4,
           borderRadius: 12,
         },
         drawerItemLabel: {
@@ -178,10 +183,12 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             </AppText>
           </View>
         )}
-        <AppText weight="bold" style={styles.name}>
-          {user?.name || 'User'}
-        </AppText>
-        <AppText style={styles.email}>{user?.email}</AppText>
+        <View style={{flex: 1}}>
+          <AppText weight="bold" style={styles.name}>
+            {user?.name || 'User'}
+          </AppText>
+          <AppText style={styles.email}>{user?.email}</AppText>
+        </View>
       </View>
 
       <DrawerContentScrollView
