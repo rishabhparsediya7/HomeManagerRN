@@ -34,7 +34,10 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
     {
       label: 'Home',
       icon: 'home-outline',
-      onPress: () => props.navigation.navigate('Home'),
+      onPress: () => {
+        props.navigation.closeDrawer();
+        props.navigation.navigate('MainTabs', {screen: 'Home'});
+      },
     },
     {
       label: 'Personal Information',
