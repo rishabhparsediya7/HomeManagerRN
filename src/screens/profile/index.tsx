@@ -1,7 +1,6 @@
 // screens/Profile.js
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   Alert,
   ColorSchemeName,
@@ -152,11 +151,14 @@ const Profile = ({navigation}: {navigation: any}) => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
+  const hasFetched = useRef(false);
+
+  useEffect(() => {
+    if (!hasFetched.current) {
+      hasFetched.current = true;
       getUser();
-    }, []),
-  );
+    }
+  }, []);
 
   useEffect(() => {
     getDeviceInfo().then(info => {

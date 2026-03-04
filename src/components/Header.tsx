@@ -68,6 +68,7 @@ const Header: React.FC<HeaderProps> = ({
           justifyContent: 'center',
           padding: 8,
           flexDirection: 'row',
+          zIndex: 1,
         },
         container: {
           flexDirection: 'row',
@@ -80,13 +81,19 @@ const Header: React.FC<HeaderProps> = ({
         backButton: {
           padding: 8,
         },
+        centerTitle: {
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
         titleContainer: {
           alignItems: 'center',
           justifyContent: 'center',
         },
         title: {
-          fontSize: 32,
-          ...commonStyles.textExtraBold,
+          fontSize: 20,
           color: colors.buttonText,
         },
         iconContainer: {
@@ -94,6 +101,7 @@ const Header: React.FC<HeaderProps> = ({
           alignItems: 'center',
           gap: 12,
           paddingHorizontal: 12,
+          zIndex: 1,
         },
         image: {
           width: 32,
@@ -134,6 +142,16 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <View style={[styles.container, headerStyle]}>
+      {/* Centered Title - absolute positioned for true center */}
+      {title && (
+        <View style={styles.centerTitle}>
+          <AppText weight="semiBold" style={[styles.title, headerTitleStyle]}>
+            {title}
+          </AppText>
+        </View>
+      )}
+
+      {/* Left Section */}
       <View style={styles.titleBackButtonContainer}>
         {showBackButton && (
           <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
@@ -146,16 +164,9 @@ const Header: React.FC<HeaderProps> = ({
             <Icons.MenuIcon color={colors.buttonText} />
           </TouchableOpacity>
         )}
-
-        <View style={styles.titleContainer}>
-          {title && (
-            <AppText weight="semiBold" variant="h2">
-              {title}
-            </AppText>
-          )}
-        </View>
       </View>
 
+      {/* Right Section */}
       <View style={styles.iconContainer}>
         {rightComponent}
         {showNotification && (
