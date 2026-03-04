@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import AppText from '../../components/common/AppText';
 import Header from '../../components/Header';
 import {lightTheme} from '../../providers/Theme';
+import {useHomeContext} from '../../providers/HomeContext';
 import api from '../../services/api';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -35,6 +36,8 @@ const NotificationsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const colors = lightTheme;
   const navigation = useAuthorizeNavigation();
+  const {decrementUnreadNotifications, clearUnreadNotifications} =
+    useHomeContext();
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -61,11 +64,15 @@ const NotificationsScreen = () => {
   };
 
   const markAsRead = async (id: string) => {
+    const notification = notifications.find(n => n.id === id);
+    if (!notification || notification.isRead) return;
+
     try {
       await api.patch(`/api/notifications/${id}/read`);
       setNotifications(prev =>
         prev.map(n => (n.id === id ? {...n, isRead: true} : n)),
       );
+      decrementUnreadNotifications();
     } catch (error) {
       console.error('Error marking as read:', error);
     }
@@ -90,6 +97,7 @@ const NotificationsScreen = () => {
     try {
       await api.patch('/api/notifications/me/read-all');
       setNotifications(prev => prev.map(n => ({...n, isRead: true})));
+      clearUnreadNotifications();
     } catch (error) {
       console.error('Error marking all as read:', error);
     }

@@ -40,6 +40,7 @@ import Header from '../../components/Header';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
+import {useHomeContext} from '../../providers/HomeContext';
 import {formatDate} from '../../utils/formatDate';
 
 interface DraftExpense {
@@ -57,6 +58,7 @@ const QuickAddExpenseScreen = () => {
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const {addExpenseToRecent} = useHomeContext();
 
   // Pulse animation for the Magic button
   const pulse = useSharedValue(1);
@@ -160,6 +162,11 @@ const QuickAddExpenseScreen = () => {
         verifiedExpenses: drafts,
       });
       if (response.data?.success) {
+        // Sync saved expenses to home screen
+        const savedExpenses = response.data?.data;
+        if (Array.isArray(savedExpenses)) {
+          savedExpenses.forEach((expense: any) => addExpenseToRecent(expense));
+        }
         Alert.alert(
           'Success ✨',
           `AI successfully added ${drafts.length} expenses`,

@@ -31,6 +31,7 @@ import {category as expenseCategory} from '../../constants';
 import {AuthorizeNavigationStackList} from '../../navigators/authorizeStack';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
+import {useHomeContext} from '../../providers/HomeContext';
 import api from '../../services/api';
 import {formatDate} from '../../utils/formatDate';
 import {commonStyles} from '../../utils/styles';
@@ -67,6 +68,7 @@ const AddExpenseScreen = () => {
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const navigation =
     useNavigation<StackNavigationProp<AuthorizeNavigationStackList>>();
+  const {addExpenseToRecent} = useHomeContext();
 
   const pulse = useSharedValue(1);
 
@@ -126,6 +128,21 @@ const AddExpenseScreen = () => {
         category,
         paymentDate,
       });
+
+      // Sync to home screen without extra API call
+      const newExpense = response.data?.data;
+      if (newExpense) {
+        // Resolve IDs to display names (form state stores IDs, ExpenseCard needs names)
+        const categoryName =
+          categories.find(c => c.id === category)?.name || '';
+        const paymentMethodName =
+          paymentMethods.find(m => m.id === paymentMethod)?.name || '';
+        addExpenseToRecent({
+          ...newExpense,
+          category: categoryName,
+          paymentMethod: paymentMethodName,
+        });
+      }
     } catch (error) {
       console.error(error);
     } finally {

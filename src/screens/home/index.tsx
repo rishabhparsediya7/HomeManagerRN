@@ -17,6 +17,7 @@ import {useAuthorizeNavigation} from '../../navigators/navigators';
 import {useAuth} from '../../providers/AuthProvider';
 import {lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
+import {useHomeContext} from '../../providers/HomeContext';
 import api from '../../services/api';
 import {getMonthStartAndEndDates} from '../../utils/dates';
 import {downloadAndSharePdf} from '../../utils/fileUtil';
@@ -76,7 +77,12 @@ type ActionType = 'income' | 'bills' | 'budget' | null;
 
 const Home = () => {
   const {startDate, endDate} = getMonthStartAndEndDates();
-  const [recentExpenses, setRecentExpenses] = useState<ExpenseDataProps[]>([]);
+  const {
+    recentExpenses,
+    setRecentExpenses,
+    unreadNotifications,
+    setUnreadNotifications,
+  } = useHomeContext();
   const [loading, setLoading] = useState(false);
   const [weekChartData, setWeekChartData] = useState([]);
   const [categoryChartData, setCategoryChartData] = useState([]);
@@ -95,7 +101,6 @@ const Home = () => {
     totalIncome: 0,
     totalBudget: 0,
   });
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const limit = 4;
   const filter = 'custom';
 
