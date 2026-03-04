@@ -469,11 +469,6 @@ const Home = () => {
               <TouchableOpacity onPress={fetchHomeData}>
                 <Icon name="refresh" size={20} color={colors.buttonText} />
               </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('QuickAddExpense')}>
-                <Icons.AIStarIcon height={24} width={24} />
-              </TouchableOpacity>
             </View>
             <TouchableOpacity>
               <AppText

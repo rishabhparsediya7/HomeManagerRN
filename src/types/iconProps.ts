@@ -14,4 +14,5 @@ export type IconProps = {
   onPress?: (event: GestureResponderEvent) => void;
   accessibilityLabels?: string;
   disabled?: boolean;
+  size?: number;
 };

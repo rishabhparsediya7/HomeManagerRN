@@ -274,7 +274,7 @@ const AddExpenseScreen = () => {
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => navigation.navigate('QuickAddExpense')}>
-            <Icons.AIStarIcon height={28} width={28} />
+            <Icons.AIStarIcon size={32} />
           </TouchableOpacity>
         }
       />
