@@ -23,7 +23,7 @@ import {darkTheme, lightTheme} from '../../../providers/Theme';
 import {useTheme} from '../../../providers/ThemeContext';
 import {useChatStore} from '../../../store';
 import socket from '../../../utils/socket';
-import {commonStyles} from '../../../utils/styles';
+
 import {
   fetchAndDecryptChatHistory,
   sendEncryptedMessage,
@@ -63,8 +63,7 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.background,
     },
     loadingText: {
-      fontSize: 18,
-      ...commonStyles.textDefault,
+      marginTop: 8,
       color: colors.inputText,
     },
     headerIconContainer: {
@@ -104,9 +103,7 @@ const createStyles = (colors: any) =>
       color: colors.text,
     },
     headerText: {
-      fontSize: 18,
       color: colors.text,
-      ...commonStyles.textDefault,
       marginLeft: 4,
     },
     messageContainer: {
@@ -120,22 +117,18 @@ const createStyles = (colors: any) =>
       width: '100%',
     },
     messageText: {
-      fontSize: 16,
-      ...commonStyles.textDefault,
+      fontSize: 15,
       lineHeight: 22,
     },
     messageTextSender: {
       color: colors.senderText,
-      ...commonStyles.textDefault,
     },
     messageTime: {
-      fontSize: 11,
-      ...commonStyles.textDefault,
+      fontSize: 10,
       marginTop: 2,
     },
     messageTimeSender: {
       color: 'rgba(255, 255, 255, 0.7)',
-      ...commonStyles.textDefault,
     },
     sender: {
       backgroundColor: colors.senderBackground,
@@ -202,11 +195,9 @@ const createStyles = (colors: any) =>
     },
     messageTextReceiver: {
       color: colors.receiverText,
-      ...commonStyles.textDefault,
     },
     messageTimeReceiver: {
       color: colors.receiverText,
-      ...commonStyles.textDefault,
     },
     keyboardAvoidingView: {
       flex: 1,
@@ -223,10 +214,9 @@ const createStyles = (colors: any) =>
       borderRadius: 8,
     },
     dateHeaderText: {
-      fontSize: 12,
+      fontSize: 11,
       fontWeight: '600',
       color: colors.chatDateHeaderText,
-      ...commonStyles.textDefault,
       textTransform: 'uppercase',
     },
   });
@@ -275,7 +265,7 @@ const ListHeaderComponent = ({
         />
         <ChatAvatar image={image} profileImage={profileImage} styles={styles} />
       </TouchableOpacity>
-      <AppText variant="h6" style={styles.headerText}>
+      <AppText variant="h6" weight="semiBold" style={styles.headerText}>
         {firstName + ' ' + lastName}
       </AppText>
     </View>
@@ -286,7 +276,9 @@ const LoadingComponent = ({styles, colors}: {styles: any; colors: any}) => {
   return (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color={colors.primary} />
-      <AppText style={styles.loadingText}>Loading messages...</AppText>
+      <AppText variant="lg" weight="medium" style={styles.loadingText}>
+        Loading messages...
+      </AppText>
     </View>
   );
 };

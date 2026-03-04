@@ -16,7 +16,7 @@ import {useEffect, useState} from 'react';
 import {useChatStore} from '../../../store';
 import {useTheme} from '../../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../../providers/Theme';
-import {commonStyles} from '../../../utils/styles';
+
 import AppText from '../../../components/common/AppText';
 import AppInput from '../../../components/common/AppInput';
 import Button from '../../../components/Button';
@@ -44,6 +44,8 @@ const FriendItem = ({
 }) => {
   const navigation = useAuthorizeNavigation();
   const {lastMessages} = useChatStore();
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
   const [lastMessageToDisplay, setLastMessageToDisplay] = useState(
     lastMessages[id],
   );
@@ -119,18 +121,18 @@ const FriendItem = ({
         <Image source={{uri: image}} style={styles.image} />
       ) : (
         <View style={styles.initialsContainer}>
-          <AppText weight="semiBold" style={styles.initials}>
+          <AppText variant="h6" weight="bold" style={styles.initials}>
             {profileImage}
           </AppText>
         </View>
       )}
       <View style={{flex: 1, gap: 6}}>
         <View style={styles.nameContainer}>
-          <AppText
-            variant="h6"
-            weight="semiBold">{`${firstName} ${lastName}`}</AppText>
+          <AppText variant="h6" weight="semiBold">
+            {`${firstName} ${lastName}`}
+          </AppText>
           {lastMessageTime && (
-            <AppText variant="sm" style={styles.time}>
+            <AppText variant="sm" weight="medium" color={colors.mutedText}>
               {new Date(lastMessageTime)
                 .toLocaleTimeString()
                 .split(':')[0]
@@ -146,7 +148,7 @@ const FriendItem = ({
           )}
         </View>
         {lastMessageToDisplay && (
-          <AppText variant="md" numberOfLines={1}>
+          <AppText variant="lg" numberOfLines={1} color={colors.mutedText}>
             {lastMessageToDisplay}
           </AppText>
         )}
@@ -159,15 +161,19 @@ const LoadingComponent = ({styles, colors}: {styles: any; colors: any}) => {
   return (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color={colors.primary} />
-      <AppText style={styles.loadingText}>Loading...</AppText>
+      <AppText variant="lg" weight="medium" color={colors.mutedText}>
+        Loading...
+      </AppText>
     </View>
   );
 };
 
-const ListEmptyComponent = ({styles}: {styles: any}) => {
+const ListEmptyComponent = ({styles, colors}: {styles: any; colors: any}) => {
   return (
     <View style={styles.emptyTextContainer}>
-      <AppText style={styles.emptyText}>No friends found</AppText>
+      <AppText variant="lg" weight="medium" color={colors.mutedText}>
+        No friends found
+      </AppText>
     </View>
   );
 };
@@ -258,24 +264,16 @@ const FriendsScreen = ({
       paddingVertical: 40,
     },
     loadingText: {
-      fontSize: 16,
       marginTop: 12,
-      ...commonStyles.textDefault,
-      color: colors.mutedText,
     },
     emptyText: {
-      fontSize: 16,
       textAlign: 'center',
-      ...commonStyles.textDefault,
-      color: colors.mutedText,
     },
     headerSpace: {
       paddingTop: 16,
       paddingBottom: 12,
     },
     sectionLabel: {
-      fontSize: 12,
-      color: colors.mutedText,
       textTransform: 'uppercase',
       letterSpacing: 1,
       marginBottom: 12,
@@ -285,8 +283,7 @@ const FriendsScreen = ({
       marginBottom: 16,
     },
     time: {
-      ...commonStyles.textDefault,
-      color: colors.text,
+      color: colors.mutedText,
     },
     subContainer: {
       flexDirection: 'row',
@@ -320,8 +317,6 @@ const FriendsScreen = ({
       alignItems: 'center',
     },
     initials: {
-      fontSize: 18,
-      ...commonStyles.textDefault,
       color: colors.text,
     },
     pendingItem: {
@@ -343,8 +338,6 @@ const FriendsScreen = ({
     },
     avatarText: {
       color: 'white',
-      fontSize: 16,
-      fontWeight: '700',
     },
     pendingInfo: {
       flex: 1,
@@ -367,8 +360,6 @@ const FriendsScreen = ({
     },
     buttonText: {
       color: 'white',
-      fontSize: 12,
-      fontWeight: '600',
     },
   });
 
@@ -423,7 +414,9 @@ const FriendsScreen = ({
               styles={styles}
             />
           )}
-          ListEmptyComponent={<ListEmptyComponent styles={styles} />}
+          ListEmptyComponent={
+            <ListEmptyComponent styles={styles} colors={colors} />
+          }
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
@@ -434,30 +427,36 @@ const FriendsScreen = ({
           {loadingPending ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={colors.primary} />
-              <AppText style={styles.loadingText}>Fetching requests...</AppText>
+              <AppText variant="lg" weight="medium" color={colors.mutedText}>
+                Fetching requests...
+              </AppText>
             </View>
           ) : pendingSplinks.length > 0 ? (
             <>
               <AppText
-                variant="caption"
+                variant="sm"
                 weight="semiBold"
+                color={colors.mutedText}
                 style={styles.sectionLabel}>
                 Incoming Requests ({pendingSplinks.length})
               </AppText>
               {pendingSplinks.map(item => (
                 <View key={item.friendId} style={styles.pendingItem}>
                   <View style={styles.avatar}>
-                    <AppText weight="bold" style={styles.avatarText}>
+                    <AppText
+                      variant="lg"
+                      weight="bold"
+                      style={styles.avatarText}>
                       {createInitialsForImage(
                         (item.firstName || '') + ' ' + (item.lastName || ''),
                       )}
                     </AppText>
                   </View>
                   <View style={styles.pendingInfo}>
-                    <AppText weight="semiBold">
+                    <AppText variant="h6" weight="semiBold">
                       {item.firstName} {item.lastName}
                     </AppText>
-                    <AppText variant="caption" color={colors.mutedText}>
+                    <AppText variant="sm" color={colors.mutedText}>
                       Sent you a Splink
                     </AppText>
                   </View>
@@ -471,7 +470,12 @@ const FriendsScreen = ({
                       {respondingTo === item.friendId ? (
                         <ActivityIndicator size="small" color="white" />
                       ) : (
-                        <AppText style={styles.buttonText}>Accept</AppText>
+                        <AppText
+                          variant="sm"
+                          weight="semiBold"
+                          style={styles.buttonText}>
+                          Accept
+                        </AppText>
                       )}
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -481,6 +485,8 @@ const FriendsScreen = ({
                         handleSplinkResponse(item.friendId, 'reject')
                       }>
                       <AppText
+                        variant="sm"
+                        weight="semiBold"
                         style={[styles.buttonText, {color: colors.error}]}>
                         Reject
                       </AppText>
@@ -497,7 +503,9 @@ const FriendsScreen = ({
                 color={colors.inputBackground}
                 style={{marginBottom: 12}}
               />
-              <AppText style={styles.emptyText}>No pending requests</AppText>
+              <AppText variant="lg" weight="medium" color={colors.mutedText}>
+                No pending requests
+              </AppText>
             </View>
           )}
         </ScrollView>

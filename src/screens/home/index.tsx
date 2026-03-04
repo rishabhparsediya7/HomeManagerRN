@@ -22,7 +22,6 @@ import {useHomeContext} from '../../providers/HomeContext';
 import api from '../../services/api';
 import {getMonthStartAndEndDates} from '../../utils/dates';
 import {downloadAndSharePdf} from '../../utils/fileUtil';
-import {commonStyles} from '../../utils/styles';
 
 export interface ExpenseDataProps {
   amount: string;
@@ -183,48 +182,15 @@ const Home = () => {
       alignItems: 'center',
       gap: 12,
     },
-    title: {
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
     avatar: {
       width: 34,
       height: 34,
       borderRadius: 17,
     },
-    budgetCard: {
-      backgroundColor: colors.background,
-    },
-    budgetLabel: {
-      // color: colors.buttonText,
-      fontSize: 14,
-      ...commonStyles.textDefault,
-    },
-    budgetAmount: {
-      fontSize: 28,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-      marginVertical: 6,
-    },
     budgetDetails: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
-    },
-    income: {
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-      fontSize: 16,
-    },
-    expense: {
-      color: colors.buttonText,
-      ...commonStyles.textDefault,
-      fontSize: 16,
-    },
-    caption: {
-      color: colors.buttonText,
-      fontSize: 12,
-      ...commonStyles.textDefault,
     },
     actions: {
       width: '100%',
@@ -242,11 +208,6 @@ const Home = () => {
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingVertical: 12,
-    },
-    seeAll: {
-      color: colors.buttonText,
-      fontSize: 16,
-      ...commonStyles.textDefault,
     },
     chartContainer: {
       padding: 14,
@@ -274,11 +235,6 @@ const Home = () => {
       borderRadius: 6,
       marginBottom: 6,
     },
-    dayLabel: {
-      fontSize: 12,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
     progressItem: {
       marginVertical: 6,
       gap: 6,
@@ -289,11 +245,6 @@ const Home = () => {
       gap: 6,
       marginBottom: 4,
     },
-    progressText: {
-      fontSize: 14,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-    },
     progressBarBackground: {
       height: 6,
       backgroundColor: colors.inputBackground,
@@ -303,13 +254,6 @@ const Home = () => {
     progressBarFill: {
       height: 6,
       backgroundColor: colors.buttonText,
-    },
-    progressPercent: {
-      fontSize: 12,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-      textAlign: 'right',
-      marginTop: 2,
     },
     innerGradient: {
       flex: 1,
@@ -328,18 +272,6 @@ const Home = () => {
       marginBottom: 12,
       gap: 4,
       overflow: 'hidden',
-    },
-    buttonText: {
-      fontSize: 18,
-      textAlign: 'center',
-      margin: 10,
-      ...commonStyles.textDefault,
-      color: colors.buttonText,
-      backgroundColor: 'transparent',
-    },
-    whiteText: {
-      ...commonStyles.textDefault,
-      color: '#FFFFFF', // Fixing to white because of dark gradient
     },
     shadow: {
       shadowColor: colors.shadowColor,
@@ -398,43 +330,51 @@ const Home = () => {
           <AppGradient style={styles.linearGradient}>
             <View style={styles.innerGradient}>
               <AppText
-                variant="h4"
-                weight="semiBold"
+                variant="h6"
+                weight="medium"
                 color={colors.buttonTextPrimary}>
                 {"This Month's Budget"}
               </AppText>
               <RupeeIcon
                 amount={Number(user?.budget || monthSummary.totalBudget)}
                 color={colors.buttonTextPrimary}
-                size={36}
-                textStyle={{fontSize: 36, fontWeight: 'bold'}}
+                size={28}
+                textStyle={{fontSize: 28, fontWeight: '700'}}
               />
               <View style={styles.budgetDetails}>
                 <View
                   style={{
-                    display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'flex-start',
                   }}>
                   <RupeeIcon
                     amount={Number(user?.income || monthSummary.totalIncome)}
                     color={colors.buttonTextPrimary}
+                    size={18}
+                    textStyle={{fontSize: 18, fontWeight: '600'}}
                   />
-                  <AppText variant="lg" color={colors.buttonTextPrimary}>
+                  <AppText
+                    variant="sm"
+                    weight="medium"
+                    color={colors.buttonTextPrimary}>
                     Income
                   </AppText>
                 </View>
                 <View
                   style={{
-                    display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'flex-start',
                   }}>
                   <RupeeIcon
                     amount={Number(monthSummary.totalExpenses)}
                     color={colors.buttonTextPrimary}
+                    size={18}
+                    textStyle={{fontSize: 18, fontWeight: '600'}}
                   />
-                  <AppText variant="lg" color={colors.buttonTextPrimary}>
+                  <AppText
+                    variant="sm"
+                    weight="medium"
+                    color={colors.buttonTextPrimary}>
                     Expenses
                   </AppText>
                 </View>
@@ -465,18 +405,15 @@ const Home = () => {
 
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleContainer}>
-              <AppText variant="h5" weight="bold">
+              <AppText variant="h6" weight="bold">
                 Recent Transactions
               </AppText>
               <TouchableOpacity onPress={fetchHomeData}>
-                <Icon name="refresh" size={20} color={colors.buttonText} />
+                <Icon name="refresh" size={18} color={colors.mutedText} />
               </TouchableOpacity>
             </View>
             <TouchableOpacity>
-              <AppText
-                variant="lg"
-                color={colors.buttonText}
-                style={styles.seeAll}>
+              <AppText variant="lg" weight="medium" color={colors.primary}>
                 See All
               </AppText>
             </TouchableOpacity>
@@ -498,19 +435,16 @@ const Home = () => {
             )}
           </View>
 
-          {/* Monthly Overview */}
+          {/* Category Overview */}
           <View style={styles.chartContainer}>
-            <AppText
-              variant="h5"
-              weight="semiBold"
-              style={{marginVertical: 12}}>
+            <AppText variant="h6" weight="bold" style={{marginVertical: 12}}>
               Category Overview
             </AppText>
             {categoryChartData.map((item: any, i) => (
               <View key={i} style={styles.progressItem}>
                 <View style={styles.progressLabel}>
                   {item.icon}
-                  <AppText variant="md" style={styles.progressText}>
+                  <AppText variant="lg" weight="medium">
                     {item.label}
                   </AppText>
                 </View>
@@ -529,10 +463,13 @@ const Home = () => {
                   <RupeeIcon
                     amount={item.amount}
                     color={colors.buttonText}
-                    size={14}
-                    textStyle={styles.progressText}
+                    size={12}
+                    textStyle={{fontSize: 12, fontWeight: '600'}}
                   />
-                  <AppText variant="caption" style={styles.progressPercent}>
+                  <AppText
+                    variant="sm"
+                    weight="medium"
+                    color={colors.mutedText}>
                     {item.percentage}%
                   </AppText>
                 </View>
@@ -554,7 +491,8 @@ const ActionButton = ({
   icon: string;
   onPress: () => void;
 }) => {
-  const colors = lightTheme;
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -562,22 +500,18 @@ const ActionButton = ({
           flex: 1,
           alignItems: 'center',
           padding: 16,
-          backgroundColor: colors.inputBackground,
-          borderRadius: 12,
+          backgroundColor: colors.cardBackground,
+          borderRadius: 14,
           width: '50%',
-        },
-        actionLabel: {
-          fontSize: 16,
-          ...commonStyles.textDefault,
-          color: colors.buttonText,
+          gap: 6,
         },
       }),
-    [],
+    [colors],
   );
   return (
     <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-      <Icon name={icon} size={32} color={colors.buttonText} />
-      <AppText variant="lg" style={styles.actionLabel}>
+      <Icon name={icon} size={28} color={colors.primary} />
+      <AppText variant="lg" weight="medium">
         {label}
       </AppText>
     </TouchableOpacity>
