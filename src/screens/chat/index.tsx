@@ -55,7 +55,7 @@ const ChatScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="Chat" />
+      <Header title="Chat" showDrawerButton={true} />
       <FriendsScreen
         friends={friends}
         loading={loading}

@@ -1,3 +1,4 @@
+import {DrawerActions, useNavigation} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {
   Image,
@@ -55,6 +56,7 @@ const Header: React.FC<HeaderProps> = ({
   showDrawerButton = false,
   onDrawerPress,
 }) => {
+  const navigation = useNavigation();
   const {user} = useAuth();
   const {photoUrl} = user;
   const {theme} = useTheme();
@@ -160,7 +162,15 @@ const Header: React.FC<HeaderProps> = ({
         )}
 
         {showDrawerButton && (
-          <TouchableOpacity style={styles.backButton} onPress={onDrawerPress}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (onDrawerPress) {
+                onDrawerPress();
+              } else {
+                navigation.dispatch(DrawerActions.openDrawer());
+              }
+            }}>
             <Icons.MenuIcon color={colors.buttonText} />
           </TouchableOpacity>
         )}

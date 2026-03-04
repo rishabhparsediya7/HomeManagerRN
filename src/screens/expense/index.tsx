@@ -229,12 +229,7 @@ const Expense = () => {
 
   return (
     <View style={styles.container}>
-      <Header
-        title="Expenses"
-        showNotification
-        showImage
-        image="https://randomuser.me/api/portraits/men/32.jpg"
-      />
+      <Header title="Expenses" showNotification showDrawerButton={true} />
       <View style={styles.container}>
         <FlatList
           data={expenses || []}

@@ -269,7 +269,7 @@ const AddExpenseScreen = () => {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
       <Header
         title="Create"
-        onBackPress={() => navigation.goBack()}
+        showDrawerButton={true}
         rightComponent={
           <TouchableOpacity
             activeOpacity={0.7}
