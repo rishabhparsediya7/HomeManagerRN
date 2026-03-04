@@ -1,23 +1,23 @@
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
 } from '@react-navigation/drawer';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import React, {useMemo, useRef} from 'react';
 import {
   Image,
+  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   View,
-  SafeAreaView,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useAuth} from '../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../providers/Theme';
 import {useTheme} from '../providers/ThemeContext';
-import AppText from './common/AppText';
-import Icons from './icons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import {createInitialsForImage} from '../utils/users';
+import AppGradient from './common/AppGradient';
+import AppText from './common/AppText';
 import {Modal} from './modal';
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
@@ -40,19 +40,29 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
       },
     },
     {
-      label: 'Personal Information',
-      icon: 'person-outline',
-      onPress: () => props.navigation.navigate('EditPersonalInformation'),
+      label: 'New Split',
+      icon: 'git-compare-outline',
+      onPress: () => props.navigation.navigate('CreateSplitExpense'),
     },
     {
-      label: 'Split Expenses',
+      label: 'Settlements',
       icon: 'people-outline',
       onPress: () => props.navigation.navigate('SplitExpenseList'),
+    },
+    {
+      label: 'Add Friends',
+      icon: 'person-add-outline',
+      onPress: () => props.navigation.navigate('AddFriends'),
     },
     {
       label: 'Security & Privacy',
       icon: 'shield-checkmark-outline',
       onPress: () => props.navigation.navigate('UpdatePassword'),
+    },
+    {
+      label: 'Notifications',
+      icon: 'notifications-outline',
+      onPress: () => props.navigation.navigate('Notifications'),
     },
     {
       label: 'Export Data',
@@ -131,6 +141,28 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           borderTopWidth: 1,
           borderTopColor: colors.borderLight,
         },
+        magicButton: {
+          marginHorizontal: 16,
+          marginVertical: 10,
+          borderRadius: 16,
+          overflow: 'hidden',
+        },
+        magicGradient: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: 14,
+          paddingHorizontal: 16,
+          gap: 12,
+          borderRadius: 24,
+        },
+        magicIconContainer: {
+          width: 36,
+          height: 36,
+          borderRadius: 12,
+          backgroundColor: 'rgba(255,255,255,0.2)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
         themeToggle: {
           flexDirection: 'row',
           alignItems: 'center',
@@ -190,6 +222,30 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           <AppText style={styles.email}>{user?.email}</AppText>
         </View>
       </View>
+
+      {/* Magic Add Button */}
+      <TouchableOpacity
+        style={styles.magicButton}
+        activeOpacity={0.85}
+        onPress={() => {
+          props.navigation.closeDrawer();
+          props.navigation.navigate('QuickAddExpense', {type: null});
+        }}>
+        <AppGradient style={styles.magicGradient}>
+          <View style={styles.magicIconContainer}>
+            <Ionicons name="sparkles" size={20} color="#fff" />
+          </View>
+          <View style={{flex: 1}}>
+            <AppText weight="bold" style={{color: '#fff', fontSize: 15}}>
+              Quick Add
+            </AppText>
+            <AppText style={{color: 'rgba(255,255,255,0.75)', fontSize: 11}}>
+              Add expense magically
+            </AppText>
+          </View>
+          <Ionicons name="add-circle" size={24} color="rgba(255,255,255,0.9)" />
+        </AppGradient>
+      </TouchableOpacity>
 
       <DrawerContentScrollView
         {...props}
