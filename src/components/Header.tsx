@@ -9,14 +9,14 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../providers/AuthProvider';
-import {useTheme} from '../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../providers/Theme';
-import Icons from './icons';
-import {commonStyles} from '../utils/styles';
+import {useTheme} from '../providers/ThemeContext';
 import {createInitialsForImage} from '../utils/users';
 import AppText from './common/AppText';
+import Icons from './icons';
 
 interface HeaderProps {
   title?: string;
@@ -171,7 +171,7 @@ const Header: React.FC<HeaderProps> = ({
         {rightComponent}
         {showNotification && (
           <TouchableOpacity onPress={onNotificationPress}>
-            <Icon name="notifications" size={24} color={colors.buttonText} />
+            <FAIcon name="bell" size={20} color={colors.buttonText} />
             {notificationCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>

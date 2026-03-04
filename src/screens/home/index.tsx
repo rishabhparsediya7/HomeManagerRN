@@ -6,19 +6,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import AppGradient from '../../components/common/AppGradient';
 import AppText from '../../components/common/AppText';
-import Icon from 'react-native-vector-icons/Ionicons';
+import DonutChart from '../../components/common/DonutChart';
 import ExpenseCard from '../../components/expenseCard';
 import Header from '../../components/Header';
-import Icons from '../../components/icons';
 import RupeeIcon from '../../components/rupeeIcon';
 import {category} from '../../constants';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
 import {useAuth} from '../../providers/AuthProvider';
+import {useHomeContext} from '../../providers/HomeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
-import {useHomeContext} from '../../providers/HomeContext';
 import api from '../../services/api';
 import {getMonthStartAndEndDates} from '../../utils/dates';
 import {downloadAndSharePdf} from '../../utils/fileUtil';
@@ -35,6 +35,19 @@ export interface ExpenseDataProps {
   paymentMethodId: number;
   updatedAt: string;
   userId: string;
+}
+
+interface CategoryChartItem {
+  label: string;
+  percentage: number;
+  amount: number;
+  icon: React.ReactNode;
+}
+
+interface WeekChartItem {
+  label: string;
+  height: number;
+  amount: number;
 }
 
 export const mapExpenseDataToChart = (rawExpenseData: any) => {
@@ -73,6 +86,17 @@ export const mapCategoryExpensePercentageToChartData = (categoryData: any) => {
   }));
 };
 
+const CATEGORY_COLORS = [
+  '#007AFF', // Blue
+  '#FF9500', // Orange
+  '#34C759', // Green
+  '#AF52DE', // Purple
+  '#FF3B30', // Red
+  '#5AC8FA', // Teal
+  '#FFCC00', // Yellow
+  '#FF2D55', // Pink
+];
+
 type ActionType = 'income' | 'bills' | 'budget' | null;
 
 const Home = () => {
@@ -84,8 +108,11 @@ const Home = () => {
     setUnreadNotifications,
   } = useHomeContext();
   const [loading, setLoading] = useState(false);
-  const [weekChartData, setWeekChartData] = useState([]);
-  const [categoryChartData, setCategoryChartData] = useState([]);
+  const [weekChartData, setWeekChartData] = useState<WeekChartItem[]>([]);
+  const [categoryChartData, setCategoryChartData] = useState<
+    CategoryChartItem[]
+  >([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const {theme} = useTheme();
   const {user} = useAuth();
   const navigation = useAuthorizeNavigation();
@@ -170,7 +197,7 @@ const Home = () => {
       alignItems: 'center',
     },
     homeContainer: {
-      paddingHorizontal: 12,
+      paddingHorizontal: 16,
     },
     header: {
       flexDirection: 'row',
@@ -235,25 +262,34 @@ const Home = () => {
       borderRadius: 6,
       marginBottom: 6,
     },
-    progressItem: {
-      marginVertical: 6,
-      gap: 6,
+    categorySection: {
+      paddingBottom: 16,
     },
-    progressLabel: {
+    donutRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 20,
+      paddingHorizontal: 12,
+      gap: 12,
+      width: '100%',
+    },
+    legendContainer: {
+      flex: 1,
       gap: 6,
-      marginBottom: 4,
     },
-    progressBarBackground: {
-      height: 6,
-      backgroundColor: colors.inputBackground,
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    legendDot: {
+      width: 8,
+      height: 8,
       borderRadius: 4,
-      overflow: 'hidden',
     },
-    progressBarFill: {
-      height: 6,
-      backgroundColor: colors.buttonText,
+    legendTextGroup: {
+      flex: 1,
     },
     innerGradient: {
       flex: 1,
@@ -261,7 +297,7 @@ const Home = () => {
       borderRadius: 24,
       marginVertical: 6,
       padding: 16,
-      gap: 8,
+      gap: 2,
       overflow: 'hidden',
     },
     linearGradient: {
@@ -283,12 +319,7 @@ const Home = () => {
       shadowRadius: 2,
       elevation: 2,
     },
-    progressContainer: {
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingTop: 4,
-    },
+
     sectionTitleContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -329,18 +360,19 @@ const Home = () => {
         <View style={styles.homeContainer}>
           <AppGradient style={styles.linearGradient}>
             <View style={styles.innerGradient}>
-              <AppText
-                variant="h6"
-                weight="medium"
-                color={colors.buttonTextPrimary}>
-                {"This Month's Budget"}
-              </AppText>
               <RupeeIcon
                 amount={Number(user?.budget || monthSummary.totalBudget)}
                 color={colors.buttonTextPrimary}
                 size={28}
                 textStyle={{fontSize: 28, fontWeight: '700'}}
               />
+              <AppText
+                variant="md"
+                weight="medium"
+                color={colors.buttonTextPrimary}
+                style={{marginBottom: 12}}>
+                {"This Month's Budget"}
+              </AppText>
               <View style={styles.budgetDetails}>
                 <View
                   style={{
@@ -436,46 +468,115 @@ const Home = () => {
           </View>
 
           {/* Category Overview */}
-          <View style={styles.chartContainer}>
-            <AppText variant="h6" weight="bold" style={{marginVertical: 12}}>
-              Category Overview
-            </AppText>
-            {categoryChartData.map((item: any, i) => (
-              <View key={i} style={styles.progressItem}>
-                <View style={styles.progressLabel}>
-                  {item.icon}
-                  <AppText variant="lg" weight="medium">
-                    {item.label}
-                  </AppText>
-                </View>
-                <View style={styles.progressBarBackground}>
-                  <AppGradient
-                    start={{x: 0, y: 1}}
-                    end={{x: 0, y: 0}}
-                    colors={[colors.primary, colors.primaryLight]}
-                    style={[
-                      styles.progressBarFill,
-                      {width: `${item.percentage}%`},
-                    ]}
-                  />
-                </View>
-                <View style={styles.progressContainer}>
-                  <RupeeIcon
-                    amount={item.amount}
-                    color={colors.buttonText}
-                    size={12}
-                    textStyle={{fontSize: 12, fontWeight: '600'}}
-                  />
-                  <AppText
-                    variant="sm"
-                    weight="medium"
-                    color={colors.mutedText}>
-                    {item.percentage}%
-                  </AppText>
+          {categoryChartData.filter((item: any) => item.amount > 0).length >
+            0 && (
+            <View style={styles.categorySection}>
+              <AppText variant="h6" weight="bold" style={{marginBottom: 4}}>
+                Category Overview
+              </AppText>
+
+              <View style={styles.donutRow}>
+                <DonutChart
+                  size={220}
+                  strokeWidth={20}
+                  backgroundColor={colors.borderLight}
+                  selectedIndex={selectedCategory}
+                  onSegmentPress={index =>
+                    setSelectedCategory(prev => (prev === index ? null : index))
+                  }
+                  segments={categoryChartData
+                    .filter((item: any) => item.amount > 0)
+                    .map((item: any, i: number) => ({
+                      percentage: item.percentage,
+                      color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                    }))}>
+                  <View style={{alignItems: 'center'}}>
+                    {selectedCategory !== null ? (
+                      <>
+                        <RupeeIcon
+                          amount={
+                            categoryChartData.filter(
+                              (item: any) => item.amount > 0,
+                            )[selectedCategory]?.amount || 0
+                          }
+                          color={
+                            CATEGORY_COLORS[
+                              selectedCategory % CATEGORY_COLORS.length
+                            ]
+                          }
+                          size={14}
+                          textStyle={{fontSize: 14, fontWeight: '700'}}
+                        />
+                        <AppText
+                          variant="caption"
+                          weight="medium"
+                          color={colors.mutedText}
+                          numberOfLines={1}>
+                          {categoryChartData.filter(
+                            (item: any) => item.amount > 0,
+                          )[selectedCategory]?.label || ''}
+                        </AppText>
+                        <AppText
+                          variant="caption"
+                          weight="semiBold"
+                          color={
+                            CATEGORY_COLORS[
+                              selectedCategory % CATEGORY_COLORS.length
+                            ]
+                          }>
+                          {categoryChartData.filter(
+                            (item: any) => item.amount > 0,
+                          )[selectedCategory]?.percentage || 0}
+                          %
+                        </AppText>
+                      </>
+                    ) : (
+                      <>
+                        <RupeeIcon
+                          amount={monthSummary.totalExpenses}
+                          color={colors.buttonText}
+                          size={13}
+                          textStyle={{fontSize: 13, fontWeight: '700'}}
+                        />
+                        <AppText
+                          variant="caption"
+                          weight="medium"
+                          color={colors.mutedText}>
+                          Spent
+                        </AppText>
+                      </>
+                    )}
+                  </View>
+                </DonutChart>
+
+                <View style={styles.legendContainer}>
+                  {categoryChartData
+                    .filter((item: any) => item.amount > 0)
+                    .map((item: any, i: number) => (
+                      <View key={i} style={styles.legendItem}>
+                        <View
+                          style={[
+                            styles.legendDot,
+                            {
+                              backgroundColor:
+                                CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                            },
+                          ]}
+                        />
+                        <View style={styles.legendTextGroup}>
+                          <AppText
+                            variant="md"
+                            weight="medium"
+                            numberOfLines={1}>
+                            {item.label}
+                          </AppText>
+                        </View>
+                      </View>
+                    ))}
                 </View>
               </View>
-            ))}
-          </View>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
