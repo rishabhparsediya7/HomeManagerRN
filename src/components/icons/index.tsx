@@ -816,6 +816,38 @@ const AIStarIcon = (props: IconProps) => {
   );
 };
 
+const MenuIcon = (props: IconProps) => {
+  const {color = '#121212'} = props;
+  return (
+    <Svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.size || props.width || 24}
+      height={props.size || props.height || 24}
+      viewBox="0 0 24 24"
+      fill="none"
+      {...props}>
+      <Path
+        d="M4 6H20"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M4 12H15"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M4 18H11"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+};
+
 const Icons = {
   WalletIcon,
   CheckIcon,
@@ -833,6 +865,7 @@ const Icons = {
   GoogleIcon,
   GithubIcon,
   AIStarIcon,
+  MenuIcon,
 };
 
 type IconType = typeof Icons;

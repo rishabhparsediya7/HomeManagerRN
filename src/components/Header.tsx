@@ -11,7 +11,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../providers/AuthProvider';
-import {lightTheme} from '../providers/Theme';
+import {useTheme} from '../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../providers/Theme';
+import Icons from './icons';
 import {commonStyles} from '../utils/styles';
 import {createInitialsForImage} from '../utils/users';
 import AppText from './common/AppText';
@@ -31,6 +33,8 @@ interface HeaderProps {
   headerTitleStyle?: StyleProp<TextStyle>;
   showBack?: boolean;
   rightComponent?: React.ReactNode;
+  showDrawerButton?: boolean;
+  onDrawerPress?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -48,10 +52,13 @@ const Header: React.FC<HeaderProps> = ({
   headerTitleStyle,
   showBack,
   rightComponent,
+  showDrawerButton = false,
+  onDrawerPress,
 }) => {
   const {user} = useAuth();
   const {photoUrl} = user;
-  const colors = lightTheme;
+  const {theme} = useTheme();
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const styles = useMemo(
     () =>
@@ -131,6 +138,12 @@ const Header: React.FC<HeaderProps> = ({
         {showBackButton && (
           <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
             <Icon name="arrow-back" size={24} color={colors.buttonText} />
+          </TouchableOpacity>
+        )}
+
+        {showDrawerButton && (
+          <TouchableOpacity style={styles.backButton} onPress={onDrawerPress}>
+            <Icons.MenuIcon color={colors.buttonText} />
           </TouchableOpacity>
         )}
 

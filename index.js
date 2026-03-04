@@ -1,7 +1,4 @@
-/**
- * @format
- */
-
+import 'react-native-gesture-handler';
 import {AppRegistry, Platform} from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import notifee, {AndroidImportance} from '@notifee/react-native';

@@ -16,7 +16,7 @@ import RupeeIcon from '../../components/rupeeIcon';
 import {category} from '../../constants';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
 import {useAuth} from '../../providers/AuthProvider';
-import {lightTheme} from '../../providers/Theme';
+import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {useHomeContext} from '../../providers/HomeContext';
 import api from '../../services/api';
@@ -91,7 +91,7 @@ const Home = () => {
   const {user} = useAuth();
   const navigation = useAuthorizeNavigation();
 
-  const colors = lightTheme;
+  const colors = theme === 'dark' ? darkTheme : lightTheme;
 
   const [monthSummary, setMonthSummary] = useState<{
     totalExpenses: number;
@@ -381,6 +381,8 @@ const Home = () => {
     <View style={styles.container}>
       <Header
         title="Trakio"
+        showDrawerButton
+        onDrawerPress={() => (navigation as any).openDrawer?.()}
         showNotification
         notificationCount={unreadNotifications}
         onNotificationPress={() => navigation.navigate('Notifications')}

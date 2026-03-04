@@ -3,7 +3,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {StatusBar, Platform} from 'react-native';
 import {useTheme} from '../providers/ThemeContext';
 import {HomeProvider} from '../providers/HomeContext';
-import BottomTabNavigator from './bottomTabNavigator';
+import DrawerNavigator from './drawerNavigator';
 import {RouteProp} from '@react-navigation/native';
 import Dashboard from '../screens/dashboard';
 import Home from '../screens/home';
@@ -27,7 +27,7 @@ import AddFriends from '../screens/friends/addFriends';
 type ActionType = 'income' | 'bills' | 'budget' | null;
 
 export type AuthorizeNavigationStackList = {
-  BottomTabNavigator: undefined;
+  DrawerNavigator: undefined;
   Home: undefined;
   Dashboard: undefined;
   AddExpense: undefined;
@@ -89,8 +89,8 @@ const AuthorizeNavigation = () => {
           animation: 'slide_from_right',
         }}>
         <AuthorizeNavigationStack.Screen
-          name="BottomTabNavigator"
-          component={BottomTabNavigator}
+          name="DrawerNavigator"
+          component={DrawerNavigator}
         />
         <AuthorizeNavigationStack.Screen
           name="AddExpense"
