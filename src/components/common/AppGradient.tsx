@@ -1,11 +1,14 @@
 import React from 'react';
 import {StyleSheet, ViewStyle, StyleProp} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import {useTheme} from '../../providers/ThemeContext';
+import {darkTheme, lightTheme} from '../../providers/Theme';
 
 interface AppGradientProps {
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   colors?: string[];
+  variant?: 'primary' | 'accent';
   start?: {x: number; y: number};
   end?: {x: number; y: number};
 }
@@ -13,13 +16,23 @@ interface AppGradientProps {
 const AppGradient: React.FC<AppGradientProps> = ({
   children,
   style,
-  colors = ['#34D399', '#10B981', '#06B6D4', '#22C55E'],
+  colors,
+  variant = 'primary',
   start = {x: 0, y: 0},
   end = {x: 1, y: 1},
 }) => {
+  const {theme} = useTheme();
+  const themeColors = theme === 'dark' ? darkTheme : lightTheme;
+
+  const resolvedColors =
+    colors ||
+    (variant === 'accent'
+      ? themeColors.gradientAccent
+      : themeColors.gradientPrimary);
+
   return (
     <LinearGradient
-      colors={colors}
+      colors={resolvedColors}
       start={start}
       end={end}
       style={[styles.gradient, style]}>

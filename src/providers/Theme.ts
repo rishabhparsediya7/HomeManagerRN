@@ -62,6 +62,10 @@ export type AppTheme = {
   // Chat specific
   chatDateHeaderBackground: string;
   chatDateHeaderText: string;
+
+  // Gradients
+  gradientPrimary: string[];
+  gradientAccent: string[];
 };
 
 export const lightTheme: AppTheme = {
@@ -117,6 +121,9 @@ export const lightTheme: AppTheme = {
 
   chatDateHeaderBackground: '#E5E7EB',
   chatDateHeaderText: '#6B7280',
+
+  gradientPrimary: ['#1A3A5C', '#1E5A8A', '#2176AE', '#007AFF'],
+  gradientAccent: ['#4F46E5', '#6366F1', '#818CF8'],
 };
 
 export const darkTheme: AppTheme = {
@@ -172,4 +179,7 @@ export const darkTheme: AppTheme = {
 
   chatDateHeaderBackground: '#2C2C2E',
   chatDateHeaderText: '#9CA3AF',
+
+  gradientPrimary: ['#0D1B2A', '#1B3A5C', '#1565C0', '#0A84FF'],
+  gradientAccent: ['#3730A3', '#4F46E5', '#6366F1'],
 };
