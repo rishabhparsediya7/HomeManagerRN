@@ -204,7 +204,6 @@ const AddExpenseScreen = () => {
           color: colors.buttonText,
         },
         sectionTitle: {
-          ...commonStyles.textDefault,
           marginBottom: 12,
           marginTop: 24,
         },
@@ -293,9 +292,21 @@ const AddExpenseScreen = () => {
               value={amount}
               keyboardType="numeric"
               onChangeText={handleAmountChange}
-              style={[styles.amountInput, {width: `${inputWidth}%`}]} // Use template literal to convert number to string
+              style={[styles.amountInput, {width: `${inputWidth}%`}]}
             />
           </View>
+
+          <AppInput
+            containerStyle={{marginTop: 24}}
+            label="Expense Title"
+            placeholder="What did you spend on?"
+            value={note}
+            onChangeText={setNote}
+            labelProps={{
+              variant: 'h6',
+              weight: 'medium',
+            }}
+          />
 
           <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
             Category
@@ -332,19 +343,6 @@ const AddExpenseScreen = () => {
               colors={colors}
             />
           </View>
-
-          <AppInput
-            label="Description"
-            placeholder="Add a note..."
-            value={note}
-            onChangeText={setNote}
-            multiline
-            labelProps={{
-              variant: 'h6',
-              weight: 'medium',
-            }}
-            inputStyle={{minHeight: 80, textAlignVertical: 'top'}}
-          />
 
           <Button
             disabled={isDisabled}

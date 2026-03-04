@@ -308,7 +308,6 @@ const CreateSplitExpense = () => {
           paddingBottom: 40,
         },
         sectionTitle: {
-          ...commonStyles.textDefault,
           marginBottom: 12,
           marginTop: 24,
         },
@@ -470,10 +469,23 @@ const CreateSplitExpense = () => {
                 value={totalAmount}
                 keyboardType="numeric"
                 onChangeText={handleAmountChange}
-                style={[styles.amountInput, {width: `${inputWidth}%`}]} // Use template literal to convert number to string
+                style={[styles.amountInput, {width: `${inputWidth}%`}]}
               />
             </View>
           </View>
+
+          <AppInput
+            containerStyle={{marginTop: 24}}
+            label="Expense Title"
+            placeholder="What did you spend on?"
+            value={description}
+            onChangeText={setDescription}
+            labelProps={{
+              variant: 'h6',
+              weight: 'medium',
+            }}
+          />
+
           <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
             Category
           </AppText>
@@ -497,20 +509,6 @@ const CreateSplitExpense = () => {
               {formatDate(expenseDate.toString())}
             </AppText>
           </TouchableOpacity>
-
-          <AppInput
-            label="Description"
-            placeholder="What's this expense for?"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            labelProps={{
-              variant: 'h6',
-              weight: 'medium',
-            }}
-            containerStyle={{marginTop: 24, marginBottom: 0}}
-            inputStyle={{minHeight: 80, textAlignVertical: 'top'}}
-          />
 
           <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
             Paid by

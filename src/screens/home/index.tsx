@@ -11,6 +11,7 @@ import AppText from '../../components/common/AppText';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../../components/expenseCard';
 import Header from '../../components/Header';
+import Icons from '../../components/icons';
 import RupeeIcon from '../../components/rupeeIcon';
 import {category} from '../../constants';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
@@ -467,6 +468,11 @@ const Home = () => {
               </AppText>
               <TouchableOpacity onPress={fetchHomeData}>
                 <Icon name="refresh" size={20} color={colors.buttonText} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('QuickAddExpense')}>
+                <Icons.AIStarIcon height={24} width={24} />
               </TouchableOpacity>
             </View>
             <TouchableOpacity>
