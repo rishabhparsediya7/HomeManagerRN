@@ -2,7 +2,8 @@ import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
 } from '@react-navigation/drawer';
-import React, {useMemo} from 'react';
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import React, {useMemo, useRef} from 'react';
 import {
   Image,
   StyleSheet,
@@ -17,11 +18,17 @@ import AppText from './common/AppText';
 import Icons from './icons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {createInitialsForImage} from '../utils/users';
+import {Modal} from './modal';
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const {user, signOut} = useAuth();
   const {theme, toggleTheme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const handleLogout = () => {
+    bottomSheetModalRef.current?.present();
+  };
 
   const menuItems = [
     {
@@ -135,6 +142,23 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           fontSize: 16,
           color: colors.error,
         },
+        modalContainer: {
+          flex: 1,
+          padding: 24,
+          gap: 24,
+        },
+        buttonContainer: {
+          flexDirection: 'row',
+          gap: 12,
+          width: '100%',
+        },
+        button: {
+          backgroundColor: colors.inputBackground,
+          padding: 16,
+          borderRadius: 14,
+          flex: 1,
+          alignItems: 'center',
+        },
       }),
     [colors],
   );
@@ -190,13 +214,40 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={22} color={colors.error} />
           <AppText weight="medium" style={styles.logoutText}>
             Logout
           </AppText>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        onCrossPress={() => bottomSheetModalRef.current?.dismiss()}
+        headerTitle="Logout"
+        variant="viewModal"
+        bottomSheetRef={bottomSheetModalRef}
+        modalSnapPoints={['35%']}>
+        <View style={styles.modalContainer}>
+          <AppText variant="h6">Are you sure you want to logout?</AppText>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => bottomSheetModalRef.current?.dismiss()}
+              style={styles.button}>
+              <AppText weight="semiBold" style={{color: colors.buttonText}}>
+                Cancel
+              </AppText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={signOut}
+              style={[styles.button, {backgroundColor: colors.error}]}>
+              <AppText weight="semiBold" style={{color: 'white'}}>
+                Logout
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
