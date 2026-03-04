@@ -6,7 +6,7 @@ import AppGradient from '../../components/common/AppGradient';
 import AppText from '../../components/common/AppText';
 import Icon from 'react-native-vector-icons/Octicons';
 import ExpenseCard from '../../components/expenseCard';
-import FilterButton from '../../components/filterButton';
+import SegmentedControl from '../../components/common/SegmentedControl';
 import Header from '../../components/Header';
 import RupeeIcon from '../../components/rupeeIcon';
 import {lightTheme} from '../../providers/Theme';
@@ -91,15 +91,11 @@ const ListHeaderComponent = ({
       </AppGradient>
 
       <View style={styles.filters}>
-        {filterOptions.map(option => (
-          <FilterButton
-            key={option}
-            label={option}
-            selected={selectedFilter === option}
-            onPress={() => setSelectedFilter(option)}
-            colors={colors}
-          />
-        ))}
+        <SegmentedControl
+          options={filterOptions}
+          activeOption={selectedFilter}
+          onOptionPress={setSelectedFilter}
+        />
       </View>
     </>
   );
@@ -203,8 +199,6 @@ const Expense = () => {
           alignSelf: 'flex-start',
         },
         filters: {
-          flexDirection: 'row',
-          gap: 8,
           paddingHorizontal: 20,
           paddingVertical: 16,
         },
