@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {StatusBar, Platform} from 'react-native';
 import {useTheme} from '../providers/ThemeContext';
-import {HomeProvider} from '../providers/HomeContext';
+// Removed HomeProvider import as we now use Zustand store
 import DrawerNavigator from './drawerNavigator';
 import {RouteProp} from '@react-navigation/native';
 import Dashboard from '../screens/dashboard';
@@ -82,7 +82,7 @@ const AuthorizeNavigation = () => {
   }, [isDark]);
 
   return (
-    <HomeProvider>
+    <>
       <AuthorizeNavigationStack.Navigator
         screenOptions={{
           headerShown: false,
@@ -156,7 +156,7 @@ const AuthorizeNavigation = () => {
           component={AddFriends}
         />
       </AuthorizeNavigationStack.Navigator>
-    </HomeProvider>
+    </>
   );
 };
 

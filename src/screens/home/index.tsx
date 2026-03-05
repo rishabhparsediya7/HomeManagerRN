@@ -16,11 +16,9 @@ import RupeeIcon from '../../components/rupeeIcon';
 import {category} from '../../constants';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
 import {useAuth} from '../../providers/AuthProvider';
-import {useHomeContext} from '../../providers/HomeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
-import {getMonthStartAndEndDates} from '../../utils/dates';
 import {downloadAndSharePdf} from '../../utils/fileUtil';
 
 export interface ExpenseDataProps {
@@ -35,19 +33,6 @@ export interface ExpenseDataProps {
   paymentMethodId: number;
   updatedAt: string;
   userId: string;
-}
-
-interface CategoryChartItem {
-  label: string;
-  percentage: number;
-  amount: number;
-  icon: React.ReactNode;
-}
-
-interface WeekChartItem {
-  label: string;
-  height: number;
-  amount: number;
 }
 
 export const mapExpenseDataToChart = (rawExpenseData: any) => {
@@ -99,19 +84,20 @@ const CATEGORY_COLORS = [
 
 type ActionType = 'income' | 'bills' | 'budget' | null;
 
+import {useHomeStore} from '../../store';
+
 const Home = () => {
-  const {startDate, endDate} = getMonthStartAndEndDates();
   const {
     recentExpenses,
-    setRecentExpenses,
     unreadNotifications,
-    setUnreadNotifications,
-  } = useHomeContext();
-  const [loading, setLoading] = useState(false);
-  const [weekChartData, setWeekChartData] = useState<WeekChartItem[]>([]);
-  const [categoryChartData, setCategoryChartData] = useState<
-    CategoryChartItem[]
-  >([]);
+    financeSummary,
+    categoryChartData,
+    setCategoryChartData,
+    fetchHomeData,
+    isLoading: loading,
+    _hasHydrated,
+  } = useHomeStore();
+
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const {theme} = useTheme();
   const {user} = useAuth();
@@ -119,52 +105,37 @@ const Home = () => {
 
   const colors = theme === 'dark' ? darkTheme : lightTheme;
 
-  const [monthSummary, setMonthSummary] = useState<{
-    totalExpenses: number;
-    totalIncome: number;
-    totalBudget: number;
-  }>({
-    totalExpenses: 0,
-    totalIncome: 0,
-    totalBudget: 0,
-  });
-  const limit = 4;
-  const filter = 'custom';
+  const onManualRefresh = useCallback(() => {
+    fetchHomeData(true);
+  }, [fetchHomeData]);
 
-  const fetchHomeData = useCallback(async () => {
-    setLoading(true);
-    try {
-      let expenseQuery = api.get(`/api/expense/get-home-summary`);
-      let categoryQuery = api.get(`/api/expense/getExpenseByCategory`);
-      const [response, categoryResponse] = await Promise.all([
-        expenseQuery,
-        categoryQuery,
-      ]);
-      const data = response.data?.data?.last5Transactions;
-      const categoryData = categoryResponse.data?.data || [];
-      setRecentExpenses(data);
-      setMonthSummary({
-        totalExpenses: Number(
-          response.data?.data?.financeSummary?.amountSpent || 0,
-        ),
-        totalIncome: Number(
-          response.data?.data?.financeSummary?.totalIncome || 0,
-        ),
-        totalBudget: Number(response.data?.data?.financeSummary?.budget || 0),
-      });
-      const updatedCategoryData =
-        mapCategoryExpensePercentageToChartData(categoryData);
-
-      setCategoryChartData(updatedCategoryData);
-
-      const notificationResponse = await api.get('/api/notifications/me');
-      setUnreadNotifications(notificationResponse.data.unreadCount || 0);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    // Only fetch once rehydrated from storage
+    if (_hasHydrated) {
+      fetchHomeData();
     }
-  }, [filter, startDate, endDate, limit]);
+  }, [_hasHydrated, fetchHomeData]);
+
+  useEffect(() => {
+    // Sync category chart data whenever recent expenses change
+    if (!_hasHydrated) return;
+
+    const syncCategoryData = async () => {
+      try {
+        const categoryResponse = await api.get(
+          `/api/expense/getExpenseByCategory`,
+        );
+        const categoryData = categoryResponse.data?.data || [];
+        const updatedCategoryData =
+          mapCategoryExpensePercentageToChartData(categoryData);
+        setCategoryChartData(updatedCategoryData);
+      } catch (error) {
+        console.error('Error syncing category data:', error);
+      }
+    };
+
+    syncCategoryData();
+  }, [_hasHydrated, recentExpenses, setCategoryChartData]);
 
   const openActionScreen = (type: ActionType) => {
     if (!type) return;
@@ -179,13 +150,6 @@ const Home = () => {
 
     downloadAndSharePdf(backendPdfUrl, fileName);
   };
-
-  useEffect(() => {
-    const getHomeData = async () => {
-      fetchHomeData();
-    };
-    getHomeData();
-  }, [fetchHomeData]);
 
   const styles = StyleSheet.create({
     container: {
@@ -361,7 +325,7 @@ const Home = () => {
           <AppGradient style={styles.linearGradient}>
             <View style={styles.innerGradient}>
               <RupeeIcon
-                amount={Number(user?.budget || monthSummary.totalBudget)}
+                amount={Number(user?.budget || financeSummary.totalBudget)}
                 color={colors.buttonTextPrimary}
                 size={28}
                 textStyle={{fontSize: 28, fontWeight: '700'}}
@@ -380,7 +344,7 @@ const Home = () => {
                     alignItems: 'flex-start',
                   }}>
                   <RupeeIcon
-                    amount={Number(user?.income || monthSummary.totalIncome)}
+                    amount={Number(user?.income || financeSummary.totalIncome)}
                     color={colors.buttonTextPrimary}
                     size={18}
                     textStyle={{fontSize: 18, fontWeight: '600'}}
@@ -398,7 +362,7 @@ const Home = () => {
                     alignItems: 'flex-start',
                   }}>
                   <RupeeIcon
-                    amount={Number(monthSummary.totalExpenses)}
+                    amount={Number(financeSummary.totalExpenses)}
                     color={colors.buttonTextPrimary}
                     size={18}
                     textStyle={{fontSize: 18, fontWeight: '600'}}
@@ -440,7 +404,7 @@ const Home = () => {
               <AppText variant="h6" weight="bold">
                 Recent Transactions
               </AppText>
-              <TouchableOpacity onPress={fetchHomeData}>
+              <TouchableOpacity onPress={onManualRefresh}>
                 <Icon name="refresh" size={18} color={colors.mutedText} />
               </TouchableOpacity>
             </View>
@@ -533,7 +497,7 @@ const Home = () => {
                     ) : (
                       <>
                         <RupeeIcon
-                          amount={monthSummary.totalExpenses}
+                          amount={financeSummary.totalExpenses}
                           color={colors.buttonText}
                           size={13}
                           textStyle={{fontSize: 13, fontWeight: '700'}}

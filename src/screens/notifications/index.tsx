@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import AppText from '../../components/common/AppText';
 import Header from '../../components/Header';
 import {lightTheme} from '../../providers/Theme';
-import {useHomeContext} from '../../providers/HomeContext';
+import {useHomeStore} from '../../store';
 import api from '../../services/api';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -37,7 +37,7 @@ const NotificationsScreen = () => {
   const colors = lightTheme;
   const navigation = useAuthorizeNavigation();
   const {decrementUnreadNotifications, clearUnreadNotifications} =
-    useHomeContext();
+    useHomeStore();
 
   const fetchNotifications = useCallback(async () => {
     try {

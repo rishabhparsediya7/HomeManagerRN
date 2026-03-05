@@ -11,6 +11,7 @@ import Header from '../../components/Header';
 import RupeeIcon from '../../components/rupeeIcon';
 import {lightTheme} from '../../providers/Theme';
 import api from '../../services/api';
+import {useHomeStore} from '../../store';
 import {commonStyles} from '../../utils/styles';
 
 const filterOptions = ['All', 'Today', 'Week', 'Month'];
@@ -117,6 +118,8 @@ const Expense = () => {
   const [expenseChange, setExpenseChange] = useState('');
   const colors = lightTheme;
 
+  const {setRecentExpenses} = useHomeStore();
+
   const getExpenses = async () => {
     setLoading(true);
     try {
@@ -127,7 +130,14 @@ const Expense = () => {
         },
         headers: {'Cache-Control': 'no-cache'},
       });
-      setExpenses(response.data?.data);
+      const fetchedExpenses = response.data?.data || [];
+      setExpenses(fetchedExpenses);
+
+      // Sync with Home data if we're looking at all expenses
+      if (selectedFilter === 'All' && fetchedExpenses.length > 0) {
+        setRecentExpenses(fetchedExpenses.slice(0, 5));
+      }
+
       const change = getExpenseChangeLabel(
         response.data?.totalMonthSum,
         response?.data?.previousMonthSum,

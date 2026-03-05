@@ -31,7 +31,7 @@ import {category as expenseCategory} from '../../constants';
 import {AuthorizeNavigationStackList} from '../../navigators/authorizeStack';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
-import {useHomeContext} from '../../providers/HomeContext';
+import {useHomeStore} from '../../store';
 import api from '../../services/api';
 import {formatDate} from '../../utils/formatDate';
 import {commonStyles} from '../../utils/styles';
@@ -68,7 +68,7 @@ const AddExpenseScreen = () => {
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const navigation =
     useNavigation<StackNavigationProp<AuthorizeNavigationStackList>>();
-  const {addExpenseToRecent} = useHomeContext();
+  const {addExpenseToRecent} = useHomeStore();
 
   const pulse = useSharedValue(1);
 

@@ -40,7 +40,7 @@ import Header from '../../components/Header';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
-import {useHomeContext} from '../../providers/HomeContext';
+import {useHomeStore} from '../../store';
 import {formatDate} from '../../utils/formatDate';
 
 interface DraftExpense {
@@ -58,7 +58,7 @@ const QuickAddExpenseScreen = () => {
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const {addExpenseToRecent} = useHomeContext();
+  const {addExpenseToRecent} = useHomeStore();
 
   // Pulse animation for the Magic button
   const pulse = useSharedValue(1);
