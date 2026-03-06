@@ -50,6 +50,11 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
       onPress: () => props.navigation.navigate('SplitExpenseList'),
     },
     {
+      label: 'Groups',
+      icon: 'people-circle-outline',
+      onPress: () => props.navigation.navigate('GroupList'),
+    },
+    {
       label: 'Add Friends',
       icon: 'person-add-outline',
       onPress: () => props.navigation.navigate('AddFriends'),
