@@ -23,6 +23,13 @@ import BalancesScreen from '../screens/splitExpense/balances';
 import QuickAddExpense from '../screens/addExpense/QuickAddExpenseScreen';
 import NotificationsScreen from '../screens/notifications';
 import AddFriends from '../screens/friends/addFriends';
+// Group Screens
+import GroupList from '../screens/groups/GroupList';
+import CreateGroup from '../screens/groups/CreateGroup';
+import GroupDetail from '../screens/groups/GroupDetail';
+import GroupAddExpense from '../screens/groups/GroupAddExpense';
+import GroupSettings from '../screens/groups/GroupSettings';
+import GroupChat from '../screens/groups/GroupChat';
 
 type ActionType = 'income' | 'bills' | 'budget' | null;
 
@@ -60,6 +67,13 @@ export type AuthorizeNavigationStackList = {
   QuickAddExpense: undefined;
   Notifications: undefined;
   AddFriends: undefined;
+  // Group routes
+  GroupList: undefined;
+  CreateGroup: undefined;
+  GroupDetail: {groupId: string};
+  GroupAddExpense: {groupId: string; members: any[]};
+  GroupSettings: {groupId: string};
+  GroupChat: {groupId: string; groupName: string};
 };
 
 export type AuthorizeNavigationProp<
@@ -154,6 +168,31 @@ const AuthorizeNavigation = () => {
         <AuthorizeNavigationStack.Screen
           name="AddFriends"
           component={AddFriends}
+        />
+        {/* Group Screens */}
+        <AuthorizeNavigationStack.Screen
+          name="GroupList"
+          component={GroupList}
+        />
+        <AuthorizeNavigationStack.Screen
+          name="CreateGroup"
+          component={CreateGroup}
+        />
+        <AuthorizeNavigationStack.Screen
+          name="GroupDetail"
+          component={GroupDetail}
+        />
+        <AuthorizeNavigationStack.Screen
+          name="GroupAddExpense"
+          component={GroupAddExpense}
+        />
+        <AuthorizeNavigationStack.Screen
+          name="GroupSettings"
+          component={GroupSettings}
+        />
+        <AuthorizeNavigationStack.Screen
+          name="GroupChat"
+          component={GroupChat}
         />
       </AuthorizeNavigationStack.Navigator>
     </>
