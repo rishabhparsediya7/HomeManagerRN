@@ -440,6 +440,16 @@ const CreateSplitExpense = () => {
     [colors, theme],
   );
 
+  const isDisabled = useMemo(() => {
+    return (
+      submitting ||
+      selectedFriends.length === 0 ||
+      !totalAmount ||
+      parseFloat(totalAmount) <= 0 ||
+      !description.trim()
+    );
+  }, [submitting, selectedFriends.length, totalAmount, description]);
+
   return (
     <View style={styles.container}>
       <Header
@@ -716,6 +726,7 @@ const CreateSplitExpense = () => {
             title="Create Split Expense"
             onPress={handleCreateSplitExpense}
             loading={submitting}
+            disabled={isDisabled}
             style={styles.submitButton}
           />
         </ScrollView>

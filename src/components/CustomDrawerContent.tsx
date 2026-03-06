@@ -55,17 +55,12 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
       onPress: () => props.navigation.navigate('AddFriends'),
     },
     {
-      label: 'Security & Privacy',
-      icon: 'shield-checkmark-outline',
-      onPress: () => props.navigation.navigate('UpdatePassword'),
-    },
-    {
       label: 'Notifications',
       icon: 'notifications-outline',
       onPress: () => props.navigation.navigate('Notifications'),
     },
     {
-      label: 'Export Data',
+      label: 'Reports',
       icon: 'download-outline',
       onPress: () => props.navigation.navigate('ExportData'),
     },
