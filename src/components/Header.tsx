@@ -1,4 +1,4 @@
-import {DrawerActions, useNavigation} from '@react-navigation/native';
+import {DrawerActions, NavigationContext} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {
   Image,
@@ -56,7 +56,8 @@ const Header: React.FC<HeaderProps> = ({
   showDrawerButton = false,
   onDrawerPress,
 }) => {
-  const navigation = useNavigation();
+  const context = React.useContext(NavigationContext);
+  const navigation = context as any;
   const {user} = useAuth();
   const {photoUrl} = user;
   const {theme} = useTheme();
@@ -156,7 +157,15 @@ const Header: React.FC<HeaderProps> = ({
       {/* Left Section */}
       <View style={styles.titleBackButtonContainer}>
         {showBackButton && (
-          <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (onBackPress) {
+                onBackPress();
+              } else if (navigation && navigation.canGoBack()) {
+                navigation.goBack();
+              }
+            }}>
             <Icon name="arrow-back" size={24} color={colors.buttonText} />
           </TouchableOpacity>
         )}
@@ -167,7 +176,7 @@ const Header: React.FC<HeaderProps> = ({
             onPress={() => {
               if (onDrawerPress) {
                 onDrawerPress();
-              } else {
+              } else if (navigation) {
                 navigation.dispatch(DrawerActions.openDrawer());
               }
             }}>
