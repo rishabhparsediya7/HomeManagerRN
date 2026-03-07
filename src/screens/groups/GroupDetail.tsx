@@ -121,7 +121,7 @@ const GroupDetail = () => {
       />
 
       {/* Subtitle row */}
-      {group.type && group.type !== 'general' && (
+      {/* {group.type && group.type !== 'general' && (
         <View style={styles.subtitleRow}>
           <View style={styles.subtitleItem}>
             <Icon name="tag-outline" size={16} color={colors.mutedText} />
@@ -133,7 +133,7 @@ const GroupDetail = () => {
             </AppText>
           </View>
         </View>
-      )}
+      )} */}
 
       {/* Segmented Tab Control */}
       <SegmentedControl
@@ -208,8 +208,6 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingHorizontal: 20,
     paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: 'red',
   },
   subtitleItem: {
     flexDirection: 'row',
