@@ -2,7 +2,6 @@ import React, {useCallback, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  RefreshControl,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -16,7 +15,6 @@ import {useTheme} from '../../providers/ThemeContext';
 import {useAuth} from '../../providers/AuthProvider';
 import groupApi, {
   GroupDetail as GroupDetailType,
-  GroupExpense,
   GroupMember,
 } from '../../services/groupApi';
 import {
@@ -24,6 +22,7 @@ import {
   useRoute,
   useFocusEffect,
 } from '@react-navigation/native';
+import GroupChat from './GroupChat';
 
 const GroupDetail = () => {
   const {theme} = useTheme();
@@ -34,9 +33,9 @@ const GroupDetail = () => {
   const groupId = route.params?.groupId;
 
   const [group, setGroup] = useState<GroupDetailType | null>(null);
+  console.log('🚀 ~ GroupDetail ~ group:', group);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('Expenses');
+  const [activeTab, setActiveTab] = useState('Chat');
 
   const fetchGroup = async () => {
     try {
@@ -48,7 +47,6 @@ const GroupDetail = () => {
       console.error('Failed to fetch group:', err);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -56,24 +54,6 @@ const GroupDetail = () => {
     useCallback(() => {
       fetchGroup();
     }, [groupId]),
-  );
-
-  const renderExpenseItem = ({item}: {item: GroupExpense}) => (
-    <TouchableOpacity
-      style={[styles.expenseRow, {borderBottomColor: colors.border}]}
-      activeOpacity={0.7}>
-      <View style={styles.expenseLeft}>
-        <AppText variant="md" weight="medium">
-          {item.description}
-        </AppText>
-        <AppText variant="sm" style={{color: colors.mutedText}}>
-          {item.creatorName} • {new Date(item.expenseDate).toLocaleDateString()}
-        </AppText>
-      </View>
-      <AppText variant="lg" weight="semiBold">
-        ₹{parseFloat(item.totalAmount).toFixed(2)}
-      </AppText>
-    </TouchableOpacity>
   );
 
   const renderMemberItem = ({item}: {item: GroupMember}) => (
@@ -128,16 +108,6 @@ const GroupDetail = () => {
         rightComponent={
           <View style={styles.headerActions}>
             <TouchableOpacity
-              style={[styles.headerBtn, {backgroundColor: colors.info + '15'}]}
-              onPress={() =>
-                navigation.navigate('GroupChat', {
-                  groupId: group.id,
-                  groupName: group.name,
-                })
-              }>
-              <Icon name="chat-outline" size={20} color={colors.info} />
-            </TouchableOpacity>
-            <TouchableOpacity
               style={[
                 styles.headerBtn,
                 {backgroundColor: colors.primary + '15'},
@@ -152,85 +122,63 @@ const GroupDetail = () => {
       />
 
       {/* Subtitle row */}
-      <View style={styles.subtitleRow}>
-        <View style={styles.subtitleItem}>
-          <Icon name="account-multiple" size={16} color={colors.mutedText} />
-          <AppText variant="sm" style={{color: colors.mutedText}}>
-            {group.members?.length || 0} members
-          </AppText>
-        </View>
-        {group.type !== 'general' && (
+      {group.type && group.type !== 'general' && (
+        <View style={styles.subtitleRow}>
           <View style={styles.subtitleItem}>
             <Icon name="tag-outline" size={16} color={colors.mutedText} />
             <AppText
-              variant="sm"
+              variant="md"
               weight="medium"
               style={{color: colors.primary, textTransform: 'capitalize'}}>
               {group.type}
             </AppText>
           </View>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* Segmented Tab Control */}
       <SegmentedControl
-        options={['Expenses', 'Members']}
+        options={['Chat', 'Members']}
         activeOption={activeTab}
         onOptionPress={setActiveTab}
         containerStyle={{marginHorizontal: 16, marginTop: 12}}
       />
 
       {/* Tab Content */}
-      {activeTab === 'Expenses' && (
-        <FlatList
-          data={group.recentExpenses || []}
-          renderItem={renderExpenseItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                fetchGroup();
-              }}
-              tintColor={colors.primary}
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyTab}>
-              <Icon name="receipt" size={44} color={colors.mutedText} />
-              <AppText variant="md" style={{color: colors.mutedText}}>
-                No expenses yet
-              </AppText>
-            </View>
-          }
-        />
-      )}
+      <View style={{flex: 1, marginTop: 8}}>
+        {activeTab === 'Chat' && (
+          <GroupChat
+            groupId={groupId}
+            groupName={group.name}
+            isEmbedded={true}
+          />
+        )}
 
-      {activeTab === 'Members' && (
-        <FlatList
-          data={group.members || []}
-          renderItem={renderMemberItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+        {activeTab === 'Members' && (
+          <FlatList
+            data={group.members || []}
+            renderItem={renderMemberItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
 
       {/* FAB — Add Expense */}
-      <TouchableOpacity
-        style={[styles.fab, {backgroundColor: colors.primary}]}
-        onPress={() =>
-          navigation.navigate('GroupAddExpense', {
-            groupId: group.id,
-            members: group.members,
-          })
-        }
-        activeOpacity={0.8}>
-        <Icon name="plus" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
+      {activeTab === 'Chat' && (
+        <TouchableOpacity
+          style={[styles.fab, {backgroundColor: colors.primary}]}
+          onPress={() =>
+            navigation.navigate('GroupAddExpense', {
+              groupId: group.id,
+              members: group.members,
+            })
+          }
+          activeOpacity={0.8}>
+          <Icon name="plus" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -261,28 +209,17 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingHorizontal: 20,
     paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'red',
   },
   subtitleItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-
   listContent: {
     padding: 16,
     flexGrow: 1,
-  },
-  expenseRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-    borderBottomWidth: 0.5,
-  },
-  expenseLeft: {
-    flex: 1,
-    gap: 4,
   },
   memberRow: {
     flexDirection: 'row',
@@ -303,20 +240,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 3,
   },
-  emptyTab: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-    gap: 10,
-  },
   fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 80, // Moved up to not overlap with chat input
     right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 5,
@@ -324,6 +254,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 6,
+    zIndex: 10,
   },
 });
 

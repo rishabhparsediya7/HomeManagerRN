@@ -5,28 +5,44 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
+import AppText from '../../components/common/AppText';
 import PremiumGate from '../../components/premiumGate/PremiumGate';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {useAuth} from '../../providers/AuthProvider';
 import groupApi, {GroupMessage} from '../../services/groupApi';
 import socket from '../../utils/socket';
-import {useRoute, useFocusEffect} from '@react-navigation/native';
+import {
+  useRoute,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 
-const GroupChat = () => {
+interface GroupChatProps {
+  groupId?: string;
+  groupName?: string;
+  isEmbedded?: boolean;
+}
+
+const GroupChat = ({
+  groupId: propsGroupId,
+  groupName: propsGroupName,
+  isEmbedded = false,
+}: GroupChatProps) => {
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const {user: authUser} = useAuth();
-  const groupId = route.params?.groupId;
-  const groupName = route.params?.groupName || 'Group Chat';
+
+  const groupId = propsGroupId || route.params?.groupId;
+  const groupName = propsGroupName || route.params?.groupName || 'Group Chat';
 
   const [messages, setMessages] = useState<GroupMessage[]>([]);
   const [messageText, setMessageText] = useState('');
@@ -35,6 +51,7 @@ const GroupChat = () => {
   const flatListRef = useRef<FlatList>(null);
 
   const fetchMessages = async () => {
+    if (!groupId) return;
     try {
       const res = await groupApi.getGroupMessages(groupId);
       if (res.data?.success) {
@@ -49,6 +66,7 @@ const GroupChat = () => {
 
   useFocusEffect(
     useCallback(() => {
+      if (!groupId) return;
       fetchMessages();
 
       // Join group room
@@ -70,7 +88,7 @@ const GroupChat = () => {
   );
 
   const sendMessage = () => {
-    if (!messageText.trim()) return;
+    if (!messageText.trim() || !groupId) return;
 
     socket.emit('send-group-message', {
       groupId,
@@ -82,26 +100,132 @@ const GroupChat = () => {
   };
 
   const isSystemMessage = (type: string) =>
-    [
-      'expense_added',
-      'expense_deleted',
-      'settlement',
-      'member_joined',
-      'member_left',
-    ].includes(type);
+    ['expense_deleted', 'settlement', 'member_joined', 'member_left'].includes(
+      type,
+    );
+
+  const renderExpenseCard = (item: GroupMessage) => {
+    const isMe = item.senderId === authUser?.userId;
+    const metadata = item.metadata || {};
+
+    return (
+      <View
+        style={[
+          styles.expenseCardContainer,
+          isMe ? styles.myExpenseContainer : styles.otherExpenseContainer,
+        ]}>
+        {!isMe && (
+          <AppText
+            variant="sm"
+            weight="semiBold"
+            style={[
+              styles.senderLabel,
+              {color: colors.primary, marginBottom: 4},
+            ]}>
+            {item.senderName}
+          </AppText>
+        )}
+        <TouchableOpacity
+          style={[
+            styles.expenseCard,
+            {
+              backgroundColor: colors.cardBackground,
+              borderColor: colors.border,
+            },
+          ]}
+          activeOpacity={0.9}
+          onPress={() => {
+            if (metadata.splitExpenseId) {
+              // Navigation to expense detail could go here
+            }
+          }}>
+          <View style={styles.expenseCardHeader}>
+            <View
+              style={[
+                styles.expenseIconContainer,
+                {backgroundColor: colors.primary + '15'},
+              ]}>
+              <Icon name="receipt" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.expenseCardInfo}>
+              <AppText variant="md" weight="semiBold" numberOfLines={1}>
+                {metadata.description || 'Expense Added'}
+              </AppText>
+              <AppText variant="sm" style={{color: colors.mutedText}}>
+                {isMe
+                  ? 'You added an expense'
+                  : `${item.senderName} added an expense`}
+              </AppText>
+            </View>
+          </View>
+
+          <View
+            style={[
+              styles.expenseCardDivider,
+              {backgroundColor: colors.border},
+            ]}
+          />
+
+          <View style={styles.expenseCardBody}>
+            <View>
+              <AppText
+                variant="caption"
+                style={{color: colors.mutedText, textTransform: 'uppercase'}}>
+                Amount
+              </AppText>
+              <AppText variant="lg" weight="bold" style={{color: colors.text}}>
+                ₹{parseFloat(metadata.amount || '0').toFixed(2)}
+              </AppText>
+            </View>
+            <TouchableOpacity
+              style={[
+                styles.viewDetailsBtn,
+                {backgroundColor: colors.primary},
+              ]}>
+              <AppText variant="sm" weight="semiBold" style={{color: '#FFF'}}>
+                Details
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+        <AppText
+          variant="caption"
+          style={[
+            styles.timestamp,
+            {
+              color: colors.mutedText,
+              marginTop: 4,
+              alignSelf: isMe ? 'flex-end' : 'flex-start',
+            },
+          ]}>
+          {new Date(item.sentAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </AppText>
+      </View>
+    );
+  };
 
   const renderMessage = ({item}: {item: GroupMessage}) => {
     const isMe = item.senderId === authUser?.userId;
     const isSystem = isSystemMessage(item.messageType);
+    const isExpense = item.messageType === 'expense_added';
+
+    if (isExpense) {
+      return renderExpenseCard(item);
+    }
 
     if (isSystem) {
       return (
         <View style={styles.systemMessageContainer}>
           <View
             style={[styles.systemMessage, {backgroundColor: colors.surface}]}>
-            <Text style={[styles.systemMessageText, {color: colors.mutedText}]}>
+            <AppText
+              variant="sm"
+              style={{color: colors.mutedText, textAlign: 'center'}}>
               {item.message}
-            </Text>
+            </AppText>
           </View>
         </View>
       );
@@ -114,9 +238,12 @@ const GroupChat = () => {
           isMe ? styles.myMessageContainer : styles.otherMessageContainer,
         ]}>
         {!isMe && (
-          <Text style={[styles.senderLabel, {color: colors.primary}]}>
+          <AppText
+            variant="sm"
+            weight="semiBold"
+            style={[styles.senderLabel, {color: colors.primary}]}>
             {item.senderName}
-          </Text>
+          </AppText>
         )}
         <View
           style={[
@@ -127,25 +254,25 @@ const GroupChat = () => {
                 : colors.receiverBackground,
             },
           ]}>
-          <Text
-            style={[
-              styles.messageText,
-              {color: isMe ? colors.senderText : colors.receiverText},
-            ]}>
+          <AppText
+            variant="md"
+            style={{color: isMe ? colors.senderText : colors.receiverText}}>
             {item.message}
-          </Text>
+          </AppText>
         </View>
-        <Text style={[styles.timestamp, {color: colors.mutedText}]}>
+        <AppText
+          variant="caption"
+          style={[styles.timestamp, {color: colors.mutedText}]}>
           {new Date(item.sentAt).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
           })}
-        </Text>
+        </AppText>
       </View>
     );
   };
 
-  if (loading) {
+  if (loading && !isEmbedded) {
     return (
       <View style={[styles.screen, {backgroundColor: colors.background}]}>
         <Header title={groupName} showBackButton />
@@ -158,7 +285,7 @@ const GroupChat = () => {
 
   return (
     <View style={[styles.screen, {backgroundColor: colors.background}]}>
-      <Header title={groupName} showBackButton />
+      {!isEmbedded && <Header title={groupName} showBackButton />}
 
       <FlatList
         ref={flatListRef}
@@ -172,17 +299,18 @@ const GroupChat = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyMessages}>
-            <Icon name="chat-outline" size={40} color={colors.mutedText} />
-            <Text style={{color: colors.mutedText, fontSize: 14}}>
+            <Icon name="chat-outline" size={44} color={colors.mutedText} />
+            <AppText variant="md" style={{color: colors.mutedText}}>
               No messages yet
-            </Text>
+            </AppText>
           </View>
         }
       />
 
       {/* Chat Input — Premium-gated */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={isEmbedded ? 100 : 0}>
         <PremiumGate
           isPremium={isPremium}
           colors={colors}
@@ -242,26 +370,22 @@ const styles = StyleSheet.create({
   },
   messageList: {
     padding: 16,
-    gap: 8,
+    gap: 12,
     flexGrow: 1,
   },
   systemMessageContainer: {
     alignItems: 'center',
-    marginVertical: 4,
+    marginVertical: 6,
   },
   systemMessage: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 12,
-    maxWidth: '80%',
-  },
-  systemMessageText: {
-    fontSize: 12,
-    textAlign: 'center',
+    maxWidth: '85%',
   },
   messageBubbleContainer: {
     maxWidth: '80%',
-    gap: 2,
+    gap: 4,
   },
   myMessageContainer: {
     alignSelf: 'flex-end',
@@ -272,52 +396,103 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   senderLabel: {
-    fontSize: 11,
-    fontWeight: '600',
     marginLeft: 8,
+    marginBottom: 2,
   },
   messageBubble: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 18,
+    borderRadius: 20,
+    borderBottomRightRadius: 4,
   },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 20,
+  otherMessageContainerBubble: {
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 20,
   },
   timestamp: {
-    fontSize: 10,
-    marginHorizontal: 4,
+    marginHorizontal: 6,
   },
   emptyMessages: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 60,
+    gap: 10,
+    paddingVertical: 80,
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    padding: 10,
-    gap: 8,
+    padding: 12,
+    gap: 10,
     borderTopWidth: 1,
   },
   chatInput: {
     flex: 1,
-    maxHeight: 100,
+    maxHeight: 120,
     borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 14,
+    borderRadius: 22,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
   },
   sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 2,
+  },
+  // Expense Card Styles
+  expenseCardContainer: {
+    width: '85%',
+    marginVertical: 4,
+  },
+  myExpenseContainer: {
+    alignSelf: 'flex-end',
+  },
+  otherExpenseContainer: {
+    alignSelf: 'flex-start',
+  },
+  expenseCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 18,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  expenseCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  expenseIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  expenseCardInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  expenseCardDivider: {
+    height: 1,
+    marginVertical: 12,
+  },
+  expenseCardBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  viewDetailsBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
 });
 
