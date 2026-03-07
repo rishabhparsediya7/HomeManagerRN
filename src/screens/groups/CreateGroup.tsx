@@ -1,5 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,22 +11,17 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
-import AppInput from '../../components/common/AppInput';
 import AppText from '../../components/common/AppText';
+import FriendSelector, {
+  FriendItem,
+} from '../../components/friendSelector/FriendSelector';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {useAuth} from '../../providers/AuthProvider';
 import groupApi from '../../services/groupApi';
-import api from '../../services/api';
 import {useNavigation} from '@react-navigation/native';
 
-interface Friend {
-  friendId: string;
-  firstName: string;
-  lastName: string;
-  image?: string;
-  profilePicture?: string;
-}
+// Using FriendItem from FriendSelector (normalized with `id` field)
 
 const GROUP_TYPES = [
   {key: 'general', label: 'General', icon: 'star-outline'},
@@ -46,48 +40,14 @@ const CreateGroup = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [groupType, setGroupType] = useState('general');
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<Friend[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loadingFriends, setLoadingFriends] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<FriendItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchFriends();
-  }, []);
-
-  const fetchFriends = async () => {
-    setLoadingFriends(true);
-    try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) return;
-      const res = await api.get(`/api/chat/getFriends/${userId}`);
-
-      // API returns a flat array directly in res.data
-      let data = Array.isArray(res.data) ? res.data : res.data?.data || [];
-
-      // Normalize casing - backend uses u."firstName" which should be firstName
-      // but let's be safe and check both casings.
-      const normalizedData = data.map((item: any) => ({
-        friendId: item.friendId || item.id,
-        firstName: item.firstName || item.firstname || '',
-        lastName: item.lastName || item.lastname || '',
-        image: item.image || item.profilePicture,
-      }));
-
-      setFriends(normalizedData);
-    } catch (err) {
-      console.error('Failed to load friends:', err);
-    } finally {
-      setLoadingFriends(false);
-    }
-  };
-
-  const toggleMember = (friend: Friend) => {
+  const toggleMember = (friend: FriendItem) => {
     setSelectedMembers(prev => {
-      const exists = prev.find(m => m.friendId === friend.friendId);
+      const exists = prev.find(m => m.id === friend.id);
       if (exists) {
-        return prev.filter(m => m.friendId !== friend.friendId);
+        return prev.filter(m => m.id !== friend.id);
       }
       return [...prev, friend];
     });
@@ -107,7 +67,7 @@ const CreateGroup = () => {
     try {
       const res = await groupApi.createGroup({
         name: name.trim(),
-        members: selectedMembers.map(m => m.friendId),
+        members: selectedMembers.map(m => m.id),
         description: description.trim() || undefined,
         type: groupType,
       });
@@ -127,14 +87,6 @@ const CreateGroup = () => {
       setSubmitting(false);
     }
   };
-
-  const filteredFriends = searchQuery
-    ? friends.filter(f =>
-        `${f.firstName} ${f.lastName}`
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()),
-      )
-    : friends;
 
   return (
     <View style={[styles.screen, {backgroundColor: colors.background}]}>
@@ -232,116 +184,16 @@ const CreateGroup = () => {
           </View>
         </View>
 
-        {/* Selected Members */}
-        {selectedMembers.length > 0 && (
-          <View style={styles.section}>
-            <AppText variant="sm" weight="semiBold">
-              Members ({selectedMembers.length})
-            </AppText>
-            <View style={styles.selectedChips}>
-              {selectedMembers.map(member => (
-                <TouchableOpacity
-                  key={member.friendId}
-                  style={[
-                    styles.memberChip,
-                    {backgroundColor: colors.primary + '20'},
-                  ]}
-                  onPress={() => toggleMember(member)}>
-                  <AppText
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '500',
-                      color: colors.primary,
-                    }}>
-                    {member.firstName} {member.lastName}
-                  </AppText>
-                  <Icon name="close" size={14} color={colors.primary} />
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Friend Search */}
+        {/* Friend Selector */}
         <View style={styles.section}>
-          <AppText variant="sm" weight="semiBold">
-            Add Friends
-          </AppText>
-          <AppInput
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search for friends"
-            leftIcon={
-              <Icon name="magnify" size={22} color={colors.mutedText} />
-            }
-            containerStyle={{marginBottom: 0}}
+          <FriendSelector
+            label="Add Friends"
+            selectedFriends={selectedMembers}
+            onToggleFriend={toggleMember}
+            showGlobalSearch={false}
+            placeholder="Search friends to add..."
           />
         </View>
-
-        {/* Friend List */}
-        {loadingFriends ? (
-          <ActivityIndicator
-            size="small"
-            color={colors.primary}
-            style={{marginTop: 8}}
-          />
-        ) : (
-          <View style={styles.friendList}>
-            {filteredFriends.map(friend => {
-              const isSelected = selectedMembers.some(
-                m => m.friendId === friend.friendId,
-              );
-              return (
-                <TouchableOpacity
-                  key={friend.friendId}
-                  style={[
-                    styles.friendRow,
-                    {
-                      backgroundColor: isSelected
-                        ? colors.primary + '10'
-                        : colors.surface,
-                    },
-                  ]}
-                  onPress={() => toggleMember(friend)}
-                  activeOpacity={0.7}>
-                  <View
-                    style={[
-                      styles.friendAvatar,
-                      {backgroundColor: colors.primary + '20'},
-                    ]}>
-                    <AppText weight="bold" style={{color: colors.primary}}>
-                      {(friend.firstName?.[0] || '?').toUpperCase()}
-                    </AppText>
-                  </View>
-                  <AppText style={{flex: 1, color: colors.text}}>
-                    {friend.firstName} {friend.lastName}
-                  </AppText>
-                  <Icon
-                    name={
-                      isSelected
-                        ? 'checkbox-marked-circle'
-                        : 'checkbox-blank-circle-outline'
-                    }
-                    size={22}
-                    color={isSelected ? colors.primary : colors.mutedText}
-                  />
-                </TouchableOpacity>
-              );
-            })}
-            {filteredFriends.length === 0 && !loadingFriends && (
-              <AppText
-                style={{
-                  color: colors.mutedText,
-                  textAlign: 'center',
-                  paddingVertical: 20,
-                }}>
-                {searchQuery
-                  ? 'No friends match your search'
-                  : 'No friends found'}
-              </AppText>
-            )}
-          </View>
-        )}
       </ScrollView>
 
       {/* Create Button */}
@@ -416,48 +268,6 @@ const styles = StyleSheet.create({
   typeLabel: {
     fontSize: 13,
     fontWeight: '500',
-  },
-  selectedChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  memberChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  memberChipText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  friendList: {
-    gap: 2,
-  },
-  friendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 10,
-    gap: 12,
-  },
-  friendAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  friendInitial: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  friendName: {
-    fontSize: 15,
-    flex: 1,
   },
   footer: {
     padding: 16,

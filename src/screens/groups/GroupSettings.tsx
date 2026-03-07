@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -11,23 +11,18 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
+import FriendSelector, {
+  FriendItem,
+} from '../../components/friendSelector/FriendSelector';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {useAuth} from '../../providers/AuthProvider';
 import groupApi, {GroupMember} from '../../services/groupApi';
-import api from '../../services/api';
 import {
   useNavigation,
   useRoute,
   useFocusEffect,
 } from '@react-navigation/native';
-
-interface Friend {
-  id: string;
-  firstName: string;
-  lastName: string;
-  profilePicture?: string;
-}
 
 const GroupSettings = () => {
   const {theme} = useTheme();
@@ -42,8 +37,6 @@ const GroupSettings = () => {
   const [groupDesc, setGroupDesc] = useState('');
   const [loading, setLoading] = useState(true);
   const [showAddMember, setShowAddMember] = useState(false);
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [createdBy, setCreatedBy] = useState('');
 
   const fetchGroupData = async () => {
@@ -69,37 +62,11 @@ const GroupSettings = () => {
     }, [groupId]),
   );
 
-  const fetchFriends = async () => {
+  const handleAddMember = async (friend: FriendItem) => {
     try {
-      const res = await api.get(`/api/chat/getFriends/${authUser?.userId}`);
-      const friendsData = Array.isArray(res.data)
-        ? res.data
-        : res.data?.data || [];
-      if (friendsData.length) {
-        // Exclude existing members and map friendId to id for consistency
-        const memberIds = new Set(members.map(m => m.id));
-        setFriends(
-          friendsData
-            .map((f: any) => ({
-              id: f.friendId,
-              firstName: f.firstName,
-              lastName: f.lastName,
-              profilePicture: f.image,
-            }))
-            .filter((f: Friend) => !memberIds.has(f.id)),
-        );
-      }
-    } catch (err) {
-      console.error('Failed to load friends:', err);
-    }
-  };
-
-  const handleAddMember = async (friendId: string) => {
-    try {
-      const res = await groupApi.addMembers(groupId, [friendId]);
+      const res = await groupApi.addMembers(groupId, [friend.id]);
       if (res.data?.success) {
         fetchGroupData();
-        setShowAddMember(false);
       }
     } catch (err) {
       Alert.alert('Error', 'Failed to add member');
@@ -164,14 +131,6 @@ const GroupSettings = () => {
   };
 
   const isAdmin = authUser?.userId === createdBy;
-
-  const filteredFriends = searchQuery
-    ? friends.filter(f =>
-        `${f.firstName} ${f.lastName}`
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()),
-      )
-    : friends;
 
   if (loading) {
     return (
@@ -244,7 +203,6 @@ const GroupSettings = () => {
                 <TouchableOpacity
                   onPress={() => {
                     setShowAddMember(!showAddMember);
-                    if (!showAddMember) fetchFriends();
                   }}>
                   <Icon
                     name={showAddMember ? 'close' : 'account-plus'}
@@ -256,45 +214,17 @@ const GroupSettings = () => {
 
               {showAddMember && (
                 <View style={styles.addMemberSection}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: colors.inputBackground,
-                        color: colors.inputText,
-                        borderColor: colors.inputBorder,
-                      },
-                    ]}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
+                  <FriendSelector
+                    selectedFriends={members.map(m => ({
+                      id: m.id,
+                      firstName: m.firstName,
+                      lastName: m.lastName,
+                    }))}
+                    onToggleFriend={handleAddMember}
+                    showGlobalSearch={false}
                     placeholder="Search friends to add..."
-                    placeholderTextColor={colors.placeholder}
+                    showSelectedChips={false}
                   />
-                  {filteredFriends.map(friend => (
-                    <TouchableOpacity
-                      key={friend.id}
-                      style={styles.friendRow}
-                      onPress={() => handleAddMember(friend.id)}>
-                      <View
-                        style={[
-                          styles.avatar,
-                          {backgroundColor: colors.primary + '20'},
-                        ]}>
-                        <Text
-                          style={{color: colors.primary, fontWeight: '600'}}>
-                          {friend.firstName.charAt(0)}
-                        </Text>
-                      </View>
-                      <Text style={[styles.friendName, {color: colors.text}]}>
-                        {friend.firstName} {friend.lastName}
-                      </Text>
-                      <Icon
-                        name="plus-circle"
-                        size={22}
-                        color={colors.success}
-                      />
-                    </TouchableOpacity>
-                  ))}
                 </View>
               )}
 

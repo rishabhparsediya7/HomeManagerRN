@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {
@@ -20,28 +19,20 @@ import Button from '../../components/Button';
 import CategorySelector from '../../components/categorySelector';
 import AppInput from '../../components/common/AppInput';
 import AppText from '../../components/common/AppText';
+import FriendSelector, {
+  FriendItem,
+} from '../../components/friendSelector/FriendSelector';
 import Header from '../../components/Header';
 import RupeeIcon from '../../components/rupeeIcon';
 import {category as expenseCategories} from '../../constants';
 import {useAuth} from '../../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
-import api from '../../services/api';
 import splitExpenseApi from '../../services/splitExpenseApi';
 import {formatDate} from '../../utils/formatDate';
-import socket from '../../utils/socket';
 import {commonStyles} from '../../utils/styles';
 
-interface Friend {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phoneNumber?: string;
-  profilePicture?: string;
-}
-
-interface SelectedFriend extends Friend {
+interface SelectedFriend extends FriendItem {
   amountOwed: number;
 }
 
@@ -61,18 +52,8 @@ const CreateSplitExpense = () => {
   const [paidByMe, setPaidByMe] = useState(true);
   const [inputWidth, setInputWidth] = useState(30);
 
-  const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<SelectedFriend[]>([]);
-  const [loadingFriends, setLoadingFriends] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [showFriendSelector, setShowFriendSelector] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Friend[]>([]);
-  const [filteredLocalFriends, setFilteredLocalFriends] = useState<Friend[]>(
-    [],
-  );
-  const [searching, setSearching] = useState(false);
-  const [requestingSplink, setRequestingSplink] = useState<string | null>(null);
 
   const categories = useMemo(() => expenseCategories, []);
 
@@ -88,101 +69,6 @@ const CreateSplitExpense = () => {
     const calculatedWidth = baseWidth + sanitized.length * 3;
     setInputWidth(Math.min(calculatedWidth, maxWidth));
     setTotalAmount(sanitized);
-  };
-
-  // Fetch friends list
-  const fetchFriendsList = async () => {
-    setLoadingFriends(true);
-    try {
-      const storedUserId = await AsyncStorage.getItem('userId');
-      if (!storedUserId) return;
-      const response = await api.get(`/api/chat/getFriends/${storedUserId}`);
-      const mappedFriends = (response.data || []).map((f: any) => ({
-        ...f,
-        id: f.friendId,
-      }));
-      setFriends(mappedFriends);
-    } catch (error) {
-      console.error('Error fetching friends:', error);
-    } finally {
-      setLoadingFriends(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFriendsList();
-  }, []);
-
-  // Handle search query changes — filter local friends and optionally search remote
-  useEffect(() => {
-    const term = searchQuery.toLowerCase().trim();
-
-    // Always filter local friends based on the search term
-    if (term.length === 0) {
-      setFilteredLocalFriends(friends);
-    } else {
-      const filtered = friends.filter(
-        f =>
-          (f.firstName + ' ' + f.lastName).toLowerCase().includes(term) ||
-          f.email?.toLowerCase().includes(term),
-      );
-      setFilteredLocalFriends(filtered);
-    }
-
-    // Remote search when query is long enough
-    if (searchQuery.length > 2) {
-      const delayDebounceFn = setTimeout(() => {
-        searchRemoteUsers();
-      }, 500);
-      return () => clearTimeout(delayDebounceFn);
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchQuery, friends]);
-
-  useEffect(() => {
-    const handleSplinkResponseReceived = (payload: any) => {
-      if (payload.action === 'accept') {
-        fetchFriendsList();
-      }
-    };
-    socket.on('splink_response', handleSplinkResponseReceived);
-    return () => {
-      socket.off('splink_response', handleSplinkResponseReceived);
-    };
-  }, []);
-
-  const searchRemoteUsers = async () => {
-    setSearching(true);
-    try {
-      const resp = await api.get(`/api/users/search?q=${searchQuery}`);
-      const results = (resp.data?.users || []).filter(
-        (u: Friend) => !friends.some(f => f.id === u.id),
-      );
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Error searching users:', error);
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const initiateSplinkRequest = async (friend: Friend) => {
-    setRequestingSplink(friend.id);
-    try {
-      await api.post('/api/chat/splink/request', {friendId: friend.id});
-      Alert.alert(
-        'Splink Sent!',
-        `A connection request has been sent to ${friend.firstName}. You can add them once they accept.`,
-      );
-    } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to send Splink request',
-      );
-    } finally {
-      setRequestingSplink(null);
-    }
   };
 
   useEffect(() => {
@@ -203,7 +89,7 @@ const CreateSplitExpense = () => {
     setDatePickerVisibility(false);
   };
 
-  const handleToggleFriend = (friend: Friend) => {
+  const handleToggleFriend = (friend: FriendItem) => {
     const exists = selectedFriends.find(f => f.id === friend.id);
     if (exists) {
       setSelectedFriends(selectedFriends.filter(f => f.id !== friend.id));
@@ -216,7 +102,6 @@ const CreateSplitExpense = () => {
         ...selectedFriends,
         {...friend, amountOwed: Math.round(amount * 100) / 100},
       ]);
-      setSearchQuery('');
     }
   };
 
@@ -389,52 +274,8 @@ const CreateSplitExpense = () => {
         removeButton: {
           padding: 8,
         },
-        searchContainer: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: 12,
-          gap: 10,
-        },
-        searchInputField: {
-          flex: 1,
-          height: 40,
-          color: colors.text,
-          ...commonStyles.textDefault,
-        },
-        friendSelector: {
-          backgroundColor: colors.inputBackground,
-          borderRadius: 12,
-          marginTop: 8,
-          maxHeight: 340,
-          overflow: 'hidden',
-        },
-        sectionLabel: {
-          fontSize: 12,
-          color: colors.mutedText,
-          padding: 12,
-          backgroundColor: colors.background,
-          textTransform: 'uppercase',
-          letterSpacing: 1,
-        },
-        friendOption: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-        },
-        friendOptionSelected: {
-          backgroundColor: colors.primary + '10',
-        },
         submitButton: {
           marginTop: 32,
-        },
-        splinkButton: {
-          backgroundColor: colors.primary + '20',
-          paddingHorizontal: 12,
-          paddingVertical: 6,
-          borderRadius: 8,
-          marginLeft: 'auto',
         },
       }),
     [colors, theme],
@@ -598,129 +439,15 @@ const CreateSplitExpense = () => {
                 </TouchableOpacity>
               </View>
             ))}
-
-            <View
-              style={[
-                styles.searchContainer,
-                {
-                  borderBottomWidth: showFriendSelector ? 1 : 0,
-                  borderBottomColor: colors.border,
-                },
-              ]}>
-              <MaterialIcon name="at" size={20} color={colors.primary} />
-              <TextInput
-                style={styles.searchInputField}
-                placeholder="Search friends..."
-                placeholderTextColor={colors.mutedText}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onFocus={() => setShowFriendSelector(true)}
-              />
-              {searching && (
-                <ActivityIndicator size="small" color={colors.primary} />
-              )}
-            </View>
           </View>
 
-          {showFriendSelector && (
-            <View style={styles.friendSelector}>
-              <ScrollView nestedScrollEnabled style={{maxHeight: 340}}>
-                {/* Always show local friends */}
-                <AppText variant="caption" style={styles.sectionLabel}>
-                  Your Friends
-                </AppText>
-                {filteredLocalFriends.length > 0 ? (
-                  filteredLocalFriends.map(friendItem => {
-                    const isSelected = selectedFriends.some(
-                      f => f.id === friendItem.id,
-                    );
-                    return (
-                      <TouchableOpacity
-                        key={friendItem.id}
-                        style={[
-                          styles.friendOption,
-                          isSelected && styles.friendOptionSelected,
-                        ]}
-                        onPress={() => handleToggleFriend(friendItem)}>
-                        <MaterialIcon
-                          name="account-circle"
-                          size={36}
-                          color={colors.mutedText}
-                        />
-                        <View style={{marginLeft: 12}}>
-                          <AppText weight="medium">
-                            {friendItem.firstName} {friendItem.lastName}
-                          </AppText>
-                          <AppText variant="caption">
-                            {friendItem.email}
-                          </AppText>
-                        </View>
-                        {isSelected && (
-                          <MaterialIcon
-                            name="check-circle"
-                            size={24}
-                            color={colors.primary}
-                            style={{marginLeft: 'auto'}}
-                          />
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })
-                ) : (
-                  <AppText
-                    variant="caption"
-                    style={{padding: 12, color: colors.mutedText}}>
-                    {searchQuery.length > 0
-                      ? 'No friends match your search'
-                      : 'No friends found'}
-                  </AppText>
-                )}
-
-                {/* Show global search results if available */}
-                {searchResults.length > 0 && (
-                  <>
-                    <AppText variant="caption" style={styles.sectionLabel}>
-                      Global Search
-                    </AppText>
-                    {searchResults.map(remoteUser => (
-                      <View key={remoteUser.id} style={styles.friendOption}>
-                        <MaterialIcon
-                          name="account-circle"
-                          size={36}
-                          color={colors.mutedText}
-                        />
-                        <View style={{marginLeft: 12}}>
-                          <AppText weight="medium">
-                            {remoteUser.firstName} {remoteUser.lastName}
-                          </AppText>
-                          <AppText variant="caption">
-                            {remoteUser.email}
-                          </AppText>
-                        </View>
-                        <TouchableOpacity
-                          style={styles.splinkButton}
-                          onPress={() => initiateSplinkRequest(remoteUser)}>
-                          {requestingSplink === remoteUser.id ? (
-                            <ActivityIndicator
-                              size="small"
-                              color={colors.primary}
-                            />
-                          ) : (
-                            <AppText
-                              variant="caption"
-                              weight="semiBold"
-                              style={{color: colors.primary}}>
-                              Splink
-                            </AppText>
-                          )}
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </>
-                )}
-              </ScrollView>
-            </View>
-          )}
+          <FriendSelector
+            selectedFriends={selectedFriends}
+            onToggleFriend={handleToggleFriend}
+            showGlobalSearch={true}
+            placeholder="Search friends..."
+            showSelectedChips={false}
+          />
 
           <Button
             title="Create Split Expense"
