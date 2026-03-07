@@ -31,8 +31,8 @@ import {category as expenseCategory} from '../../constants';
 import {AuthorizeNavigationStackList} from '../../navigators/authorizeStack';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
-import {useHomeStore} from '../../store';
 import api from '../../services/api';
+import {useHomeStore} from '../../store';
 import {formatDate} from '../../utils/formatDate';
 import {commonStyles} from '../../utils/styles';
 

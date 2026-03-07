@@ -1,29 +1,35 @@
-import React, {useState} from 'react';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import React, {useMemo, useState} from 'react';
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import Button from '../../components/Button';
 import Header from '../../components/Header';
 import CategorySelector from '../../components/categorySelector';
+import AppInput from '../../components/common/AppInput';
+import AppText from '../../components/common/AppText';
+import Icons from '../../components/icons';
 import SplitMethodSelector from '../../components/splitMethodSelector/SplitMethodSelector';
+import SegmentedControl from '../../components/common/SegmentedControl';
+import {category as expenseCategories} from '../../constants';
+import {Participant, useSplitCalculator} from '../../hooks/useSplitCalculator';
+import {useAuth} from '../../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
-import {useAuth} from '../../providers/AuthProvider';
-import {useSplitCalculator, Participant} from '../../hooks/useSplitCalculator';
 import splitExpenseApi from '../../services/splitExpenseApi';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {formatDate} from '../../utils/formatDate';
-import {category as expenseCategories} from '../../constants';
+import {commonStyles} from '../../utils/styles';
+import {createInitialsForImage} from '../../utils/users';
 
 const GroupAddExpense = () => {
   const {theme} = useTheme();
@@ -31,6 +37,7 @@ const GroupAddExpense = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const {user: authUser} = useAuth();
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   const groupId = route.params?.groupId;
   const members = route.params?.members || [];
@@ -42,18 +49,55 @@ const GroupAddExpense = () => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [paidByMe, setPaidByMe] = useState(true);
+  const [selectedPayerId, setSelectedPayerId] = useState(
+    authUser?.userId || '',
+  );
+  const [inputWidth, setInputWidth] = useState(30);
 
   // Build participants from group members (include self)
-  const participants: Participant[] = members.map((m: any) => ({
-    userId: m.id,
-    name: `${m.firstName} ${m.lastName}`,
-    profilePicture: m.profilePicture,
-  }));
+  const participants: Participant[] = useMemo(
+    () =>
+      members.map((m: any) => ({
+        userId: m.id,
+        name: `${m.firstName} ${m.lastName}`,
+        profilePicture: m.profilePicture,
+        firstName: m.firstName,
+      })),
+    [members],
+  );
 
   const splitCalc = useSplitCalculator({
     totalAmount: parseFloat(totalAmount) || 0,
     participants,
   });
+
+  const handleAmountChange = (text: string) => {
+    const numericText = text.replace(/[^0-9.]/g, '');
+    const parts = numericText.split('.');
+    let sanitized = parts[0];
+    if (parts.length > 1) {
+      sanitized += '.' + parts[1].slice(0, 2);
+    }
+    const baseWidth = 30;
+    const maxWidth = 100;
+    const calculatedWidth = baseWidth + sanitized.length * 3;
+    setInputWidth(Math.min(calculatedWidth, maxWidth));
+    setTotalAmount(sanitized);
+  };
+
+  const handlePaidByOptionPress = (option: string) => {
+    if (option === 'You') {
+      setPaidByMe(true);
+      setSelectedPayerId(authUser?.userId || '');
+    } else {
+      setPaidByMe(false);
+      // Default to first member who is NOT me, if any
+      const otherMember = members.find((m: any) => m.id !== authUser?.userId);
+      if (otherMember) {
+        setSelectedPayerId(otherMember.id);
+      }
+    }
+  };
 
   const handleSubmit = async () => {
     if (!description.trim()) {
@@ -74,6 +118,7 @@ const GroupAddExpense = () => {
 
     setSubmitting(true);
     try {
+      // The person who physically paid is 'selectedPayerId'
       const res = await splitExpenseApi.create({
         description: description.trim(),
         totalAmount: parseFloat(totalAmount),
@@ -83,7 +128,7 @@ const GroupAddExpense = () => {
           amountOwed: r.amountOwed,
         })),
         expenseDate: expenseDate.toISOString(),
-        paidBy: paidByMe ? authUser!.userId : participants[0]?.userId || '',
+        paidBy: selectedPayerId,
         groupId,
         splitType: splitCalc.splitMode,
       } as any);
@@ -118,85 +163,64 @@ const GroupAddExpense = () => {
           style={styles.scrollView}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}>
-          {/* Description */}
-          <View style={styles.field}>
-            <Text style={[styles.label, {color: colors.text}]}>
-              Description *
-            </Text>
+          {/* Large Amount Input Section (Premium Style) */}
+          <View
+            style={[
+              styles.amountRow,
+              {
+                backgroundColor: colors.inputBackground,
+                borderRadius: 12,
+              },
+            ]}>
+            <AppText style={styles.rupee}>
+              <Icon name="rupee" size={32} color={colors.buttonText} />
+            </AppText>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.inputBackground,
-                  color: colors.inputText,
-                  borderColor: colors.inputBorder,
-                },
-              ]}
-              placeholder="What was the expense for?"
-              placeholderTextColor={colors.placeholder}
-              value={description}
-              onChangeText={setDescription}
+              placeholder="0.00"
+              placeholderTextColor={colors.inputText + '80'}
+              value={totalAmount}
+              keyboardType="numeric"
+              onChangeText={handleAmountChange}
+              style={[styles.amountInput, {width: `${inputWidth}%`}]}
             />
           </View>
 
-          {/* Amount */}
-          <View style={styles.field}>
-            <Text style={[styles.label, {color: colors.text}]}>
-              Total Amount *
-            </Text>
-            <View style={styles.amountRow}>
-              <Text style={[styles.currency, {color: colors.primary}]}>₹</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.amountInput,
-                  {
-                    backgroundColor: colors.inputBackground,
-                    color: colors.inputText,
-                    borderColor: colors.inputBorder,
-                  },
-                ]}
-                placeholder="0.00"
-                placeholderTextColor={colors.placeholder}
-                keyboardType="numeric"
-                value={totalAmount}
-                onChangeText={setTotalAmount}
-              />
-            </View>
-          </View>
+          {/* Title */}
+          <AppInput
+            label="Expense Title"
+            placeholder="What was this for?"
+            value={description}
+            onChangeText={setDescription}
+            containerStyle={{marginTop: 8}}
+            labelProps={{
+              variant: 'h6',
+              weight: 'medium',
+            }}
+          />
 
           {/* Category */}
-          <View style={styles.field}>
-            <CategorySelector
-              categories={expenseCategories}
-              selectedCategory={selectedCategoryId}
-              setSelectedCategory={setSelectedCategoryId}
-              colors={colors}
-            />
-          </View>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Category
+          </AppText>
+          <CategorySelector
+            categories={expenseCategories}
+            selectedCategory={selectedCategoryId}
+            setSelectedCategory={setSelectedCategoryId}
+            colors={colors}
+          />
 
           {/* Date */}
-          <View style={styles.field}>
-            <Text style={[styles.label, {color: colors.text}]}>Date</Text>
-            <TouchableOpacity
-              style={[
-                styles.dateBtn,
-                {
-                  backgroundColor: colors.inputBackground,
-                  borderColor: colors.inputBorder,
-                },
-              ]}
-              onPress={() => setDatePickerVisibility(true)}>
-              <Icon
-                name="calendar-outline"
-                size={18}
-                color={colors.mutedText}
-              />
-              <Text style={[styles.dateText, {color: colors.text}]}>
-                {formatDate(expenseDate.toISOString())}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Date
+          </AppText>
+          <TouchableOpacity
+            onPress={() => setDatePickerVisibility(true)}
+            style={styles.dateBox}>
+            <Icons.CalendarIcon />
+            <AppText variant="md" style={styles.dateText}>
+              {formatDate(calendarDate.toString())}
+            </AppText>
+          </TouchableOpacity>
 
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
@@ -204,102 +228,126 @@ const GroupAddExpense = () => {
             date={expenseDate}
             onConfirm={date => {
               setExpenseDate(date);
+              setCalendarDate(date);
               setDatePickerVisibility(false);
             }}
             onCancel={() => setDatePickerVisibility(false)}
           />
 
           {/* Paid By */}
-          <View style={styles.field}>
-            <Text style={[styles.label, {color: colors.text}]}>Paid By</Text>
-            <View style={styles.paidByRow}>
-              <TouchableOpacity
-                style={[
-                  styles.paidByOption,
-                  {
-                    backgroundColor: paidByMe
-                      ? colors.primary
-                      : colors.inputBackground,
-                    borderColor: colors.primary,
-                  },
-                ]}
-                onPress={() => setPaidByMe(true)}>
-                <Text
-                  style={{
-                    color: paidByMe ? '#FFFFFF' : colors.text,
-                    fontWeight: '600',
-                    fontSize: 13,
-                  }}>
-                  You
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.paidByOption,
-                  {
-                    backgroundColor: !paidByMe
-                      ? colors.primary
-                      : colors.inputBackground,
-                    borderColor: colors.primary,
-                  },
-                ]}
-                onPress={() => setPaidByMe(false)}>
-                <Text
-                  style={{
-                    color: !paidByMe ? '#FFFFFF' : colors.text,
-                    fontWeight: '600',
-                    fontSize: 13,
-                  }}>
-                  Someone else
-                </Text>
-              </TouchableOpacity>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Paid By
+          </AppText>
+          <SegmentedControl
+            options={['You', 'Someone else']}
+            activeOption={paidByMe ? 'You' : 'Someone else'}
+            onOptionPress={handlePaidByOptionPress}
+          />
+
+          {/* Member Selection for Payer (Visible when "Someone else" is selected) */}
+          {!paidByMe && (
+            <View style={styles.payerListContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.payerScrollContent}>
+                {members
+                  .filter((m: any) => m.id !== authUser?.userId)
+                  .map((member: any) => {
+                    const isSelected = selectedPayerId === member.id;
+                    const fullName =
+                      `${member.firstName || ''} ${
+                        member.lastName || ''
+                      }`.trim() || 'User';
+                    return (
+                      <TouchableOpacity
+                        key={member.id}
+                        style={[
+                          styles.payerItem,
+                          isSelected && {
+                            borderColor: colors.primary,
+                            backgroundColor: colors.primary + '10',
+                          },
+                        ]}
+                        onPress={() => setSelectedPayerId(member.id)}>
+                        <View
+                          style={[
+                            styles.avatar,
+                            {backgroundColor: colors.primary + '15'},
+                          ]}>
+                          {member.profilePicture &&
+                          typeof member.profilePicture === 'string' &&
+                          member.profilePicture.startsWith('http') ? (
+                            <Image
+                              source={{uri: member.profilePicture}}
+                              style={styles.avatarImage}
+                            />
+                          ) : (
+                            <AppText
+                              variant="h6"
+                              weight="bold"
+                              style={{color: colors.primary}}>
+                              {createInitialsForImage(fullName)}
+                            </AppText>
+                          )}
+                          {isSelected && (
+                            <View
+                              style={[
+                                styles.checkBadge,
+                                {backgroundColor: colors.primary},
+                              ]}>
+                              <Icon name="check" size={10} color="#FFF" />
+                            </View>
+                          )}
+                        </View>
+                        <AppText
+                          variant="sm"
+                          weight={isSelected ? 'bold' : 'default'}
+                          style={[
+                            styles.payerName,
+                            {color: isSelected ? colors.primary : colors.text},
+                          ]}
+                          numberOfLines={1}>
+                          {member.firstName}
+                        </AppText>
+                      </TouchableOpacity>
+                    );
+                  })}
+              </ScrollView>
             </View>
-          </View>
+          )}
 
           {/* Split Method Selector */}
-          <View style={styles.field}>
-            <Text style={[styles.label, {color: colors.text}]}>
-              Split Between ({participants.length} people)
-            </Text>
-            <SplitMethodSelector
-              colors={colors}
-              splitMode={splitCalc.splitMode}
-              setSplitMode={splitCalc.setSplitMode}
-              splitResults={splitCalc.splitResults}
-              validation={splitCalc.validation}
-              totalAmount={parseFloat(totalAmount) || 0}
-              participants={participants}
-              customAmounts={splitCalc.customAmounts}
-              setCustomAmount={splitCalc.setCustomAmount}
-              percentages={splitCalc.percentages}
-              setPercentage={splitCalc.setPercentage}
-              shares={splitCalc.shares}
-              setShare={splitCalc.setShare}
-            />
-          </View>
+          <AppText variant="h6" weight="medium" style={styles.sectionTitle}>
+            Split Between ({participants.length} people)
+          </AppText>
+          <SplitMethodSelector
+            colors={colors}
+            splitMode={splitCalc.splitMode}
+            setSplitMode={splitCalc.setSplitMode}
+            splitResults={splitCalc.splitResults}
+            validation={splitCalc.validation}
+            totalAmount={parseFloat(totalAmount) || 0}
+            participants={participants}
+            customAmounts={splitCalc.customAmounts}
+            setCustomAmount={splitCalc.setCustomAmount}
+            percentages={splitCalc.percentages}
+            setPercentage={splitCalc.setPercentage}
+            shares={splitCalc.shares}
+            setShare={splitCalc.setShare}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
 
       {/* Submit Button */}
       <View style={[styles.footer, {borderTopColor: colors.border}]}>
-        <TouchableOpacity
-          style={[
-            styles.submitBtn,
-            {
-              backgroundColor: splitCalc.validation.isValid
-                ? colors.primary
-                : colors.primary + '40',
-            },
-          ]}
+        <Button
+          title="Add Group Expense"
+          loading={submitting}
+          disabled={!splitCalc.validation.isValid}
           onPress={handleSubmit}
-          disabled={submitting || !splitCalc.validation.isValid}
-          activeOpacity={0.8}>
-          {submitting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.submitBtnText}>Add Expense</Text>
-          )}
-        </TouchableOpacity>
+          style={styles.submitBtn}
+        />
       </View>
     </View>
   );
@@ -309,78 +357,95 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
   },
+  amountRow: {
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    borderRadius: 12,
+  },
+  rupee: {
+    fontSize: 36,
+    ...commonStyles.textDefault,
+  },
+  amountInput: {
+    padding: 16,
+    borderRadius: 12,
+    fontSize: 32,
+    fontWeight: '600',
+  },
   scrollView: {
     flex: 1,
   },
   content: {
+    padding: 20,
+    gap: 0, // Controlled by sectionTitle margins
+    paddingBottom: 120,
+  },
+  sectionTitle: {
+    marginBottom: 12,
+    marginTop: 24,
+  },
+  dateBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
-    gap: 16,
-    paddingBottom: 32,
-  },
-  field: {
-    gap: 6,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-  },
-  amountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  currency: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  amountInput: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  dateBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
   },
   dateText: {
-    fontSize: 15,
+    marginLeft: 10,
   },
-  paidByRow: {
-    flexDirection: 'row',
-    gap: 8,
+  payerListContainer: {
+    marginTop: 16,
   },
-  paidByOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
+  payerScrollContent: {
+    gap: 12,
+    paddingRight: 20,
+  },
+  payerItem: {
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    width: 80,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+    position: 'relative',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 25,
+  },
+  checkBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  payerName: {
+    textAlign: 'center',
   },
   footer: {
-    padding: 16,
+    padding: 20,
     borderTopWidth: 1,
   },
   submitBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 12,
-  },
-  submitBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    borderRadius: 14,
   },
 });
 

@@ -33,7 +33,6 @@ const GroupDetail = () => {
   const groupId = route.params?.groupId;
 
   const [group, setGroup] = useState<GroupDetailType | null>(null);
-  console.log('🚀 ~ GroupDetail ~ group:', group);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Chat');
 

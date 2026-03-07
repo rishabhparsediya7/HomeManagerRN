@@ -2,13 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const PASSPHRASE_KEY = 'passphrase';
 
 export const createInitialsForImage = (name: string) => {
-  if (!name) return 'UK';
-  const words = name.split(' ');
-  let initials = '';
-  for (let i = 0; i < words.length; i++) {
-    initials += words[i][0].toUpperCase();
-  }
-  return initials;
+  if (!name || typeof name !== 'string') return '??';
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '??';
+
+  return words
+    .slice(0, 2)
+    .map(word => word[0].toUpperCase())
+    .join('');
 };
 
 export const savePassphraseToAsyncStorage = async (passphrase: string) => {

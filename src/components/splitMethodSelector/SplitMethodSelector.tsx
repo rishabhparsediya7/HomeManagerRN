@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {StyleSheet, TextInput, TouchableOpacity, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {AppTheme} from '../../providers/Theme';
 import {
@@ -13,6 +7,9 @@ import {
   SplitResult,
   Participant,
 } from '../../hooks/useSplitCalculator';
+import SegmentedControl from '../common/SegmentedControl';
+import AppText from '../common/AppText';
+import RupeeIcon from '../rupeeIcon';
 
 interface SplitMethodSelectorProps {
   colors: AppTheme;
@@ -62,54 +59,48 @@ const SplitMethodSelector: React.FC<SplitMethodSelectorProps> = ({
 }) => {
   if (participants.length === 0) return null;
 
+  const modeOptions = SPLIT_MODES.map(m => m.label);
+  const activeOption =
+    SPLIT_MODES.find(m => m.key === splitMode)?.label || 'Equal';
+
+  const handleOptionPress = (label: string) => {
+    const mode = SPLIT_MODES.find(m => m.label === label)?.key;
+    if (mode) setSplitMode(mode);
+  };
+
   return (
     <View style={styles.container}>
-      {/* Mode Tabs */}
-      <View
-        style={[
-          styles.tabContainer,
-          {backgroundColor: colors.inputBackground},
-        ]}>
-        {SPLIT_MODES.map(mode => {
-          const isActive = splitMode === mode.key;
-          return (
-            <TouchableOpacity
-              key={mode.key}
-              style={[
-                styles.tab,
-                isActive && {backgroundColor: colors.primary},
-              ]}
-              onPress={() => setSplitMode(mode.key)}
-              activeOpacity={0.7}>
-              <Icon
-                name={mode.icon}
-                size={16}
-                color={isActive ? '#FFFFFF' : colors.mutedText}
-              />
-              <Text
-                style={[
-                  styles.tabLabel,
-                  {color: isActive ? '#FFFFFF' : colors.mutedText},
-                ]}>
-                {mode.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      {/* Mode Tabs - Using SegmentedControl */}
+      <SegmentedControl
+        options={modeOptions}
+        activeOption={activeOption}
+        onOptionPress={handleOptionPress}
+      />
 
       {/* Split Details */}
-      <View style={[styles.splitDetails, {borderColor: colors.border}]}>
+      <View
+        style={[
+          styles.splitDetails,
+          {backgroundColor: colors.surface, borderColor: colors.border},
+        ]}>
         {splitMode === 'equal' && (
           <View style={styles.equalInfo}>
-            <Icon name="check-circle" size={20} color={colors.success} />
-            <Text style={[styles.equalText, {color: colors.text}]}>
-              ₹
-              {participants.length > 0
-                ? (totalAmount / participants.length).toFixed(2)
-                : '0.00'}{' '}
-              per person
-            </Text>
+            <Icon name="check-circle" size={24} color={colors.success} />
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+              <RupeeIcon
+                amount={
+                  participants.length > 0
+                    ? totalAmount / participants.length
+                    : 0
+                }
+                size={18}
+                color={colors.text}
+                textStyle={{fontWeight: '600'}}
+              />
+              <AppText variant="md" style={{color: colors.mutedText}}>
+                per person
+              </AppText>
+            </View>
           </View>
         )}
 
@@ -117,25 +108,26 @@ const SplitMethodSelector: React.FC<SplitMethodSelectorProps> = ({
           <View style={styles.participantList}>
             {splitResults.map(result => (
               <View key={result.userId} style={styles.participantRow}>
-                <Text
-                  style={[styles.participantName, {color: colors.text}]}
+                <AppText
+                  variant="md"
+                  weight="medium"
+                  style={{color: colors.text, flex: 1}}
                   numberOfLines={1}>
                   {result.name}
-                </Text>
-                <View style={styles.inputRow}>
-                  <Text
-                    style={[styles.currencySymbol, {color: colors.mutedText}]}>
+                </AppText>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    {
+                      backgroundColor: colors.inputBackground,
+                      borderColor: colors.inputBorder,
+                    },
+                  ]}>
+                  <AppText style={{color: colors.mutedText, marginRight: 4}}>
                     ₹
-                  </Text>
+                  </AppText>
                   <TextInput
-                    style={[
-                      styles.amountInput,
-                      {
-                        color: colors.inputText,
-                        backgroundColor: colors.inputBackground,
-                        borderColor: colors.inputBorder,
-                      },
-                    ]}
+                    style={[styles.amountInput, {color: colors.inputText}]}
                     keyboardType="numeric"
                     placeholder="0.00"
                     placeholderTextColor={colors.placeholder}
@@ -159,29 +151,30 @@ const SplitMethodSelector: React.FC<SplitMethodSelectorProps> = ({
             {splitResults.map(result => (
               <View key={result.userId} style={styles.participantRow}>
                 <View style={styles.nameAndAmount}>
-                  <Text
-                    style={[styles.participantName, {color: colors.text}]}
+                  <AppText
+                    variant="md"
+                    weight="medium"
+                    style={{color: colors.text}}
                     numberOfLines={1}>
                     {result.name}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.calculatedAmount,
-                      {color: colors.mutedText},
-                    ]}>
-                    ₹{result.amountOwed.toFixed(2)}
-                  </Text>
+                  </AppText>
+                  <RupeeIcon
+                    amount={result.amountOwed}
+                    size={13}
+                    color={colors.mutedText}
+                  />
                 </View>
-                <View style={styles.inputRow}>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    {
+                      backgroundColor: colors.inputBackground,
+                      borderColor: colors.inputBorder,
+                      width: 90,
+                    },
+                  ]}>
                   <TextInput
-                    style={[
-                      styles.percentInput,
-                      {
-                        color: colors.inputText,
-                        backgroundColor: colors.inputBackground,
-                        borderColor: colors.inputBorder,
-                      },
-                    ]}
+                    style={[styles.percentInput, {color: colors.inputText}]}
                     keyboardType="numeric"
                     placeholder="0"
                     placeholderTextColor={colors.placeholder}
@@ -194,9 +187,9 @@ const SplitMethodSelector: React.FC<SplitMethodSelectorProps> = ({
                       setPercentage(result.userId, parseFloat(text) || 0)
                     }
                   />
-                  <Text style={[styles.percentSign, {color: colors.mutedText}]}>
+                  <AppText style={{color: colors.mutedText, marginLeft: 2}}>
                     %
-                  </Text>
+                  </AppText>
                 </View>
               </View>
             ))}
@@ -208,198 +201,173 @@ const SplitMethodSelector: React.FC<SplitMethodSelectorProps> = ({
             {splitResults.map(result => (
               <View key={result.userId} style={styles.participantRow}>
                 <View style={styles.nameAndAmount}>
-                  <Text
-                    style={[styles.participantName, {color: colors.text}]}
+                  <AppText
+                    variant="md"
+                    weight="bold"
+                    style={{color: colors.text}}
                     numberOfLines={1}>
                     {result.name}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.calculatedAmount,
-                      {color: colors.mutedText},
-                    ]}>
-                    ₹{result.amountOwed.toFixed(2)}
-                  </Text>
+                  </AppText>
+                  <RupeeIcon
+                    amount={result.amountOwed}
+                    size={15}
+                    color={colors.mutedText}
+                  />
                 </View>
                 <View style={styles.shareControls}>
                   <TouchableOpacity
-                    style={[styles.shareBtn, {borderColor: colors.border}]}
+                    style={[
+                      styles.shareBtn,
+                      {
+                        backgroundColor: colors.inputBackground,
+                        borderColor: colors.border,
+                      },
+                    ]}
                     onPress={() =>
                       setShare(
                         result.userId,
-                        Math.max(0, (shares[result.userId] || 1) - 1),
+                        Math.max(0, (shares[result.userId] || 0) - 1),
                       )
                     }>
-                    <Icon name="minus" size={16} color={colors.text} />
+                    <Icon name="minus" size={20} color={colors.text} />
                   </TouchableOpacity>
-                  <Text style={[styles.shareCount, {color: colors.text}]}>
+                  <AppText
+                    variant="md"
+                    weight="bold"
+                    style={[styles.shareCount, {color: colors.text}]}>
                     {shares[result.userId] || 0}
-                  </Text>
+                  </AppText>
                   <TouchableOpacity
-                    style={[styles.shareBtn, {borderColor: colors.border}]}
+                    style={[
+                      styles.shareBtn,
+                      {
+                        backgroundColor: colors.inputBackground,
+                        borderColor: colors.border,
+                      },
+                    ]}
                     onPress={() =>
-                      setShare(result.userId, (shares[result.userId] || 1) + 1)
+                      setShare(result.userId, (shares[result.userId] || 0) + 1)
                     }>
-                    <Icon name="plus" size={16} color={colors.text} />
+                    <Icon name="plus" size={20} color={colors.text} />
                   </TouchableOpacity>
                 </View>
               </View>
             ))}
           </View>
         )}
-      </View>
 
-      {/* Validation Message */}
-      {validation.message !== '' && (
-        <View
-          style={[
-            styles.validationBar,
-            {
-              backgroundColor: validation.isValid
-                ? colors.success + '15'
-                : colors.error + '15',
-            },
-          ]}>
-          <Icon
-            name={validation.isValid ? 'check-circle' : 'alert-circle'}
-            size={16}
-            color={validation.isValid ? colors.success : colors.error}
-          />
-          <Text
+        {/* Validation Message */}
+        {validation.message !== '' && (
+          <View
             style={[
-              styles.validationText,
-              {color: validation.isValid ? colors.success : colors.error},
+              styles.validationBar,
+              {
+                backgroundColor: validation.isValid
+                  ? colors.success + '15'
+                  : colors.error + '15',
+              },
             ]}>
-            {validation.message}
-          </Text>
-        </View>
-      )}
+            <Icon
+              name={validation.isValid ? 'check-circle' : 'alert-circle'}
+              size={20}
+              color={validation.isValid ? colors.success : colors.error}
+            />
+            <AppText
+              variant="sm"
+              weight="semiBold"
+              style={{
+                color: validation.isValid ? colors.success : colors.error,
+                flex: 1,
+              }}>
+              {validation.message}
+            </AppText>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 12,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    borderRadius: 12,
-    padding: 3,
-    gap: 3,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 10,
-    gap: 4,
-  },
-  tabLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    marginTop: 16,
+    gap: 20,
   },
   splitDetails: {
-    marginTop: 12,
-    borderTopWidth: 0,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   equalInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 8,
-  },
-  equalText: {
-    fontSize: 15,
-    fontWeight: '500',
+    gap: 12,
+    paddingVertical: 10,
   },
   participantList: {
-    gap: 10,
+    gap: 20,
   },
   participantRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
-  },
-  participantName: {
-    fontSize: 14,
-    fontWeight: '500',
-    flex: 1,
-    maxWidth: '50%',
   },
   nameAndAmount: {
     flex: 1,
-    gap: 2,
-  },
-  calculatedAmount: {
-    fontSize: 12,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 4,
   },
-  currencySymbol: {
-    fontSize: 16,
-    fontWeight: '500',
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    width: 120,
   },
   amountInput: {
-    width: 100,
-    height: 36,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    fontSize: 14,
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
     textAlign: 'right',
   },
   percentInput: {
-    width: 60,
-    height: 36,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    fontSize: 14,
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
     textAlign: 'right',
-  },
-  percentSign: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   shareControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 14,
   },
   shareBtn: {
-    width: 28,
-    height: 28,
+    width: 40,
+    height: 40,
     borderRadius: 14,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   shareCount: {
-    fontSize: 16,
-    fontWeight: '600',
-    minWidth: 20,
+    minWidth: 28,
     textAlign: 'center',
+    fontSize: 18,
   },
   validationBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  validationText: {
-    fontSize: 13,
-    fontWeight: '500',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    marginTop: 20,
   },
 });
 
