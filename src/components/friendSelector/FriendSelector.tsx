@@ -260,7 +260,7 @@ const FriendSelector: React.FC<FriendSelectorProps> = ({
   return (
     <View style={styles.container}>
       {label && (
-        <AppText variant="sm" weight="semiBold" style={styles.label}>
+        <AppText variant="md" weight="semiBold" style={styles.label}>
           {label}
         </AppText>
       )}

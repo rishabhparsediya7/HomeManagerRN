@@ -1,16 +1,15 @@
 import React, {useState} from 'react';
 import {
-  ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Button from '../../components/Button';
 import Header from '../../components/Header';
+import AppInput from '../../components/common/AppInput';
 import AppText from '../../components/common/AppText';
 import FriendSelector, {
   FriendItem,
@@ -99,52 +98,34 @@ const CreateGroup = () => {
         keyboardShouldPersistTaps="handled">
         {/* Group Name */}
         <View style={styles.section}>
-          <AppText variant="sm" weight="semiBold">
-            Group Name *
-          </AppText>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.inputBackground,
-                color: colors.inputText,
-                borderColor: colors.inputBorder,
-              },
-            ]}
+          <AppInput
+            label="Group Name *"
+            labelProps={{variant: 'md', weight: 'semiBold'}}
             placeholder="e.g. Weekend Trip, Roommates"
-            placeholderTextColor={colors.placeholder}
             value={name}
             onChangeText={setName}
+            containerStyle={{marginBottom: 0}}
           />
         </View>
 
         {/* Description */}
         <View style={styles.section}>
-          <AppText variant="sm" weight="semiBold">
-            Description (optional)
-          </AppText>
-          <TextInput
-            style={[
-              styles.input,
-              styles.multilineInput,
-              {
-                backgroundColor: colors.inputBackground,
-                color: colors.inputText,
-                borderColor: colors.inputBorder,
-              },
-            ]}
+          <AppInput
+            label="Description (optional)"
+            labelProps={{variant: 'md', weight: 'semiBold'}}
             placeholder="What's this group about?"
-            placeholderTextColor={colors.placeholder}
             value={description}
             onChangeText={setDescription}
             multiline
             numberOfLines={3}
+            containerStyle={{marginBottom: 0}}
+            inputStyle={{minHeight: 72, textAlignVertical: 'top'}}
           />
         </View>
 
         {/* Group Type */}
         <View style={styles.section}>
-          <AppText variant="sm" weight="semiBold">
+          <AppText variant="md" weight="semiBold">
             Group Type
           </AppText>
           <View style={styles.typeRow}>
@@ -171,9 +152,8 @@ const CreateGroup = () => {
                   color={groupType === type.key ? '#FFFFFF' : colors.mutedText}
                 />
                 <AppText
+                  variant="md"
                   style={{
-                    fontSize: 13,
-                    fontWeight: '500',
                     color:
                       groupType === type.key ? '#FFFFFF' : colors.mutedText,
                   }}>
@@ -198,28 +178,20 @@ const CreateGroup = () => {
 
       {/* Create Button */}
       <View style={[styles.footer, {borderTopColor: colors.border}]}>
-        <TouchableOpacity
-          style={[
-            styles.submitBtn,
-            {
-              backgroundColor:
-                name.trim() && selectedMembers.length > 0
-                  ? colors.primary
-                  : colors.primary + '40',
-            },
-          ]}
+        <Button
+          title="Create Group"
           onPress={handleCreate}
-          disabled={submitting || !name.trim() || selectedMembers.length === 0}
-          activeOpacity={0.8}>
-          {submitting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <>
-              <Icon name="account-group" size={18} color="#FFFFFF" />
-              <Text style={styles.submitBtnText}>Create Group</Text>
-            </>
-          )}
-        </TouchableOpacity>
+          loading={submitting}
+          disabled={!name.trim() || selectedMembers.length === 0}
+          icon={
+            <Icon
+              name="account-group"
+              size={18}
+              color="#FFFFFF"
+              style={{marginRight: 6}}
+            />
+          }
+        />
       </View>
     </View>
   );
@@ -236,21 +208,6 @@ const styles = StyleSheet.create({
   section: {
     gap: 6,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-  },
-  multilineInput: {
-    minHeight: 72,
-    textAlignVertical: 'top',
-  },
   typeRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -265,26 +222,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
   },
-  typeLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
   footer: {
     padding: 16,
     borderTopWidth: 1,
-  },
-  submitBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
-  submitBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

@@ -1,19 +1,30 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
   StyleSheet,
-  Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Button from '../../components/Button';
 import Header from '../../components/Header';
+import AppText from '../../components/common/AppText';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
+import {commonStyles} from '../../utils/styles';
 import groupApi, {Group} from '../../services/groupApi';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
+
+const GROUP_TYPE_ICONS: Record<string, string> = {
+  trip: 'airplane',
+  home: 'home-outline',
+  couple: 'heart-outline',
+  other: 'dots-horizontal',
+  general: 'star-outline',
+};
 
 const GroupList = () => {
   const {theme} = useTheme();
@@ -23,6 +34,7 @@ const GroupList = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchGroups = async () => {
     try {
@@ -49,79 +61,178 @@ const GroupList = () => {
     fetchGroups();
   };
 
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return groups;
+    const term = searchQuery.toLowerCase().trim();
+    return groups.filter(
+      g =>
+        g.name.toLowerCase().includes(term) ||
+        g.type?.toLowerCase().includes(term),
+    );
+  }, [groups, searchQuery]);
+
   const renderGroupItem = ({item}: {item: Group}) => {
     const net = item.balanceSummary?.net || 0;
     const isPositive = net > 0;
-    const isNegative = net < 0;
+    const typeIcon = GROUP_TYPE_ICONS[item.type || 'general'] || 'star-outline';
 
     return (
       <TouchableOpacity
-        style={[styles.groupCard, {backgroundColor: colors.cardBackground}]}
+        style={[styles.groupRow, {borderBottomColor: colors.border}]}
         activeOpacity={0.7}
         onPress={() => navigation.navigate('GroupDetail', {groupId: item.id})}>
-        <View style={styles.groupCardLeft}>
+        <View style={styles.groupRowLeft}>
           <View
             style={[
               styles.groupAvatar,
-              {backgroundColor: colors.primary + '20'},
+              {backgroundColor: colors.primary + '15'},
             ]}>
-            {item.image ? (
-              <Text style={styles.groupAvatarText}>
-                {item.name.charAt(0).toUpperCase()}
-              </Text>
-            ) : (
-              <Icon name="account-group" size={24} color={colors.primary} />
-            )}
+            <Icon name={typeIcon} size={26} color={colors.primary} />
           </View>
           <View style={styles.groupInfo}>
-            <Text style={[styles.groupName, {color: colors.text}]}>
+            <AppText variant="lg" weight="semiBold">
               {item.name}
-            </Text>
-            <Text style={[styles.groupMeta, {color: colors.mutedText}]}>
-              {item.memberCount || 0} members
-              {item.type !== 'general' ? ` • ${item.type}` : ''}
-            </Text>
+            </AppText>
+            <View style={styles.metaRow}>
+              <Icon
+                name="account-multiple"
+                size={16}
+                color={colors.mutedText}
+              />
+              <AppText variant="md" style={{color: colors.mutedText}}>
+                {item.memberCount || 0} members
+              </AppText>
+              {item.type && item.type !== 'general' && (
+                <>
+                  <AppText variant="sm" style={{color: colors.mutedText}}>
+                    {' '}
+                    •{' '}
+                  </AppText>
+                  <AppText
+                    variant="md"
+                    weight="medium"
+                    style={{
+                      color: colors.primary,
+                      textTransform: 'capitalize',
+                    }}>
+                    {item.type}
+                  </AppText>
+                </>
+              )}
+            </View>
           </View>
         </View>
-        <View style={styles.groupCardRight}>
-          {net !== 0 && (
-            <Text
+        <View style={styles.groupRowRight}>
+          {net !== 0 ? (
+            <View style={styles.balanceContainer}>
+              <AppText
+                variant="md"
+                style={{color: isPositive ? colors.success : colors.error}}>
+                {isPositive ? 'you get' : 'you owe'}
+              </AppText>
+              <AppText
+                variant="md"
+                weight="bold"
+                style={{color: isPositive ? colors.success : colors.error}}>
+                ₹{Math.abs(net).toFixed(0)}
+              </AppText>
+            </View>
+          ) : (
+            <View
               style={[
-                styles.balanceText,
-                {color: isPositive ? colors.success : colors.error},
+                styles.settledBadge,
+                {backgroundColor: colors.success + '15'},
               ]}>
-              {isPositive ? '+' : ''}₹{Math.abs(net).toFixed(2)}
-            </Text>
+              <Icon
+                name="check-circle-outline"
+                size={14}
+                color={colors.success}
+              />
+              <AppText
+                variant="md"
+                weight="medium"
+                style={{color: colors.success}}>
+                settled
+              </AppText>
+            </View>
           )}
-          {net === 0 && (
-            <Text style={[styles.settledText, {color: colors.mutedText}]}>
-              settled
-            </Text>
-          )}
-          <Icon name="chevron-right" size={20} color={colors.mutedText} />
+          <Icon name="chevron-right" size={22} color={colors.mutedText} />
         </View>
       </TouchableOpacity>
     );
   };
 
+  const renderSearchBar = () => (
+    <View
+      style={[
+        styles.searchContainer,
+        {backgroundColor: colors.inputBackground},
+      ]}>
+      <Icon name="magnify" size={22} color={colors.mutedText} />
+      <TextInput
+        style={[styles.searchInput, {color: colors.text}]}
+        placeholder="Search groups..."
+        placeholderTextColor={colors.mutedText}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+      {searchQuery.length > 0 && (
+        <TouchableOpacity onPress={() => setSearchQuery('')}>
+          <Icon name="close-circle" size={18} color={colors.mutedText} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const renderListHeader = () => (
+    <View style={styles.listHeader}>
+      {renderSearchBar()}
+      {filteredGroups.length > 0 && (
+        <AppText
+          variant="sm"
+          weight="medium"
+          style={{color: colors.mutedText, marginTop: 4}}>
+          {filteredGroups.length} group{filteredGroups.length !== 1 ? 's' : ''}
+        </AppText>
+      )}
+    </View>
+  );
+
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <View
         style={[styles.emptyIcon, {backgroundColor: colors.primary + '15'}]}>
-        <Icon name="account-group-outline" size={48} color={colors.primary} />
+        <Icon name="account-group-outline" size={52} color={colors.primary} />
       </View>
-      <Text style={[styles.emptyTitle, {color: colors.text}]}>
-        No groups yet
-      </Text>
-      <Text style={[styles.emptySubtitle, {color: colors.mutedText}]}>
-        Create a group to split expenses with multiple friends
-      </Text>
-      <TouchableOpacity
-        style={[styles.createBtn, {backgroundColor: colors.primary}]}
-        onPress={() => navigation.navigate('CreateGroup')}>
-        <Icon name="plus" size={18} color="#FFFFFF" />
-        <Text style={styles.createBtnText}>Create Group</Text>
-      </TouchableOpacity>
+      <AppText variant="h6" weight="semiBold">
+        {searchQuery ? 'No groups found' : 'No groups yet'}
+      </AppText>
+      <AppText
+        variant="md"
+        style={{
+          color: colors.mutedText,
+          textAlign: 'center',
+          lineHeight: 22,
+        }}>
+        {searchQuery
+          ? `No groups matching "${searchQuery}"`
+          : 'Create a group to split expenses with friends'}
+      </AppText>
+      {!searchQuery && (
+        <Button
+          title="Create Group"
+          onPress={() => navigation.navigate('CreateGroup')}
+          icon={
+            <Icon
+              name="plus"
+              size={18}
+              color="#FFFFFF"
+              style={{marginRight: 6}}
+            />
+          }
+          style={styles.createBtn}
+        />
+      )}
     </View>
   );
 
@@ -142,17 +253,20 @@ const GroupList = () => {
         title="Groups"
         showBackButton
         rightComponent={
-          <TouchableOpacity onPress={() => navigation.navigate('CreateGroup')}>
-            <Icon name="plus" size={24} color={colors.text} />
+          <TouchableOpacity
+            style={[styles.addBtn, {backgroundColor: colors.primary + '15'}]}
+            onPress={() => navigation.navigate('CreateGroup')}>
+            <Icon name="plus" size={22} color={colors.primary} />
           </TouchableOpacity>
         }
       />
       <FlatList
-        data={groups}
+        data={filteredGroups}
         renderItem={renderGroupItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyState}
         refreshControl={
           <RefreshControl
@@ -176,62 +290,82 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
-    gap: 10,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 12,
     flexGrow: 1,
   },
-  groupCard: {
+  listHeader: {
+    gap: 8,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: 44,
+    fontSize: 15,
+    ...commonStyles.textDefault,
+  },
+  groupRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: 12,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 0.5,
   },
-  groupCardLeft: {
+  groupRowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     flex: 1,
   },
   groupAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  groupAvatarText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#007AFF',
-  },
   groupInfo: {
-    gap: 2,
+    gap: 3,
     flex: 1,
   },
-  groupName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  groupMeta: {
-    fontSize: 12,
-  },
-  groupCardRight: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  balanceText: {
-    fontSize: 14,
-    fontWeight: '600',
+  groupRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  settledText: {
-    fontSize: 12,
+  balanceContainer: {
+    alignItems: 'flex-end',
+  },
+  settledBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  addBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyState: {
     flex: 1,
@@ -241,35 +375,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
   createBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
     borderRadius: 20,
-    marginTop: 8,
-  },
-  createBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
   },
 });
 

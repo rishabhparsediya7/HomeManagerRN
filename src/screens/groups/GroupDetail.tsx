@@ -4,12 +4,13 @@ import {
   FlatList,
   RefreshControl,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
+import AppText from '../../components/common/AppText';
+import SegmentedControl from '../../components/common/SegmentedControl';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {useAuth} from '../../providers/AuthProvider';
@@ -24,8 +25,6 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 
-type TabKey = 'expenses' | 'members';
-
 const GroupDetail = () => {
   const {theme} = useTheme();
   const colors = theme === 'dark' ? darkTheme : lightTheme;
@@ -37,7 +36,7 @@ const GroupDetail = () => {
   const [group, setGroup] = useState<GroupDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabKey>('expenses');
+  const [activeTab, setActiveTab] = useState('Expenses');
 
   const fetchGroup = async () => {
     try {
@@ -61,38 +60,38 @@ const GroupDetail = () => {
 
   const renderExpenseItem = ({item}: {item: GroupExpense}) => (
     <TouchableOpacity
-      style={[styles.expenseCard, {backgroundColor: colors.cardBackground}]}
+      style={[styles.expenseRow, {borderBottomColor: colors.border}]}
       activeOpacity={0.7}>
       <View style={styles.expenseLeft}>
-        <Text style={[styles.expenseDesc, {color: colors.text}]}>
+        <AppText variant="md" weight="medium">
           {item.description}
-        </Text>
-        <Text style={[styles.expenseMeta, {color: colors.mutedText}]}>
+        </AppText>
+        <AppText variant="sm" style={{color: colors.mutedText}}>
           {item.creatorName} • {new Date(item.expenseDate).toLocaleDateString()}
-        </Text>
+        </AppText>
       </View>
-      <Text style={[styles.expenseAmount, {color: colors.text}]}>
+      <AppText variant="lg" weight="semiBold">
         ₹{parseFloat(item.totalAmount).toFixed(2)}
-      </Text>
+      </AppText>
     </TouchableOpacity>
   );
 
   const renderMemberItem = ({item}: {item: GroupMember}) => (
-    <View style={[styles.memberRow, {backgroundColor: colors.cardBackground}]}>
+    <View style={[styles.memberRow, {borderBottomColor: colors.border}]}>
       <View
-        style={[styles.memberAvatar, {backgroundColor: colors.primary + '20'}]}>
-        <Text style={[styles.memberInitial, {color: colors.primary}]}>
+        style={[styles.memberAvatar, {backgroundColor: colors.primary + '15'}]}>
+        <AppText weight="bold" style={{color: colors.primary, fontSize: 16}}>
           {item.firstName.charAt(0).toUpperCase()}
-        </Text>
+        </AppText>
       </View>
       <View style={styles.memberInfo}>
-        <Text style={[styles.memberName, {color: colors.text}]}>
+        <AppText variant="md" weight="medium">
           {item.firstName} {item.lastName}
           {item.id === group?.createdByUser ? ' (Admin)' : ''}
-        </Text>
-        <Text style={[styles.memberEmail, {color: colors.mutedText}]}>
+        </AppText>
+        <AppText variant="sm" style={{color: colors.mutedText}}>
           {item.email}
-        </Text>
+        </AppText>
       </View>
     </View>
   );
@@ -113,7 +112,9 @@ const GroupDetail = () => {
       <View style={[styles.screen, {backgroundColor: colors.background}]}>
         <Header title="Group" showBackButton />
         <View style={styles.loaderContainer}>
-          <Text style={{color: colors.mutedText}}>Group not found</Text>
+          <AppText variant="md" style={{color: colors.mutedText}}>
+            Group not found
+          </AppText>
         </View>
       </View>
     );
@@ -125,69 +126,62 @@ const GroupDetail = () => {
         title={group.name}
         showBackButton
         rightComponent={
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('GroupSettings', {groupId: group.id})
-            }>
-            <Icon name="cog-outline" size={22} color={colors.text} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.headerBtn, {backgroundColor: colors.info + '15'}]}
+              onPress={() =>
+                navigation.navigate('GroupChat', {
+                  groupId: group.id,
+                  groupName: group.name,
+                })
+              }>
+              <Icon name="chat-outline" size={20} color={colors.info} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.headerBtn,
+                {backgroundColor: colors.primary + '15'},
+              ]}
+              onPress={() =>
+                navigation.navigate('GroupSettings', {groupId: group.id})
+              }>
+              <Icon name="cog-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
         }
       />
 
-      {/* Group Info Bar */}
-      <View style={[styles.infoBar, {backgroundColor: colors.cardBackground}]}>
-        <View style={styles.infoItem}>
-          <Icon name="account-group" size={18} color={colors.primary} />
-          <Text style={[styles.infoText, {color: colors.text}]}>
+      {/* Subtitle row */}
+      <View style={styles.subtitleRow}>
+        <View style={styles.subtitleItem}>
+          <Icon name="account-multiple" size={16} color={colors.mutedText} />
+          <AppText variant="sm" style={{color: colors.mutedText}}>
             {group.members?.length || 0} members
-          </Text>
+          </AppText>
         </View>
         {group.type !== 'general' && (
-          <View style={styles.infoItem}>
-            <Icon name="tag-outline" size={18} color={colors.secondary} />
-            <Text style={[styles.infoText, {color: colors.text}]}>
+          <View style={styles.subtitleItem}>
+            <Icon name="tag-outline" size={16} color={colors.mutedText} />
+            <AppText
+              variant="sm"
+              weight="medium"
+              style={{color: colors.primary, textTransform: 'capitalize'}}>
               {group.type}
-            </Text>
+            </AppText>
           </View>
         )}
-        <TouchableOpacity
-          style={styles.infoItem}
-          onPress={() =>
-            navigation.navigate('GroupChat', {
-              groupId: group.id,
-              groupName: group.name,
-            })
-          }>
-          <Icon name="chat-outline" size={18} color={colors.info} />
-          <Text style={[styles.infoText, {color: colors.info}]}>Chat</Text>
-        </TouchableOpacity>
       </View>
 
-      {/* Tab Bar */}
-      <View style={[styles.tabBar, {borderBottomColor: colors.border}]}>
-        {(['expenses', 'members'] as TabKey[]).map(tab => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.tabItem,
-              activeTab === tab && {borderBottomColor: colors.primary},
-            ]}
-            onPress={() => setActiveTab(tab)}>
-            <Text
-              style={[
-                styles.tabLabel,
-                {
-                  color: activeTab === tab ? colors.primary : colors.mutedText,
-                },
-              ]}>
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Segmented Tab Control */}
+      <SegmentedControl
+        options={['Expenses', 'Members']}
+        activeOption={activeTab}
+        onOptionPress={setActiveTab}
+        containerStyle={{marginHorizontal: 16, marginTop: 12}}
+      />
 
       {/* Tab Content */}
-      {activeTab === 'expenses' && (
+      {activeTab === 'Expenses' && (
         <FlatList
           data={group.recentExpenses || []}
           renderItem={renderExpenseItem}
@@ -206,16 +200,16 @@ const GroupDetail = () => {
           }
           ListEmptyComponent={
             <View style={styles.emptyTab}>
-              <Icon name="receipt" size={40} color={colors.mutedText} />
-              <Text style={[styles.emptyTabText, {color: colors.mutedText}]}>
+              <Icon name="receipt" size={44} color={colors.mutedText} />
+              <AppText variant="md" style={{color: colors.mutedText}}>
                 No expenses yet
-              </Text>
+              </AppText>
             </View>
           }
         />
       )}
 
-      {activeTab === 'members' && (
+      {activeTab === 'Members' && (
         <FlatList
           data={group.members || []}
           renderItem={renderMemberItem}
@@ -250,107 +244,71 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  infoBar: {
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginHorizontal: 16,
-    marginTop: 8,
-    borderRadius: 12,
-    gap: 12,
+    gap: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 6,
   },
-  infoItem: {
+  subtitleItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  infoText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  tabBar: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    marginTop: 12,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
   listContent: {
     padding: 16,
-    gap: 8,
     flexGrow: 1,
   },
-  expenseCard: {
+  expenseRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 0.5,
   },
   expenseLeft: {
     flex: 1,
     gap: 4,
   },
-  expenseDesc: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  expenseMeta: {
-    fontSize: 12,
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 10,
-    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderBottomWidth: 0.5,
+    gap: 14,
   },
   memberAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  memberInitial: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
   memberInfo: {
     flex: 1,
-    gap: 2,
-  },
-  memberName: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  memberEmail: {
-    fontSize: 12,
+    gap: 3,
   },
   emptyTab: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
-    gap: 8,
-  },
-  emptyTabText: {
-    fontSize: 14,
+    gap: 10,
   },
   fab: {
     position: 'absolute',
