@@ -120,7 +120,10 @@ const GroupSettings = () => {
           onPress: async () => {
             try {
               await groupApi.deleteGroup(groupId);
-              navigation.navigate('GroupList');
+              navigation.reset({
+                index: 1,
+                routes: [{name: 'DrawerNavigator'}, {name: 'GroupList'}],
+              });
             } catch {
               Alert.alert('Error', 'Failed to delete group');
             }
