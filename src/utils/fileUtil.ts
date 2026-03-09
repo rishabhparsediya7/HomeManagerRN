@@ -28,7 +28,10 @@ export const downloadAndSharePdf = async (
     // though the OS will eventually clear the cache.
     // await ReactNativeBlobUtil.fs.unlink(filePath);
   } catch (error) {
-    if (error.message.includes('User did not share')) {
+    if (
+      error instanceof Error &&
+      error.message.includes('User did not share')
+    ) {
       console.log('User cancelled the share process.');
     } else {
       console.error('An error occurred:', error);

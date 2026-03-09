@@ -1,28 +1,30 @@
-import React, {useState, useCallback} from 'react';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Button from '../../components/Button';
 import Header from '../../components/Header';
+import AppInput from '../../components/common/AppInput';
+import AppText from '../../components/common/AppText';
 import FriendSelector, {
   FriendItem,
 } from '../../components/friendSelector/FriendSelector';
+import {useAuth} from '../../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
-import {useAuth} from '../../providers/AuthProvider';
 import groupApi, {GroupMember} from '../../services/groupApi';
-import {
-  useNavigation,
-  useRoute,
-  useFocusEffect,
-} from '@react-navigation/native';
+import {createInitialsForImage} from '../../utils/users';
 
 const GroupSettings = () => {
   const {theme} = useTheme();
@@ -157,52 +159,36 @@ const GroupSettings = () => {
           <View style={styles.content}>
             {/* Edit Group Info */}
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, {color: colors.text}]}>
+              <AppText variant="h6" weight="semiBold">
                 Group Info
-              </Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.inputBackground,
-                    color: colors.inputText,
-                    borderColor: colors.inputBorder,
-                  },
-                ]}
+              </AppText>
+              <AppInput
+                containerStyle={{marginBottom: 0}}
                 value={groupName}
                 onChangeText={setGroupName}
                 placeholder="Group name"
-                placeholderTextColor={colors.placeholder}
               />
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.multiline,
-                  {
-                    backgroundColor: colors.inputBackground,
-                    color: colors.inputText,
-                    borderColor: colors.inputBorder,
-                  },
-                ]}
+              <AppInput
+                containerStyle={{marginBottom: 0}}
+                inputStyle={styles.multiline}
                 value={groupDesc}
                 onChangeText={setGroupDesc}
                 placeholder="Description (optional)"
-                placeholderTextColor={colors.placeholder}
                 multiline
               />
-              <TouchableOpacity
+              <Button
                 style={[styles.saveBtn, {backgroundColor: colors.primary}]}
                 onPress={handleUpdateGroup}>
-                <Text style={styles.saveBtnText}>Save Changes</Text>
-              </TouchableOpacity>
+                <AppText style={styles.saveBtnText}>Save Changes</AppText>
+              </Button>
             </View>
 
             {/* Members */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, {color: colors.text}]}>
+                <AppText variant="h6" weight="semiBold">
                   Members ({members.length})
-                </Text>
+                </AppText>
                 <TouchableOpacity
                   onPress={() => {
                     setShowAddMember(!showAddMember);
@@ -243,15 +229,17 @@ const GroupSettings = () => {
                       styles.avatar,
                       {backgroundColor: colors.primary + '20'},
                     ]}>
-                    <Text style={{color: colors.primary, fontWeight: '600'}}>
-                      {member.firstName.charAt(0)}
-                    </Text>
+                    <AppText color={colors.primary} weight="semiBold">
+                      {createInitialsForImage(
+                        `${member.firstName} ${member.lastName}`,
+                      )}
+                    </AppText>
                   </View>
                   <View style={{flex: 1}}>
-                    <Text style={[styles.memberName, {color: colors.text}]}>
+                    <AppText style={styles.memberName}>
                       {member.firstName} {member.lastName}
                       {member.id === createdBy ? ' (Admin)' : ''}
-                    </Text>
+                    </AppText>
                   </View>
                   {isAdmin && member.id !== authUser?.userId && (
                     <TouchableOpacity
@@ -275,17 +263,18 @@ const GroupSettings = () => {
             {/* Danger Zone */}
             {isAdmin && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, {color: colors.error}]}>
+                <AppText variant="h6" weight="semiBold" color={colors.error}>
                   Danger Zone
-                </Text>
-                <TouchableOpacity
+                </AppText>
+                <Button
+                  variant="outline"
                   style={[styles.dangerBtn, {borderColor: colors.error}]}
                   onPress={handleDeleteGroup}>
                   <Icon name="delete-outline" size={18} color={colors.error} />
-                  <Text style={[styles.dangerBtnText, {color: colors.error}]}>
+                  <AppText style={styles.dangerBtnText} color={colors.error}>
                     Delete Group
-                  </Text>
-                </TouchableOpacity>
+                  </AppText>
+                </Button>
               </View>
             )}
           </View>
@@ -317,17 +306,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
   },
   multiline: {
     minHeight: 60,

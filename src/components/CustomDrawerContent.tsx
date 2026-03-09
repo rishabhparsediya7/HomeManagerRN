@@ -46,12 +46,12 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
     },
     {
       label: 'Settlements',
-      icon: 'people-outline',
+      icon: 'wallet-outline',
       onPress: () => props.navigation.navigate('SplitExpenseList'),
     },
     {
       label: 'Groups',
-      icon: 'people-circle-outline',
+      icon: 'people-outline',
       onPress: () => props.navigation.navigate('GroupList'),
     },
     {

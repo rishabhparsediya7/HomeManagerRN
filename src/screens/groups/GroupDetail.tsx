@@ -23,6 +23,7 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 import GroupChat from './GroupChat';
+import {createInitialsForImage} from '../../utils/users';
 
 const GroupDetail = () => {
   const {theme} = useTheme();
@@ -59,16 +60,16 @@ const GroupDetail = () => {
     <View style={[styles.memberRow, {borderBottomColor: colors.border}]}>
       <View
         style={[styles.memberAvatar, {backgroundColor: colors.primary + '15'}]}>
-        <AppText weight="bold" style={{color: colors.primary, fontSize: 16}}>
-          {item.firstName.charAt(0).toUpperCase()}
+        <AppText weight="bold" variant="lg">
+          {createInitialsForImage(item.firstName + ' ' + item.lastName)}
         </AppText>
       </View>
       <View style={styles.memberInfo}>
-        <AppText variant="md" weight="medium">
+        <AppText variant="lg" weight="medium">
           {item.firstName} {item.lastName}
           {item.id === group?.createdByUser ? ' (Admin)' : ''}
         </AppText>
-        <AppText variant="sm" style={{color: colors.mutedText}}>
+        <AppText variant="md" style={{color: colors.mutedText}}>
           {item.email}
         </AppText>
       </View>

@@ -1,30 +1,17 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
+import AppText from '../../components/common/AppText';
+import SegmentedControl from '../../components/common/SegmentedControl';
 import RupeeIcon from '../../components/rupeeIcon';
 import {useAuth} from '../../providers/AuthProvider';
 import {lightTheme} from '../../providers/Theme';
 import splitExpenseApi, {SplitExpense} from '../../services/splitExpenseApi';
 import {commonStyles} from '../../utils/styles';
 
-type FilterType = 'all' | 'youOwe' | 'owedToYou' | 'settled';
-
-const filterOptions: {key: FilterType; label: string}[] = [
-  {key: 'all', label: 'All'},
-  {key: 'youOwe', label: 'You Owe'},
-  {key: 'owedToYou', label: 'Owed to You'},
-  {key: 'settled', label: 'Settled'},
-];
+const filterOptions = ['All', 'You Owe', 'Owed to You', 'Settled'];
 
 const SplitExpenseList = () => {
   const navigation = useNavigation<any>();
@@ -33,7 +20,7 @@ const SplitExpenseList = () => {
 
   const [expenses, setExpenses] = useState<SplitExpense[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
+  const [selectedFilter, setSelectedFilter] = useState<string>('All');
 
   const fetchExpenses = async () => {
     setLoading(true);
@@ -58,28 +45,40 @@ const SplitExpenseList = () => {
   const getFilteredExpenses = () => {
     if (!user?.userId) return expenses;
 
-    switch (selectedFilter) {
-      case 'youOwe':
-        return expenses.filter(expense => {
-          const participant = expense.participants?.find(
-            p => p.userId === user.userId,
-          );
-          return (
-            participant &&
-            !participant.isPayer &&
-            participant.status !== 'settled'
-          );
-        });
-      case 'owedToYou':
-        return expenses.filter(expense => {
-          const isCreator = expense.createdBy === user.userId;
-          return isCreator && expense.status !== 'settled';
-        });
-      case 'settled':
-        return expenses.filter(expense => expense.status === 'settled');
-      default:
-        return expenses;
-    }
+    return expenses.filter(expense => {
+      if (selectedFilter === 'All') return true;
+      if (selectedFilter === 'Settled') return expense.status === 'settled';
+
+      const userParticipantIndex = expense.participants?.findIndex(
+        p => p.userId === user.userId,
+      );
+      const userParticipant =
+        userParticipantIndex > -1
+          ? expense.participants[userParticipantIndex]
+          : null;
+
+      if (selectedFilter === 'You Owe') {
+        // You owe money if you are a participant, you DID NOT pay the full amount,
+        // and your owed amount is greater than your paid amount.
+        return (
+          userParticipant &&
+          !userParticipant.isPayer &&
+          userParticipant.status !== 'settled' &&
+          userParticipant.amountOwed > (userParticipant.amountPaid ?? 0)
+        );
+      }
+
+      if (selectedFilter === 'Owed to You') {
+        // Money is owed to you if you are the payer, and the expense is not fully settled
+        return (
+          userParticipant &&
+          userParticipant.isPayer &&
+          expense.status !== 'settled'
+        );
+      }
+
+      return true;
+    });
   };
 
   const getAmountDisplay = (expense: SplitExpense) => {
@@ -127,45 +126,38 @@ const SplitExpenseList = () => {
         }>
         <View style={localStyles.cardHeader}>
           <View style={localStyles.cardTitleSection}>
-            <Text
-              style={[localStyles.cardTitle, {color: themeColors.text}]}
-              numberOfLines={1}>
+            <AppText variant="lg" numberOfLines={1}>
               {item.description}
-            </Text>
-            <Text
-              style={[localStyles.cardCreator, {color: themeColors.mutedText}]}>
+            </AppText>
+            <AppText variant="md" style={{color: themeColors.mutedText}}>
               by {item.creatorName || 'You'}
-            </Text>
+            </AppText>
           </View>
           <View style={localStyles.cardAmountSection}>
-            <Text style={[localStyles.cardAmount, {color: amountColor}]}>
+            <AppText variant="sm" style={{color: amountColor}}>
               {type === 'negative'
                 ? 'You owe'
                 : type === 'positive'
                 ? 'You get back'
                 : ''}
-            </Text>
+            </AppText>
             <RupeeIcon
               amount={amount}
-              size={18}
+              size={16}
               color={amountColor}
               textStyle={{color: amountColor, fontWeight: 'bold'}}
             />
           </View>
         </View>
         <View style={localStyles.cardFooter}>
-          <Text
-            style={[
-              localStyles.cardParticipants,
-              {color: themeColors.mutedText},
-            ]}>
+          <AppText variant="md" style={{color: themeColors.mutedText}}>
             <Icon
               name="account-group"
               size={14}
               color={themeColors.mutedText}
             />{' '}
             {item.participants?.length || 0} people
-          </Text>
+          </AppText>
           <View
             style={[
               localStyles.statusBadge,
@@ -178,13 +170,13 @@ const SplitExpenseList = () => {
                     : '#3b82f620',
               },
             ]}>
-            <Text
+            <AppText
+              variant="md"
               style={[
-                localStyles.statusText,
                 {
                   color:
                     item.status === 'settled'
-                      ? '#22c55e'
+                      ? colors.success
                       : item.status === 'partially_settled'
                       ? '#f59e0b'
                       : '#3b82f6',
@@ -195,7 +187,7 @@ const SplitExpenseList = () => {
                 : item.status === 'partially_settled'
                 ? 'Partial'
                 : 'Pending'}
-            </Text>
+            </AppText>
           </View>
         </View>
       </TouchableOpacity>
@@ -241,45 +233,17 @@ const SplitExpenseList = () => {
             style={[localStyles.balanceButton, dynamicStyles.balanceButton]}
             onPress={() => navigation.navigate('Balances')}>
             <Icon name="scale-balance" size={18} color={colors.primary} />
-            <Text
-              style={[
-                localStyles.balanceButtonText,
-                dynamicStyles.balanceButtonText,
-              ]}>
-              Balances
-            </Text>
           </TouchableOpacity>
         }
       />
 
       {/* Filter tabs */}
-      <View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={localStyles.filterContainer}>
-          {filterOptions.map(option => (
-            <TouchableOpacity
-              key={option.key}
-              style={[
-                localStyles.filterButton,
-                selectedFilter === option.key
-                  ? dynamicStyles.filterButtonActive
-                  : dynamicStyles.filterButtonInactive,
-              ]}
-              onPress={() => setSelectedFilter(option.key)}>
-              <Text
-                style={[
-                  localStyles.filterText,
-                  selectedFilter === option.key
-                    ? localStyles.filterTextActive
-                    : dynamicStyles.filterTextInactive,
-                ]}>
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+      <View style={localStyles.filterContainer}>
+        <SegmentedControl
+          options={filterOptions}
+          activeOption={selectedFilter}
+          onOptionPress={setSelectedFilter}
+        />
       </View>
 
       {/* Expenses list */}
@@ -290,12 +254,16 @@ const SplitExpenseList = () => {
         refreshing={loading}
         onRefresh={fetchExpenses}
         contentContainerStyle={{paddingBottom: 80}}
+        ItemSeparatorComponent={() => (
+          <View
+            style={[
+              localStyles.separator,
+              {backgroundColor: 'gray', marginHorizontal: 26},
+            ]}
+          />
+        )}
         ListEmptyComponent={
-          loading ? (
-            <View style={localStyles.emptyContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-          ) : (
+          loading ? null : (
             <View style={localStyles.emptyContainer}>
               <Icon name="receipt" size={48} color={colors.mutedText} />
               <Text style={[localStyles.emptyText, dynamicStyles.emptyText]}>
@@ -321,34 +289,13 @@ const localStyles = StyleSheet.create({
     flex: 1,
   },
   filterContainer: {
-    flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 8,
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  filterText: {
-    fontSize: 14,
-    ...commonStyles.textDefault,
-  },
-  filterTextActive: {
-    color: '#fff',
   },
   card: {
     marginHorizontal: 16,
-    marginVertical: 6,
     borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    padding: 12,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -417,6 +364,9 @@ const localStyles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     marginTop: 12,
+  },
+  separator: {
+    height: 0.5,
   },
   balanceButton: {
     flexDirection: 'row',

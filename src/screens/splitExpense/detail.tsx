@@ -4,13 +4,14 @@ import {
   Alert,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
+import Button from '../../components/Button';
+import AppText from '../../components/common/AppText';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
@@ -138,6 +139,10 @@ const SplitExpenseDetail = () => {
     });
   };
 
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   const payer = participants.find(p => p.isPayer);
   const isCreator = expense?.createdBy === user?.userId;
   const canDelete = isCreator && expense?.status === 'pending';
@@ -218,10 +223,7 @@ const SplitExpenseDetail = () => {
       flex: 1,
     },
     participantName: {
-      fontSize: 16,
-      fontWeight: '500',
       color: colors.text,
-      ...commonStyles.textDefault,
     },
     participantStatus: {
       fontSize: 12,
@@ -271,32 +273,10 @@ const SplitExpenseDetail = () => {
       marginLeft: 12,
     },
     settlementText: {
-      fontSize: 14,
       color: colors.text,
-      ...commonStyles.textDefault,
     },
     settlementDate: {
-      fontSize: 12,
       color: colors.mutedText,
-      marginTop: 2,
-    },
-    deleteButton: {
-      backgroundColor: '#ef4444',
-      borderRadius: 12,
-      padding: 16,
-      alignItems: 'center',
-      marginTop: 20,
-    },
-    deleteButtonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: '600',
-      ...commonStyles.textDefault,
-    },
-    emptyText: {
-      color: colors.mutedText,
-      textAlign: 'center',
-      paddingVertical: 20,
     },
   });
 
@@ -314,9 +294,11 @@ const SplitExpenseDetail = () => {
   if (!expense) {
     return (
       <View style={styles.container}>
-        <Header title="Split Details" showBack />
+        <Header title="Split Details" showBackButton onBackPress={handleBack} />
         <View style={styles.loadingContainer}>
-          <Text style={{color: colors.text}}>Split expense not found</Text>
+          <AppText style={{color: colors.text}}>
+            Split expense not found
+          </AppText>
         </View>
       </View>
     );
@@ -331,45 +313,58 @@ const SplitExpenseDetail = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="Split Details" showBack />
+      <Header
+        title="Split Details"
+        showBackButton
+        onBackPress={() => navigation.canGoBack() && navigation.goBack()}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Summary Card */}
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryAmount}>
+          <AppText variant="h1" weight="bold" style={styles.summaryAmount}>
             ₹{parseFloat(expense.totalAmount.toString()).toFixed(2)}
-          </Text>
-          <Text style={styles.summaryDescription}>{expense.description}</Text>
-          <Text style={styles.summaryDate}>
+          </AppText>
+          <AppText style={styles.summaryDescription}>
+            {expense.description}
+          </AppText>
+          <AppText style={styles.summaryDate}>
             {new Date(expense.expenseDate).toLocaleDateString('en-IN', {
               day: 'numeric',
               month: 'long',
               year: 'numeric',
             })}
-          </Text>
+          </AppText>
           <View
             style={[styles.statusBadge, {backgroundColor: statusColor + '30'}]}>
-            <Text style={[styles.statusText, {color: statusColor}]}>
+            <AppText
+              weight="semiBold"
+              style={[styles.statusText, {color: statusColor}]}>
               {expense.status === 'settled'
                 ? '✓ Settled'
                 : expense.status === 'partially_settled'
                 ? 'Partially Settled'
                 : 'Pending'}
-            </Text>
+            </AppText>
           </View>
         </View>
 
         {/* Paid By */}
         {payer && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Paid by</Text>
+            <AppText variant="lg" weight="semiBold" style={styles.sectionTitle}>
+              Paid by
+            </AppText>
             <View style={styles.participantCard}>
               <Icon name="account-circle" size={40} color={colors.primary} />
               <View style={styles.participantInfo}>
-                <Text style={styles.participantName}>
+                <AppText
+                  variant="lg"
+                  weight="medium"
+                  style={styles.participantName}>
                   {payer.firstName} {payer.lastName}
                   {payer.userId === user?.userId && ' (You)'}
-                </Text>
+                </AppText>
               </View>
               <RupeeIcon
                 amount={parseFloat(expense.totalAmount.toString())}
@@ -382,7 +377,9 @@ const SplitExpenseDetail = () => {
 
         {/* Participants */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Split between</Text>
+          <AppText variant="lg" weight="semiBold" style={styles.sectionTitle}>
+            Split between
+          </AppText>
           {participants
             .filter(p => !p.isPayer)
             .map(participant => {
@@ -399,15 +396,18 @@ const SplitExpenseDetail = () => {
                     style={styles.participantAvatar}
                   />
                   <View style={styles.participantInfo}>
-                    <Text style={styles.participantName}>
+                    <AppText
+                      variant="lg"
+                      weight="medium"
+                      style={styles.participantName}>
                       {participant.firstName} {participant.lastName}
                       {participant.userId === user?.userId && ' (You)'}
-                    </Text>
-                    <Text style={styles.participantStatus}>
+                    </AppText>
+                    <AppText variant="sm" style={styles.participantStatus}>
                       {isSettled
                         ? '✓ Settled'
                         : `Owes ₹${remaining.toFixed(2)}`}
-                    </Text>
+                    </AppText>
                   </View>
                   <View style={styles.participantAmount}>
                     <RupeeIcon
@@ -438,18 +438,23 @@ const SplitExpenseDetail = () => {
         {/* Settlement History */}
         {settlements.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Settlement History</Text>
+            <AppText variant="lg" weight="semiBold" style={styles.sectionTitle}>
+              Settlement History
+            </AppText>
             {settlements.map(settlement => (
               <View key={settlement.id} style={styles.settlementCard}>
                 <Icon name="check-circle" size={24} color="#22c55e" />
                 <View style={styles.settlementInfo}>
-                  <Text style={styles.settlementText}>
+                  <AppText
+                    variant="lg"
+                    weight="medium"
+                    style={styles.settlementText}>
                     {settlement.payerName} paid {settlement.payeeName}
-                  </Text>
-                  <Text style={styles.settlementDate}>
+                  </AppText>
+                  <AppText variant="sm" style={styles.settlementDate}>
                     {new Date(settlement.settledAt).toLocaleDateString('en-IN')}
                     {settlement.note && ` • ${settlement.note}`}
-                  </Text>
+                  </AppText>
                 </View>
                 <RupeeIcon
                   amount={settlement.amount}
@@ -463,16 +468,16 @@ const SplitExpenseDetail = () => {
 
         {/* Delete Button */}
         {canDelete && (
-          <TouchableOpacity
-            style={[styles.deleteButton, deleting && {opacity: 0.6}]}
+          <Button
+            variant="outline"
+            style={{borderColor: colors.error, marginTop: 20}}
             onPress={handleDelete}
-            disabled={deleting}>
-            {deleting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.deleteButtonText}>Delete Split Expense</Text>
-            )}
-          </TouchableOpacity>
+            disabled={deleting}
+            loading={deleting}>
+            <AppText weight="semiBold" color={colors.error}>
+              Delete Split Expense
+            </AppText>
+          </Button>
         )}
       </ScrollView>
     </View>

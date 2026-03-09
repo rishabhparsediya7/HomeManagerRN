@@ -5,7 +5,7 @@ import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
 import {useMemo} from 'react';
-
+import AppText from '../../components/common/AppText';
 interface RupeeIconProps {
   amount: number;
   size?: number;
@@ -28,10 +28,12 @@ export default function RupeeIcon({
           alignItems: 'center',
           justifyContent: 'center',
           gap: 2,
+          // borderWidth: 1,
         },
         icon: {
           borderWidth: 1,
           borderColor: 'transparent',
+          marginTop: 1,
           ...Platform.select({
             ios: {
               paddingTop: 2, // Fine-tune alignment for iOS icon fonts
@@ -40,9 +42,7 @@ export default function RupeeIcon({
         },
         text: {
           textAlignVertical: 'auto',
-          fontSize: size,
           textAlign: 'center',
-          ...commonStyles.textDefault,
           color: color,
         },
       }),
@@ -51,7 +51,9 @@ export default function RupeeIcon({
   return (
     <View style={styles.container}>
       <Icon name="rupee" style={styles.icon} size={size} color={color} />
-      <Text style={[styles.text, textStyle]}>{getReadableAmount(amount)}</Text>
+      <AppText variant="h6" style={[styles.text, textStyle]}>
+        {getReadableAmount(amount)}
+      </AppText>
     </View>
   );
 }
