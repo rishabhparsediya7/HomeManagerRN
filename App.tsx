@@ -3,19 +3,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {NavigationContainer} from '@react-navigation/native';
 import {Buffer} from 'buffer';
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Platform, StyleSheet, Text, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import AuthorizeNavigation from './src/navigators/authorizeStack';
 import UnauthorizeNavigation from './src/navigators/unauthorizeStack';
 import AuthProvider, {useAuth} from './src/providers/AuthProvider';
-import {ThemeProvider} from './src/providers/ThemeContext';
+import {darkTheme, lightTheme} from './src/providers/Theme';
+import {ThemeProvider, useTheme} from './src/providers/ThemeContext';
 import UserProvider from './src/providers/UserContext';
 import socket from './src/utils/socket';
-import Toast from 'react-native-toast-message';
+
+declare const process: {
+  env: {
+    GOOGLE_WEB_CLIENT_ID: string;
+    GOOGLE_IOS_CLIENT_ID: string;
+    [key: string]: string | undefined;
+  };
+};
+declare const global: {
+  Buffer: any;
+};
 
 if (Platform.OS === 'android') {
   GoogleSignin.configure({
@@ -33,6 +45,50 @@ if (typeof global.Buffer === 'undefined') {
 const RootNavigator = () => {
   const {isAuthenticated} = useAuth();
   return isAuthenticated ? <AuthorizeNavigation /> : <UnauthorizeNavigation />;
+};
+
+const AppContent = ({fallbackUI}: {fallbackUI: any}) => {
+  const {theme} = useTheme();
+  const isDark = theme === 'dark';
+  const colors = isDark ? darkTheme : lightTheme;
+
+  // React Navigation Theme
+  const navTheme = {
+    dark: isDark,
+    colors: {
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.cardBackground,
+      text: colors.text,
+      border: colors.border || '#E5E7EB',
+      notification: colors.primary,
+    },
+  };
+
+  return (
+    <ErrorBoundary fallback={fallbackUI}>
+      <GestureHandlerRootView
+        style={[styles.container, {backgroundColor: colors.background}]}>
+        <BottomSheetModalProvider>
+          <SafeAreaView
+            style={[
+              StyleSheet.absoluteFill,
+              {backgroundColor: colors.background},
+            ]}
+            edges={['top', 'right', 'bottom', 'left']}>
+            <AuthProvider>
+              <UserProvider>
+                <NavigationContainer theme={navTheme as any}>
+                  <RootNavigator />
+                  <Toast />
+                </NavigationContainer>
+              </UserProvider>
+            </AuthProvider>
+          </SafeAreaView>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
+  );
 };
 
 const App = () => {
@@ -62,24 +118,7 @@ const App = () => {
 
   return (
     <ThemeProvider>
-      <ErrorBoundary fallback={fallbackUI}>
-        <GestureHandlerRootView style={styles.container}>
-          <BottomSheetModalProvider>
-            <SafeAreaView
-              style={StyleSheet.absoluteFill}
-              edges={['top', 'right', 'bottom', 'left']}>
-              <AuthProvider>
-                <UserProvider>
-                  <NavigationContainer>
-                    <RootNavigator />
-                    <Toast />
-                  </NavigationContainer>
-                </UserProvider>
-              </AuthProvider>
-            </SafeAreaView>
-          </BottomSheetModalProvider>
-        </GestureHandlerRootView>
-      </ErrorBoundary>
+      <AppContent fallbackUI={fallbackUI} />
     </ThemeProvider>
   );
 };

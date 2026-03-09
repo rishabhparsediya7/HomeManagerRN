@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {StatusBar, Platform} from 'react-native';
 import {useTheme} from '../providers/ThemeContext';
-// Removed HomeProvider import as we now use Zustand store
+import {darkTheme, lightTheme} from '../providers/Theme';
 import DrawerNavigator from './drawerNavigator';
 import {RouteProp} from '@react-navigation/native';
 import Dashboard from '../screens/dashboard';
@@ -85,18 +85,15 @@ const AuthorizeNavigationStack =
 const AuthorizeNavigation = () => {
   const {theme} = useTheme();
   const isDark = theme === 'dark';
-
-  // Update status bar style based on theme
-  useEffect(() => {
-    if (Platform.OS === 'android') {
-      StatusBar.setBackgroundColor('transparent', false);
-      StatusBar.setTranslucent(false);
-    }
-    StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content');
-  }, [isDark]);
+  const colors = isDark ? darkTheme : lightTheme;
 
   return (
     <>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor="transparent"
+        translucent={true}
+      />
       <AuthorizeNavigationStack.Navigator
         screenOptions={{
           headerShown: false,
