@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 import Header from '../../components/Header';
 import Button from '../../components/Button';
 import AppText from '../../components/common/AppText';
@@ -18,6 +19,7 @@ import {commonStyles} from '../../utils/styles';
 import splitExpenseApi, {SplitExpense} from '../../services/splitExpenseApi';
 import RupeeIcon from '../../components/rupeeIcon';
 import {useAuth} from '../../providers/AuthProvider';
+import {createInitialsForImage} from '../../utils/users';
 
 interface RouteParams {
   splitExpenseId: string;
@@ -162,30 +164,25 @@ const SplitExpenseDetail = () => {
       paddingBottom: 100,
     },
     summaryCard: {
-      backgroundColor: colors.primary,
-      borderRadius: 16,
-      padding: 24,
-      marginBottom: 20,
+      alignItems: 'center',
+      paddingVertical: 32,
+      marginBottom: 16,
     },
     summaryAmount: {
-      fontSize: 32,
-      fontWeight: 'bold',
-      color: '#fff',
-      textAlign: 'center',
+      fontSize: 42,
+      color: colors.text,
       marginBottom: 8,
     },
     summaryDescription: {
-      fontSize: 18,
-      color: '#fff',
+      fontSize: 16,
+      color: colors.mutedText,
       textAlign: 'center',
-      opacity: 0.9,
     },
     summaryDate: {
       fontSize: 14,
-      color: '#fff',
+      color: colors.mutedText,
       textAlign: 'center',
-      opacity: 0.7,
-      marginTop: 8,
+      marginTop: 4,
     },
     statusBadge: {
       alignSelf: 'center',
@@ -202,22 +199,29 @@ const SplitExpenseDetail = () => {
       marginBottom: 20,
     },
     sectionTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 12,
-      ...commonStyles.textDefault,
+      fontSize: 14,
+      color: colors.mutedText,
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+      paddingHorizontal: 8,
     },
     participantCard: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 8,
       flexDirection: 'row',
       alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border || '#E5E7EB',
+      backgroundColor: colors.background, // Important for Swipeable overlap
     },
     participantAvatar: {
       marginRight: 12,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     participantInfo: {
       flex: 1,
@@ -247,12 +251,14 @@ const SplitExpenseDetail = () => {
     },
     actionButtons: {
       flexDirection: 'row',
-      gap: 8,
-      marginLeft: 8,
+      height: '100%',
+      alignItems: 'center',
     },
-    actionButton: {
-      padding: 8,
-      borderRadius: 8,
+    actionSwipeButton: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 60,
+      height: '100%',
     },
     settleButton: {
       backgroundColor: '#22c55e',
@@ -261,12 +267,12 @@ const SplitExpenseDetail = () => {
       backgroundColor: colors.primary,
     },
     settlementCard: {
-      backgroundColor: colors.cardBackground,
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 8,
       flexDirection: 'row',
       alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 8,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border || '#E5E7EB',
     },
     settlementInfo: {
       flex: 1,
@@ -356,7 +362,17 @@ const SplitExpenseDetail = () => {
               Paid by
             </AppText>
             <View style={styles.participantCard}>
-              <Icon name="account-circle" size={40} color={colors.primary} />
+              <View
+                style={[
+                  styles.participantAvatar,
+                  {backgroundColor: colors.primary + '20'},
+                ]}>
+                <AppText color={colors.primary} weight="semiBold">
+                  {createInitialsForImage(
+                    `${payer.firstName} ${payer.lastName}`,
+                  )}
+                </AppText>
+              </View>
               <View style={styles.participantInfo}>
                 <AppText
                   variant="lg"
@@ -387,50 +403,70 @@ const SplitExpenseDetail = () => {
               const isSettled = participant.status === 'settled';
               const canSettle = !isSettled && payer?.userId === user?.userId;
 
+              const renderRightActions = () => {
+                if (isSettled) return null;
+                return (
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={[styles.actionSwipeButton, styles.settleButton]}
+                      onPress={() => handleSettle(participant)}>
+                      <Icon name="check" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.actionSwipeButton, styles.reminderButton]}
+                      onPress={() => handleSendReminder(participant)}>
+                      <Icon name="bell-outline" size={22} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+                );
+              };
+
               return (
-                <View key={participant.id} style={styles.participantCard}>
-                  <Icon
-                    name="account-circle"
-                    size={40}
-                    color={isSettled ? '#22c55e' : colors.mutedText}
-                    style={styles.participantAvatar}
-                  />
-                  <View style={styles.participantInfo}>
-                    <AppText
-                      variant="lg"
-                      weight="medium"
-                      style={styles.participantName}>
-                      {participant.firstName} {participant.lastName}
-                      {participant.userId === user?.userId && ' (You)'}
-                    </AppText>
-                    <AppText variant="sm" style={styles.participantStatus}>
-                      {isSettled
-                        ? '✓ Settled'
-                        : `Owes ₹${remaining.toFixed(2)}`}
-                    </AppText>
-                  </View>
-                  <View style={styles.participantAmount}>
-                    <RupeeIcon
-                      amount={participant.amountOwed}
-                      size={14}
-                      color={isSettled ? '#22c55e' : colors.text}
-                    />
-                  </View>
-                  {canSettle && !isSettled && (
-                    <View style={styles.actionButtons}>
-                      <TouchableOpacity
-                        style={[styles.actionButton, styles.settleButton]}
-                        onPress={() => handleSettle(participant)}>
-                        <Icon name="check" size={18} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.actionButton, styles.reminderButton]}
-                        onPress={() => handleSendReminder(participant)}>
-                        <Icon name="bell" size={18} color="#fff" />
-                      </TouchableOpacity>
+                <Swipeable
+                  key={participant.id}
+                  renderRightActions={renderRightActions}
+                  overshootRight={false}>
+                  <View style={styles.participantCard}>
+                    <View
+                      style={[
+                        styles.participantAvatar,
+                        {
+                          backgroundColor: isSettled
+                            ? '#22c55e20'
+                            : colors.primary + '20',
+                        },
+                      ]}>
+                      <AppText
+                        color={isSettled ? '#22c55e' : colors.primary}
+                        weight="semiBold">
+                        {createInitialsForImage(
+                          `${participant.firstName} ${participant.lastName}`,
+                        )}
+                      </AppText>
                     </View>
-                  )}
-                </View>
+                    <View style={styles.participantInfo}>
+                      <AppText
+                        variant="lg"
+                        weight="medium"
+                        style={styles.participantName}>
+                        {participant.firstName} {participant.lastName}
+                        {participant.userId === user?.userId && ' (You)'}
+                      </AppText>
+                      <AppText variant="sm" style={styles.participantStatus}>
+                        {isSettled
+                          ? '✓ Settled'
+                          : `Owes ₹${remaining.toFixed(2)}`}
+                      </AppText>
+                    </View>
+                    <View style={styles.participantAmount}>
+                      <RupeeIcon
+                        amount={participant.amountOwed}
+                        size={14}
+                        color={isSettled ? '#22c55e' : colors.text}
+                      />
+                    </View>
+                  </View>
+                </Swipeable>
               );
             })}
         </View>
@@ -465,12 +501,14 @@ const SplitExpenseDetail = () => {
             ))}
           </View>
         )}
+      </ScrollView>
 
-        {/* Delete Button */}
-        {canDelete && (
+      {/* Sticky Delete Button Footer */}
+      {canDelete && (
+        <View style={{padding: 16, backgroundColor: colors.background}}>
           <Button
             variant="outline"
-            style={{borderColor: colors.error, marginTop: 20}}
+            style={{borderColor: colors.error}}
             onPress={handleDelete}
             disabled={deleting}
             loading={deleting}>
@@ -478,8 +516,8 @@ const SplitExpenseDetail = () => {
               Delete Split Expense
             </AppText>
           </Button>
-        )}
-      </ScrollView>
+        </View>
+      )}
     </View>
   );
 };
