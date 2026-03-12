@@ -7,12 +7,12 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import AppGradient from '../../components/common/AppGradient';
-import AppText from '../../components/common/AppText';
-import DonutChart from '../../components/common/DonutChart';
-import ExpenseCard from '../../components/expenseCard';
-import Header from '../../components/Header';
-import RupeeIcon from '../../components/rupeeIcon';
+import AppGradient from '@atoms/AppGradient';
+import AppText from '@atoms/AppText';
+import DonutChart from '@organisms/DonutChart';
+import ExpenseCard from '@organisms/expenseCard';
+import Header from '@organisms/Header';
+import RupeeIcon from '@atoms/rupeeIcon';
 import {category} from '../../constants';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
 import {useAuth} from '../../providers/AuthProvider';

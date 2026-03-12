@@ -11,15 +11,15 @@ import {
   View,
 } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AppText from '../../components/common/AppText';
-import Header from '../../components/Header';
+import AppText from '@atoms/AppText';
+import Header from '@organisms/Header';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';
 import socket from '../../utils/socket';
 import {createInitialsForImage} from '../../utils/users';
 import {commonStyles} from '../../utils/styles';
-import SegmentedControl from '../../components/common/SegmentedControl';
+import SegmentedControl from '@molecules/SegmentedControl';
 
 interface User {
   id: string;

@@ -8,8 +8,8 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import AppText from '../../components/common/AppText';
-import Header from '../../components/Header';
+import AppText from '@atoms/AppText';
+import Header from '@organisms/Header';
 import {lightTheme} from '../../providers/Theme';
 import {useHomeStore} from '../../store';
 import api from '../../services/api';

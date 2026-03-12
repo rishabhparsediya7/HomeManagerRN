@@ -16,7 +16,7 @@ import {
   View,
 } from 'react-native';
 import {UnauthorizeNavigationStackList} from '../../navigators/unauthorizeStack';
-import Button from '../../components/Button';
+import Button from '@atoms/Button';
 import {lightTheme} from '../../providers/Theme';
 import api from '../../services/api';
 import {commonStyles} from '../../utils/styles';

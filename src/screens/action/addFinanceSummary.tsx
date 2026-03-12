@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Header from '../../components/Header';
-import { MonthYearPicker } from '../../components/MonthYearPicker';
+import Header from '@organisms/Header';
+import { MonthYearPicker } from '@molecules/MonthYearPicker';
 import { darkTheme, lightTheme } from '../../providers/Theme';
 import { useTheme } from '../../providers/ThemeContext';
 import api from '../../services/api';

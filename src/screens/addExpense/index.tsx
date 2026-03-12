@@ -20,13 +20,13 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Button from '../../components/Button';
-import CategorySelector from '../../components/categorySelector';
-import AppInput from '../../components/common/AppInput';
-import AppText from '../../components/common/AppText';
-import Header from '../../components/Header';
-import Icons from '../../components/icons';
-import PaymentMethodSelector from '../../components/paymentMethodSelector';
+import Button from '@atoms/Button';
+import CategorySelector from '@organisms/categorySelector';
+import AppInput from '@molecules/AppInput';
+import AppText from '@atoms/AppText';
+import Header from '@organisms/Header';
+import Icons from '@atoms/icons';
+import PaymentMethodSelector from '@organisms/paymentMethodSelector';
 import {category as expenseCategory} from '../../constants';
 import {AuthorizeNavigationStackList} from '../../navigators/authorizeStack';
 import {darkTheme, lightTheme} from '../../providers/Theme';

@@ -1,4 +1,4 @@
-import Icons from './components/icons';
+import Icons from '@atoms/icons';
 
 export const months: string[] = [
   'January',

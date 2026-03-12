@@ -15,9 +15,9 @@ import {
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Button from '../../../components/Button';
-import AppInput from '../../../components/common/AppInput';
-import AppText from '../../../components/common/AppText';
+import Button from '@atoms/Button';
+import AppInput from '@molecules/AppInput';
+import AppText from '@atoms/AppText';
 import {useAuthorizeNavigation} from '../../../navigators/navigators';
 import {darkTheme, lightTheme} from '../../../providers/Theme';
 import {useTheme} from '../../../providers/ThemeContext';

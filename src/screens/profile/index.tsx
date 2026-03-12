@@ -2,9 +2,9 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, FlatList, ScrollView, StyleSheet, View} from 'react-native';
 import {Asset} from 'react-native-image-picker';
-import AccountOption from '../../components/accountOptions';
-import AppText from '../../components/common/AppText';
-import ImageUploader from '../../components/imageUploader';
+import AccountOption from '@organisms/accountOptions';
+import AppText from '@atoms/AppText';
+import ImageUploader from '@molecules/imageUploader';
 import {useAuth} from '../../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';

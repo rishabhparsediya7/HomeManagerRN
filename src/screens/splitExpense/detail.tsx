@@ -10,14 +10,14 @@ import {
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-import Header from '../../components/Header';
-import Button from '../../components/Button';
-import AppText from '../../components/common/AppText';
+import Header from '@organisms/Header';
+import Button from '@atoms/Button';
+import AppText from '@atoms/AppText';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
 import splitExpenseApi, {SplitExpense} from '../../services/splitExpenseApi';
-import RupeeIcon from '../../components/rupeeIcon';
+import RupeeIcon from '@atoms/rupeeIcon';
 import {useAuth} from '../../providers/AuthProvider';
 import {createInitialsForImage} from '../../utils/users';
 

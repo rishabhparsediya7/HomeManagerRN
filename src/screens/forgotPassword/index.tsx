@@ -10,7 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-import Button from '../../components/Button';
+import Button from '@atoms/Button';
 import {UnauthorizeNavigationStackList} from '../../navigators/unauthorizeStack';
 import {lightTheme} from '../../providers/Theme';
 import api from '../../services/api';

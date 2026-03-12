@@ -1,7 +1,7 @@
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import React, {useState, useEffect} from 'react';
 import {View, StyleSheet} from 'react-native';
-import CustomDrawerContent from '../components/CustomDrawerContent';
+import CustomDrawerContent from '@organisms/CustomDrawerContent';
 import BottomTabNavigator from './bottomTabNavigator';
 
 export type DrawerParamList = {

@@ -15,15 +15,15 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Button from '../../components/Button';
-import CategorySelector from '../../components/categorySelector';
-import AppInput from '../../components/common/AppInput';
-import AppText from '../../components/common/AppText';
+import Button from '@atoms/Button';
+import CategorySelector from '@organisms/categorySelector';
+import AppInput from '@molecules/AppInput';
+import AppText from '@atoms/AppText';
 import FriendSelector, {
   FriendItem,
-} from '../../components/friendSelector/FriendSelector';
-import Header from '../../components/Header';
-import RupeeIcon from '../../components/rupeeIcon';
+} from '@organisms/friendSelector/FriendSelector';
+import Header from '@organisms/Header';
+import RupeeIcon from '@atoms/rupeeIcon';
 import {category as expenseCategories} from '../../constants';
 import {useAuth} from '../../providers/AuthProvider';
 import {darkTheme, lightTheme} from '../../providers/Theme';

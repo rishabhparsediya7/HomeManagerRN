@@ -10,6 +10,18 @@ module.exports = function (api) {
   return {
     presets: ['module:@react-native/babel-preset'],
     plugins: [
+      [
+        'module-resolver',
+        {
+          root: ['./src'],
+          extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
+          alias: {
+            '@atoms': './src/components/atoms',
+            '@molecules': './src/components/molecules',
+            '@organisms': './src/components/organisms',
+          },
+        },
+      ],
       ['inline-dotenv', {path: envPath}],
       [
         'module:react-native-dotenv',

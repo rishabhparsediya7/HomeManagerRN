@@ -10,9 +10,9 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Header from '../../components/Header';
-import AppText from '../../components/common/AppText';
-import PremiumGate from '../../components/premiumGate/PremiumGate';
+import Header from '@organisms/Header';
+import AppText from '@atoms/AppText';
+import PremiumGate from '@organisms/premiumGate/PremiumGate';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {useAuth} from '../../providers/AuthProvider';

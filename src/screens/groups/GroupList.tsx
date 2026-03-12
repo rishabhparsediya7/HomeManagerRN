@@ -9,9 +9,9 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Button from '../../components/Button';
-import Header from '../../components/Header';
-import AppText from '../../components/common/AppText';
+import Button from '@atoms/Button';
+import Header from '@organisms/Header';
+import AppText from '@atoms/AppText';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {commonStyles} from '../../utils/styles';

@@ -12,8 +12,8 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Icons from '../../components/icons';
-import Button from '../../components/Button';
+import Icons from '@atoms/icons';
+import Button from '@atoms/Button';
 import {useAuthorizeNavigation} from '../../navigators/navigators';
 import {useAuth} from '../../providers/AuthProvider';
 import {lightTheme} from '../../providers/Theme';

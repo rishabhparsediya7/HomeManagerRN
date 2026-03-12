@@ -2,13 +2,13 @@ import {ScrollView, StyleSheet, View} from 'react-native';
 import React, {useState} from 'react';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
-import Header from '../../components/Header';
+import Header from '@organisms/Header';
 import {commonStyles} from '../../utils/styles';
 import {useAuth} from '../../providers/AuthProvider';
 import api from '../../services/api';
-import AppInput from '../../components/common/AppInput';
-import Button from '../../components/Button';
-import AppText from '../../components/common/AppText';
+import AppInput from '@molecules/AppInput';
+import Button from '@atoms/Button';
+import AppText from '@atoms/AppText';
 
 interface FormData {
   name: string;

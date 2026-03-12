@@ -17,7 +17,7 @@ import {
 } from '@react-navigation/native';
 import {UnauthorizeNavigationStackList} from '../../navigators/unauthorizeStack';
 import api from '../../services/api';
-import Button from '../../components/Button';
+import Button from '@atoms/Button';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';

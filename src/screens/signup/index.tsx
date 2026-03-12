@@ -12,9 +12,9 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Icons from '../../components/icons';
+import Icons from '@atoms/icons';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Button from '../../components/Button';
+import Button from '@atoms/Button';
 import {useAuth} from '../../providers/AuthProvider';
 import {lightTheme} from '../../providers/Theme';
 import {googleSignIn} from '../signin/googleSigninUtil';

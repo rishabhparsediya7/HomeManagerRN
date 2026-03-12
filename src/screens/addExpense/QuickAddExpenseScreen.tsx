@@ -34,9 +34,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AppInput from '../../components/common/AppInput';
-import AppText from '../../components/common/AppText';
-import Header from '../../components/Header';
+import AppInput from '@molecules/AppInput';
+import AppText from '@atoms/AppText';
+import Header from '@organisms/Header';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import api from '../../services/api';

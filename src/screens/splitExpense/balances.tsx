@@ -9,12 +9,12 @@ import {
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Header from '../../components/Header';
+import Header from '@organisms/Header';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
 import splitExpenseApi, {Balance} from '../../services/splitExpenseApi';
-import RupeeIcon from '../../components/rupeeIcon';
+import RupeeIcon from '@atoms/rupeeIcon';
 
 const BalancesScreen = () => {
   const navigation = useNavigation<any>();

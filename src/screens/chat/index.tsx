@@ -7,7 +7,7 @@ import {View} from 'react-native';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {StyleSheet} from 'react-native';
-import Header from '../../components/Header';
+import Header from '@organisms/Header';
 import {useFriendsStore} from '../../store';
 import {initKeys} from './services/chatKeyService';
 import {fetchFriends as fetchFriendsApi} from './services/chatApiService';

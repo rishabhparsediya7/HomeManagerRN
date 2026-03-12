@@ -10,17 +10,17 @@ import React, {useState} from 'react';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {commonStyles} from '../../utils/styles';
-import Header from '../../components/Header';
-import Tabs from '../../components/tabs';
-import ExpenseScreen from '../../components/tabs/expenseScreen';
-import FinancialSummaryScreen from '../../components/tabs/financialSummary';
+import Header from '@organisms/Header';
+import Tabs from '@organisms/tabs';
+import ExpenseScreen from '@organisms/tabs/expenseScreen';
+import FinancialSummaryScreen from '@organisms/tabs/financialSummary';
 import {
   downloadAndSharePdf,
   generateAndShareExpenseReport,
 } from '../../utils/fileUtil';
-import FilterButton from '../../components/filterButton';
+import FilterButton from '@molecules/filterButton';
 import Icon from 'react-native-vector-icons/SimpleLineIcons';
-import SlideDropdown from '../../components/dropdown';
+import SlideDropdown from '@molecules/dropdown';
 import {categories} from '../../types/categories';
 import {paymentMethods} from '../addExpense';
 

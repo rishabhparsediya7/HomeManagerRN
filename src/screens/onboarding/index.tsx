@@ -7,10 +7,10 @@ import {
   useWindowDimensions,
   StatusBar,
 } from 'react-native';
-import Icons from '../../components/icons';
+import Icons from '@atoms/icons';
 import {useTheme} from '../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../providers/Theme';
-import Button from '../../components/Button';
+import Button from '@atoms/Button';
 import {commonStyles} from '../../utils/styles';
 
 const slides = [

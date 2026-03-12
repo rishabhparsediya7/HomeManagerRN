@@ -17,9 +17,9 @@ import {useChatStore} from '../../../store';
 import {useTheme} from '../../../providers/ThemeContext';
 import {darkTheme, lightTheme} from '../../../providers/Theme';
 
-import AppText from '../../../components/common/AppText';
-import AppInput from '../../../components/common/AppInput';
-import Button from '../../../components/Button';
+import AppText from '@atoms/AppText';
+import AppInput from '@molecules/AppInput';
+import Button from '@atoms/Button';
 import socket from '../../../utils/socket';
 import {decryptSingleMessage} from '../services/chatApiService';
 
@@ -178,7 +178,7 @@ const ListEmptyComponent = ({styles, colors}: {styles: any; colors: any}) => {
   );
 };
 
-import SegmentedControl from '../../../components/common/SegmentedControl';
+import SegmentedControl from '@molecules/SegmentedControl';
 
 const FriendsScreen = ({
   friends,

@@ -1,7 +1,7 @@
 // BottomTabNavigator.tsx
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import CustomTabBar from '../components/customTabBar/CustomTabBar';
+import CustomTabBar from '@organisms/customTabBar/CustomTabBar';
 
 import Home from '../screens/home';
 import Expense from '../screens/expense';

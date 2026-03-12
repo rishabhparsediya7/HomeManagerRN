@@ -7,9 +7,9 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Header from '../../components/Header';
-import AppText from '../../components/common/AppText';
-import SegmentedControl from '../../components/common/SegmentedControl';
+import Header from '@organisms/Header';
+import AppText from '@atoms/AppText';
+import SegmentedControl from '@molecules/SegmentedControl';
 import {darkTheme, lightTheme} from '../../providers/Theme';
 import {useTheme} from '../../providers/ThemeContext';
 import {useAuth} from '../../providers/AuthProvider';
