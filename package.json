@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "start": "ENVIRONMENT=development react-native start --reset-cache",
     "start:prod": "ENVIRONMENT=production react-native start --reset-cache",
+    "build:ar": "ENVIRONMENT=production cd android && ./gradlew clean && ./gradlew assembleRelease",
     "test": "jest",
     "postinstall": "patch-package"
   },
