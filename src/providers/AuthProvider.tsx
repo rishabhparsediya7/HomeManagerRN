@@ -185,7 +185,9 @@ export default function AuthProvider({children}: PropsWithChildren) {
   }) => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/api/auth/login`, {
+      const url = `${BASE_URL}/api/auth/login`;
+      console.log('🚀 ~ signInWithPassword ~ url:', url);
+      const response = await fetch(url, {
         method: 'POST',
         body: JSON.stringify({email, password}),
         headers: {
